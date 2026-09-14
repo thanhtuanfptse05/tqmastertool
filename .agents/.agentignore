@@ -1,0 +1,27 @@
+# .agents/.agentignore
+# Các file và thư mục AI Agent không cần đọc hoặc tuyệt đối không được đọc
+
+node_modules/
+.next/
+dist/
+build/
+coverage/
+
+# Secrets & Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# Git internal
+.git/
+
+# Large binary files & digital zip deliverables
+*.zip
+*.tar.gz
+*.rar
+*.mp4
+*.exe
