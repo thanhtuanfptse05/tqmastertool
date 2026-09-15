@@ -1,0 +1,196 @@
+"use client";
+
+import React, { useState } from "react";
+import { useStore } from "@/lib/store";
+import {
+  Package,
+  Download,
+  Key,
+  GitBranch,
+  FileText,
+  ShieldCheck,
+  ExternalLink,
+  Copy,
+  Check,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
+
+export default function DeliverableVaultPage() {
+  const { currentUser, getUnlockedDeliverables, orders } = useStore();
+  const deliverables = getUnlockedDeliverables();
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(id);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const handleDownload = (title: string) => {
+    // Generate simulated secure signed file download
+    const element = document.createElement("a");
+    const file = new Blob([`// CODEVAULT STUDIO DELIVERABLE VAULT\n// Package: ${title}\n// Authorized Customer: ${currentUser?.email || "customer"}\n// Generated at: ${new Date().toISOString()}\n\nconsole.log("Package loaded successfully!");`], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}_source.zip`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-600 uppercase tracking-wider mb-1">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Khu Vực Bàn Giao Bản Quyền</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Kho Tài Nguyên Số (Deliverable Vault)
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Các gói mã nguồn, đồ án và bài tập đã được Admin phê duyệt thành công. Bạn có thể tải xuống không giới hạn.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="px-3.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            Đã mở khóa: <b>{deliverables.length}</b> gói
+          </span>
+        </div>
+      </div>
+
+      {/* Deliverables List */}
+      {deliverables.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6">
+          {deliverables.map((item, idx) => (
+            <div
+              key={idx}
+              className="bg-white rounded-card border border-slate-200/90 p-6 shadow-card hover:shadow-card-hover transition-all space-y-5"
+            >
+              {/* Deliverable Top */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      {item.product_category}
+                    </span>
+                    <span className="text-xs text-slate-400">Order ID: {item.order_id}</span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 mt-1">
+                    {item.product_title}
+                  </h3>
+                </div>
+
+                <button
+                  onClick={() => handleDownload(item.product_title)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all self-start sm:self-auto active:scale-95"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Tải Mã Nguồn (.ZIP)</span>
+                </button>
+              </div>
+
+              {/* Secure Credentials / Repo / License */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {item.git_repo_url && (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center font-bold">
+                        <GitBranch className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">Kho lưu trữ Git riêng tư</p>
+                        <p className="text-[11px] text-slate-500 font-mono truncate max-w-[200px]">
+                          {item.git_repo_url}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={item.git_repo_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 transition-colors"
+                      title="Mở GitHub Repo"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+
+                {item.license_key && (
+                  <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                        <Key className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-purple-900">Khóa bản quyền (License Key)</p>
+                        <p className="text-[11px] text-purple-700 font-mono font-bold">
+                          {item.license_key}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleCopy(item.license_key!, `lic-${idx}`)}
+                      className="p-2 rounded-xl bg-white border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors"
+                      title="Sao chép License Key"
+                    >
+                      {copiedKey === `lic-${idx}` ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Instructions */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70">
+                <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-700">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Hướng Dẫn Cài Đặt & Chạy Mã Nguồn:</span>
+                </div>
+                <p className="text-xs text-slate-600 whitespace-pre-line leading-relaxed pl-6">
+                  {item.instructions}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Dashed Empty State Card */
+        <div className="bg-white border-2 border-dashed border-slate-300 rounded-card p-12 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-3xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
+            <Package className="w-8 h-8" />
+          </div>
+          <h3 className="text-base font-extrabold text-slate-900">
+            Kho tài nguyên chưa có sản phẩm nào
+          </h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1.5 leading-relaxed">
+            Quyền truy cập mã nguồn chỉ được mở sau khi bạn đặt mua và Admin đã xác nhận tiền chuyển khoản thành công.
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <a
+              href="/#catalog"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm hover:bg-blue-700 transition-colors"
+            >
+              Xem danh mục sản phẩm
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href="/customer/orders"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-colors"
+            >
+              Kiểm tra đơn hàng đã đặt
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

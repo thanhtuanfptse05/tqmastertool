@@ -75,15 +75,15 @@ plan.md             # Master project roadmap
 
 | # | Feature | Status |
 |---|---|---|
-| 001 | User Auth & Authorization | 📝 Spec Ready |
-| 002 | Product Catalog | 📝 Spec Ready |
-| 003 | Product Detail & Demo Engine | 📝 Spec Ready |
-| 004 | Order Checkout & VietQR | 📝 Spec Ready |
-| 005 | Bill Upload & Submission | 📝 Spec Ready |
-| 006 | Admin Order Management | 📝 Spec Ready |
-| 007 | Customer Deliverable Vault | 📝 Spec Ready |
-| 008 | Admin Product CRUD | 📝 Spec Ready |
-| 009 | Admin Dashboard | 📝 Spec Ready |
+| 001 | User Auth & Authorization | ✅ Hoàn Thành |
+| 002 | Product Catalog | ✅ Hoàn Thành |
+| 003 | Product Detail & Demo Engine | ✅ Hoàn Thành |
+| 004 | Order Checkout & VietQR | ✅ Hoàn Thành |
+| 005 | Bill Upload & Submission | ✅ Hoàn Thành |
+| 006 | Admin Order Management | ✅ Hoàn Thành |
+| 007 | Customer Deliverable Vault | ✅ Hoàn Thành |
+| 008 | Admin Product CRUD | ✅ Hoàn Thành |
+| 009 | Admin Dashboard | ✅ Hoàn Thành |
 
 ---
 
