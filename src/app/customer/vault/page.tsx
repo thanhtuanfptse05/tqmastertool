@@ -81,7 +81,7 @@ export default function DeliverableVaultPage() {
             <span>Khu Vực Bàn Giao Bản Quyền</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Kho Tài Nguyên Số (Deliverable Vault)
+            Tài Nguyên Của Bạn
           </h1>
           <p className="text-xs text-slate-500 mt-1">
             Các gói mã nguồn, đồ án và bài tập đã được Admin phê duyệt thành công. Bạn có thể tải xuống không giới hạn.

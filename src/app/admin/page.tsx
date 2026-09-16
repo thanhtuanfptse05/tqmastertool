@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useStore } from "@/lib/store";
 import { formatVND, formatDateVN } from "@/lib/vietqr";
 import {
@@ -11,16 +11,86 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  Clock,
   ArrowUpRight,
   Eye,
+  CalendarDays,
+  CalendarRange,
+  Calendar,
 } from "lucide-react";
+
+type ChartTimeframe = "day" | "month" | "year";
+
+/** Group completed orders by a given timeframe bucket */
+function groupOrdersByTimeframe(
+  orders: Array<{ total_amount: number; created_at: string }>,
+  timeframe: ChartTimeframe
+): Array<{ label: string; value: number }> {
+  const now = new Date();
+  const map = new Map<string, number>();
+
+  if (timeframe === "day") {
+    // Last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+      map.set(key, 0);
+    }
+    orders.forEach((o) => {
+      const d = new Date(o.created_at);
+      const diff = Math.floor((now.getTime() - d.getTime()) / 86400000);
+      if (diff >= 0 && diff <= 29) {
+        const key = `${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
+        map.set(key, (map.get(key) || 0) + o.total_amount);
+      }
+    });
+  } else if (timeframe === "month") {
+    // Last 12 months
+    const monthNames = ["Th1","Th2","Th3","Th4","Th5","Th6","Th7","Th8","Th9","Th10","Th11","Th12"];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${monthNames[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`;
+      map.set(key, 0);
+    }
+    orders.forEach((o) => {
+      const d = new Date(o.created_at);
+      const diff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
+      if (diff >= 0 && diff <= 11) {
+        const key = `${monthNames[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`;
+        map.set(key, (map.get(key) || 0) + o.total_amount);
+      }
+    });
+  } else {
+    // Last 5 years
+    for (let i = 4; i >= 0; i--) {
+      const year = now.getFullYear() - i;
+      map.set(String(year), 0);
+    }
+    orders.forEach((o) => {
+      const year = new Date(o.created_at).getFullYear();
+      const diff = now.getFullYear() - year;
+      if (diff >= 0 && diff <= 4) {
+        const key = String(year);
+        map.set(key, (map.get(key) || 0) + o.total_amount);
+      }
+    });
+  }
+
+  return Array.from(map.entries()).map(([label, value]) => ({ label, value }));
+}
+
+/** Thin out labels to avoid crowding (show every Nth label) */
+function thinLabels(labels: string[], maxVisible: number): (string | null)[] {
+  if (labels.length <= maxVisible) return labels;
+  const step = Math.ceil(labels.length / maxVisible);
+  return labels.map((l, i) => (i % step === 0 || i === labels.length - 1 ? l : null));
+}
 
 export default function AdminDashboardPage() {
   const { orders, products, users } = useStore();
-  const [chartTimeframe, setChartTimeframe] = useState<"7d" | "30d" | "3m">("30d");
+  const [chartTimeframe, setChartTimeframe] = useState<ChartTimeframe>("day");
 
-  // Metrics Calculation
+  // ── Metrics from real data ──────────────────────────────────────────────
   const completedOrders = orders.filter((o) => o.status === "completed");
   const pendingOrders = orders.filter((o) => o.status === "pending_approval");
 
@@ -29,27 +99,69 @@ export default function AdminDashboardPage() {
   const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
   const totalUsersCount = users.length;
 
-  // Category sales distribution
-  const categorySales = {
-    lab211: 0,
-    project: 0,
-    tool: 0,
-  };
-
+  // Category breakdown from real orders
+  const categorySales = { lab211: 0, project: 0, tool: 0 };
   completedOrders.forEach((o) => {
     o.items?.forEach((item) => {
-      if (categorySales[item.product_category] !== undefined) {
-        categorySales[item.product_category] += item.unit_price;
-      }
+      const cat = item.product_category as keyof typeof categorySales;
+      if (cat in categorySales) categorySales[cat] += item.unit_price;
     });
   });
 
   const totalCatSum = categorySales.lab211 + categorySales.project + categorySales.tool || 1;
   const catPercentages = [
-    { label: "LAB211 OOP", value: Math.round((categorySales.lab211 / totalCatSum) * 100) || 45, color: "#2563eb" },
-    { label: "Project & Assignment", value: Math.round((categorySales.project / totalCatSum) * 100) || 35, color: "#8b5cf6" },
-    { label: "Tiện Ích Tool", value: Math.round((categorySales.tool / totalCatSum) * 100) || 20, color: "#10b981" },
+    { label: "LAB211 OOP", pct: Math.round((categorySales.lab211 / totalCatSum) * 100), color: "#2563eb" },
+    { label: "Project & Assignment", pct: Math.round((categorySales.project / totalCatSum) * 100), color: "#8b5cf6" },
+    { label: "Tiện Ích Tool", pct: Math.round((categorySales.tool / totalCatSum) * 100), color: "#10b981" },
   ];
+
+  // ── Chart data from real orders ─────────────────────────────────────────
+  const chartPoints = useMemo(
+    () => groupOrdersByTimeframe(completedOrders, chartTimeframe),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [orders, chartTimeframe]
+  );
+
+  const maxVal = Math.max(...chartPoints.map((p) => p.value), 1);
+  const SVG_W = 600;
+  const SVG_H = 180;
+  const PAD_L = 4;
+  const PAD_R = 4;
+  const PAD_T = 10;
+  const PAD_B = 10;
+
+  const plotW = SVG_W - PAD_L - PAD_R;
+  const plotH = SVG_H - PAD_T - PAD_B;
+
+  const coords = chartPoints.map((p, i) => ({
+    x: PAD_L + (i / Math.max(chartPoints.length - 1, 1)) * plotW,
+    y: PAD_T + plotH - (p.value / maxVal) * plotH,
+    label: p.label,
+    value: p.value,
+  }));
+
+  // SVG polyline path
+  const linePath = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`).join(" ");
+  const areaPath = coords.length > 0
+    ? `${linePath} L ${coords[coords.length - 1].x} ${PAD_T + plotH} L ${coords[0].x} ${PAD_T + plotH} Z`
+    : "";
+
+  // X-axis: show only a few labels
+  const visibleLabels = thinLabels(
+    coords.map((c) => c.label),
+    chartTimeframe === "day" ? 7 : chartTimeframe === "month" ? 6 : 5
+  );
+
+  // Donut chart — compute real strokeDasharray per segment
+  const CIRC = 2 * Math.PI * 38; // circumference for r=38
+  let donutOffset = 0;
+  const donutSegments = catPercentages.map((cat) => {
+    const dash = (cat.pct / 100) * CIRC;
+    const gap = CIRC - dash;
+    const seg = { ...cat, dash, gap, offset: -donutOffset };
+    donutOffset += dash;
+    return seg;
+  });
 
   return (
     <div className="space-y-8">
@@ -80,7 +192,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* PENDING APPROVAL ALERT BANNER (High Priority Alert) */}
+      {/* PENDING APPROVAL ALERT */}
       {pendingOrders.length > 0 && (
         <div className="p-4 rounded-card bg-amber-50 border border-amber-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-3">
@@ -96,7 +208,6 @@ export default function AdminDashboardPage() {
               </p>
             </div>
           </div>
-
           <a
             href="/admin/orders"
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm transition-all self-start sm:self-auto shrink-0"
@@ -107,243 +218,215 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* 4 PASTEL STAT CARDS (Strictly conforming to design.md) */}
+      {/* 4 STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* 1. Doanh Thu (Blue) */}
-        <div
-          style={{ background: "#edf5ff", borderColor: "#dbeafe" }}
-          className="rounded-card p-6 border shadow-card flex flex-col justify-between"
-        >
+        {/* 1. Doanh Thu */}
+        <div style={{ background: "#edf5ff", borderColor: "#dbeafe" }} className="rounded-card p-6 border shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span style={{ color: "#3b82f6" }} className="text-xs font-bold tracking-wide uppercase">
-              Tổng Doanh Thu
-            </span>
+            <span style={{ color: "#3b82f6" }} className="text-xs font-bold tracking-wide uppercase">Tổng Doanh Thu</span>
             <div className="w-8 h-8 rounded-xl bg-white text-emerald-500 flex items-center justify-center shadow-sm">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {formatVND(totalRevenue)}
-            </h3>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{formatVND(totalRevenue)}</h3>
             <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
               <span className="text-emerald-600 font-bold flex items-center">
-                <ArrowUpRight className="w-3 h-3" /> +18.4%
-              </span>{" "}
-              so với tuần trước
+                <CheckCircle2 className="w-3 h-3 mr-0.5" /> {completedOrders.length} đơn hoàn thành
+              </span>
             </p>
           </div>
         </div>
 
-        {/* 2. Đơn Hàng (Purple) */}
-        <div
-          style={{ background: "#f3eefd", borderColor: "#ede9fe" }}
-          className="rounded-card p-6 border shadow-card flex flex-col justify-between"
-        >
+        {/* 2. Đơn Hàng */}
+        <div style={{ background: "#f3eefd", borderColor: "#ede9fe" }} className="rounded-card p-6 border shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span style={{ color: "#8b5cf6" }} className="text-xs font-bold tracking-wide uppercase">
-              Tổng Đơn Hàng
-            </span>
+            <span style={{ color: "#8b5cf6" }} className="text-xs font-bold tracking-wide uppercase">Tổng Đơn Hàng</span>
             <div className="w-8 h-8 rounded-xl bg-white text-purple-600 flex items-center justify-center shadow-sm">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {totalOrdersCount} đơn
-            </h3>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{totalOrdersCount} đơn</h3>
             <p className="text-[11px] text-slate-500 mt-1">
-              <b className="text-purple-700">{completedOrders.length}</b> đơn hoàn thành • <b className="text-amber-600">{pendingOrders.length}</b> chờ duyệt
+              <b className="text-purple-700">{completedOrders.length}</b> hoàn thành •{" "}
+              <b className="text-amber-600">{pendingOrders.length}</b> chờ duyệt
             </p>
           </div>
         </div>
 
-        {/* 3. Giá Trị TB (Teal) */}
-        <div
-          style={{ background: "#eafaf5", borderColor: "#d1fae5" }}
-          className="rounded-card p-6 border shadow-card flex flex-col justify-between"
-        >
+        {/* 3. Giá Trị TB */}
+        <div style={{ background: "#eafaf5", borderColor: "#d1fae5" }} className="rounded-card p-6 border shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span style={{ color: "#059669" }} className="text-xs font-bold tracking-wide uppercase">
-              Giá Trị Đơn TB
-            </span>
+            <span style={{ color: "#059669" }} className="text-xs font-bold tracking-wide uppercase">Giá Trị Đơn TB</span>
             <div className="w-8 h-8 rounded-xl bg-white text-emerald-500 flex items-center justify-center shadow-sm">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {formatVND(avgOrderValue)}
-            </h3>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Tính trên các đơn đã thanh toán
-            </p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{formatVND(avgOrderValue)}</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Tính trên các đơn đã thanh toán</p>
           </div>
         </div>
 
-        {/* 4. Khách Hàng (Amber) */}
-        <div
-          style={{ background: "#fff7ed", borderColor: "#ffedd5" }}
-          className="rounded-card p-6 border shadow-card flex flex-col justify-between"
-        >
+        {/* 4. Khách Hàng */}
+        <div style={{ background: "#fff7ed", borderColor: "#ffedd5" }} className="rounded-card p-6 border shadow-card flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span style={{ color: "#d97706" }} className="text-xs font-bold tracking-wide uppercase">
-              Sinh Viên &amp; Khách Hàng
-            </span>
+            <span style={{ color: "#d97706" }} className="text-xs font-bold tracking-wide uppercase">Sinh Viên & Khách Hàng</span>
             <div className="w-8 h-8 rounded-xl bg-white text-amber-500 flex items-center justify-center shadow-sm">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-              {totalUsersCount} users
-            </h3>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Tài khoản hoạt động trên hệ thống
-            </p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{totalUsersCount} users</h3>
+            <p className="text-[11px] text-slate-500 mt-1">Tài khoản hoạt động trên hệ thống</p>
           </div>
         </div>
       </div>
 
-      {/* CHARTS SECTION (Conforming to design.md Section 5) */}
+      {/* CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Area Chart: Revenue Trend */}
-        <div className="lg:col-span-8 bg-white rounded-card border border-slate-200/90 p-6 shadow-card flex flex-col justify-between">
+        {/* Area Chart: Revenue Trend — REAL DATA */}
+        <div className="lg:col-span-8 bg-white rounded-card border border-slate-200/90 p-6 shadow-card flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-black text-slate-900">
-                Xu Hướng Doanh Thu (Area Chart)
-              </h3>
+              <h3 className="text-sm font-black text-slate-900">Xu Hướng Doanh Thu</h3>
               <p className="text-[11px] text-slate-400">Doanh thu thu về từ các đơn VietQR hoàn tất</p>
             </div>
 
-            {/* Pill Filters */}
+            {/* Day / Month / Year picker */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
               <button
-                onClick={() => setChartTimeframe("7d")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  chartTimeframe === "7d" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
+                onClick={() => setChartTimeframe("day")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                  chartTimeframe === "day" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
-                7 ngày
+                <CalendarDays className="w-3 h-3" />
+                <span>Ngày</span>
               </button>
               <button
-                onClick={() => setChartTimeframe("30d")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  chartTimeframe === "30d" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
+                onClick={() => setChartTimeframe("month")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                  chartTimeframe === "month" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
-                30 ngày
+                <CalendarRange className="w-3 h-3" />
+                <span>Tháng</span>
               </button>
               <button
-                onClick={() => setChartTimeframe("3m")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  chartTimeframe === "3m" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
+                onClick={() => setChartTimeframe("year")}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                  chartTimeframe === "year" ? "bg-blue-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-900"
                 }`}
               >
-                3 tháng
+                <Calendar className="w-3 h-3" />
+                <span>Năm</span>
               </button>
             </div>
           </div>
 
-          {/* SVG Area Chart matching design.md rules */}
-          <div className="relative w-full h-56 pt-4">
-            <svg viewBox="0 0 600 200" className="w-full h-full overflow-visible">
-              <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.28" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.01" />
-                </linearGradient>
-              </defs>
+          {/* SVG Area Chart — rendered from real data */}
+          <div className="relative w-full flex-1" style={{ minHeight: "200px" }}>
+            {completedOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full py-12 text-slate-400">
+                <TrendingUp className="w-8 h-8 mb-2 opacity-30" />
+                <p className="text-xs">Chưa có đơn hàng hoàn thành nào để hiển thị</p>
+              </div>
+            ) : (
+              <>
+                <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.28" />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.01" />
+                    </linearGradient>
+                  </defs>
 
-              {/* Grid Lines */}
-              <line x1="0" y1="40" x2="600" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
-              <line x1="0" y1="90" x2="600" y2="90" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
-              <line x1="0" y1="140" x2="600" y2="140" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
-              <line x1="0" y1="190" x2="600" y2="190" stroke="#e2e8f0" strokeWidth="1" />
+                  {/* Grid Lines */}
+                  {[0.25, 0.5, 0.75, 1].map((r) => (
+                    <line
+                      key={r}
+                      x1={PAD_L} y1={PAD_T + plotH * (1 - r)}
+                      x2={SVG_W - PAD_R} y2={PAD_T + plotH * (1 - r)}
+                      stroke={r === 1 ? "#e2e8f0" : "#f1f5f9"}
+                      strokeWidth="1"
+                      strokeDasharray={r === 1 ? "0" : "4 4"}
+                    />
+                  ))}
 
-              {/* Area Fill */}
-              <path
-                d="M 0 160 Q 100 140 200 90 T 400 60 T 600 30 L 600 190 L 0 190 Z"
-                fill="url(#revenueGradient)"
-              />
+                  {/* Area Fill */}
+                  {areaPath && <path d={areaPath} fill="url(#revenueGradient)" />}
 
-              {/* Line Stroke */}
-              <path
-                d="M 0 160 Q 100 140 200 90 T 400 60 T 600 30"
-                fill="none"
-                stroke="#2563eb"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
+                  {/* Line */}
+                  {linePath && (
+                    <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  )}
 
-              {/* Data Points */}
-              <circle cx="200" cy="90" r="4" fill="#ffffff" stroke="#2563eb" strokeWidth="2" />
-              <circle cx="400" cy="60" r="4" fill="#ffffff" stroke="#2563eb" strokeWidth="2" />
-              <circle cx="600" cy="30" r="4" fill="#ffffff" stroke="#2563eb" strokeWidth="2" />
-            </svg>
+                  {/* Data points — only show last few to avoid clutter */}
+                  {coords
+                    .filter((_, i) => i % Math.max(1, Math.floor(coords.length / 8)) === 0 || i === coords.length - 1)
+                    .map((c, i) => (
+                      <circle key={i} cx={c.x} cy={c.y} r="3.5" fill="#ffffff" stroke="#2563eb" strokeWidth="2" />
+                    ))}
+                </svg>
 
-            {/* X Axis Labels */}
-            <div className="flex justify-between text-[10px] text-slate-400 mt-2 font-medium">
-              <span>01 Th3</span>
-              <span>08 Th3</span>
-              <span>15 Th3</span>
-              <span>22 Th3</span>
-              <span>Hôm nay</span>
-            </div>
+                {/* X-axis labels */}
+                <div className="flex justify-between text-[10px] text-slate-400 mt-1.5 font-medium px-1">
+                  {visibleLabels.map((label, i) => (
+                    <span key={i} className={label ? "" : "opacity-0"}>
+                      {label || "."}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Y-axis max label */}
+                <div className="absolute top-1 left-1 text-[10px] text-slate-400 font-mono">
+                  {formatVND(maxVal)}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Donut Chart: Category Breakdown (5 colors matching design.md) */}
+        {/* Donut Chart: Category Breakdown — REAL DATA */}
         <div className="lg:col-span-4 bg-white rounded-card border border-slate-200/90 p-6 shadow-card flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-black text-slate-900">
-              Cơ Cấu Danh Mục (Donut Chart)
-            </h3>
+            <h3 className="text-sm font-black text-slate-900">Cơ Cấu Danh Mục</h3>
             <p className="text-[11px] text-slate-400">Tỉ trọng doanh số theo loại sản phẩm</p>
           </div>
 
           <div className="py-4 flex items-center justify-center">
-            {/* SVG Donut */}
             <div className="relative w-40 h-40">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                {/* Segment 1: LAB211 */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#2563eb"
-                  strokeWidth="16"
-                  strokeDasharray="105 150"
-                  strokeDashoffset="0"
-                />
-                {/* Segment 2: Projects */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#8b5cf6"
-                  strokeWidth="16"
-                  strokeDasharray="80 150"
-                  strokeDashoffset="-105"
-                />
-                {/* Segment 3: Tools */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="transparent"
-                  stroke="#10b981"
-                  strokeWidth="16"
-                  strokeDasharray="54 150"
-                  strokeDashoffset="-185"
-                />
+                {totalCatSum > 1 ? (
+                  donutSegments.map((seg, i) => (
+                    <circle
+                      key={i}
+                      cx="50" cy="50" r="38"
+                      fill="transparent"
+                      stroke={seg.color}
+                      strokeWidth="16"
+                      strokeDasharray={`${seg.dash.toFixed(1)} ${(CIRC - seg.dash).toFixed(1)}`}
+                      strokeDashoffset={seg.offset.toFixed(1)}
+                    />
+                  ))
+                ) : (
+                  /* Empty state ring */
+                  <circle cx="50" cy="50" r="38" fill="transparent" stroke="#e2e8f0" strokeWidth="16" />
+                )}
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-xs font-bold text-slate-400">Top 1</span>
-                <span className="text-sm font-black text-slate-900">LAB211</span>
+                {totalCatSum > 1 ? (
+                  <>
+                    <span className="text-xs font-bold text-slate-400">Top 1</span>
+                    <span className="text-sm font-black text-slate-900">
+                      {catPercentages.sort((a, b) => b.pct - a.pct)[0]?.label.split(" ")[0]}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs text-slate-400">Chưa có</span>
+                )}
               </div>
             </div>
           </div>
@@ -356,7 +439,7 @@ export default function AdminDashboardPage() {
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-slate-600 font-medium">{item.label}</span>
                 </div>
-                <span className="font-extrabold text-slate-900">{item.value}%</span>
+                <span className="font-extrabold text-slate-900">{item.pct}%</span>
               </div>
             ))}
           </div>
@@ -395,9 +478,7 @@ export default function AdminDashboardPage() {
             <tbody className="divide-y divide-slate-100 font-medium">
               {orders.slice(0, 5).map((order) => (
                 <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-3.5 px-3 font-mono font-bold text-blue-600">
-                    {order.order_code}
-                  </td>
+                  <td className="py-3.5 px-3 font-mono font-bold text-blue-600">{order.order_code}</td>
                   <td className="py-3.5 px-3">
                     <p className="font-bold text-slate-800">{order.user_name || "Khách Hàng"}</p>
                     <p className="text-[10px] text-slate-400">{order.user_email}</p>
@@ -405,9 +486,7 @@ export default function AdminDashboardPage() {
                   <td className="py-3.5 px-3 max-w-[200px] truncate text-slate-700">
                     {order.items?.[0]?.product_title || "Sản phẩm số"}
                   </td>
-                  <td className="py-3.5 px-3 font-bold text-slate-900">
-                    {formatVND(order.total_amount)}
-                  </td>
+                  <td className="py-3.5 px-3 font-bold text-slate-900">{formatVND(order.total_amount)}</td>
                   <td className="py-3.5 px-3">
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
@@ -425,9 +504,7 @@ export default function AdminDashboardPage() {
                         : "Chờ thanh toán"}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3 text-[11px] text-slate-400">
-                    {formatDateVN(order.created_at)}
-                  </td>
+                  <td className="py-3.5 px-3 text-[11px] text-slate-400">{formatDateVN(order.created_at)}</td>
                   <td className="py-3.5 px-3 text-right">
                     <a
                       href="/admin/orders"
@@ -439,6 +516,13 @@ export default function AdminDashboardPage() {
                   </td>
                 </tr>
               ))}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-sm text-slate-400">
+                    Chưa có đơn hàng nào trong hệ thống
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

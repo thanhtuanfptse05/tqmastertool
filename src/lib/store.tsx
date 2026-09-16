@@ -339,10 +339,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 setCurrentUser(userObj);
                 persist(STORAGE_KEYS.USER, userObj);
               }
+              // ✅ CRITICAL FIX: Re-fetch all orders after login so vault & order list
+              // populate immediately without needing a page refresh.
+              fetchOrdersFromDB();
             });
         } else if (event === "SIGNED_OUT") {
           setCurrentUser(null);
+          setOrders([]);
           localStorage.removeItem(STORAGE_KEYS.USER);
+          localStorage.removeItem(STORAGE_KEYS.ORDERS);
         }
       });
 

@@ -78,7 +78,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="/customer/vault" className="hover:text-blue-400 transition-colors">
-                  Kho Tài Nguyên Cá Nhân
+                  Tài nguyên của bạn
                 </a>
               </li>
             </ul>

@@ -79,7 +79,7 @@ export default function TopNav() {
             href="/customer/vault"
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors relative"
           >
-            Tài Nguyên Số (Vault)
+            Tài nguyên của bạn
             {userCompletedCount > 0 && (
               <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 {userCompletedCount}
@@ -150,7 +150,7 @@ export default function TopNav() {
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <Package className="w-3.5 h-3.5 text-slate-400" />
-                    Kho tài nguyên đã mua
+                    Tài nguyên của bạn
                   </a>
 
                   {currentUser.role === "admin" && (
