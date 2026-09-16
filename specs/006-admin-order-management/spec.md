@@ -1,150 +1,106 @@
-# Feature Specification: Admin Order Management — Quản Lý & Duyệt Đơn Hàng
+# Feature Specification: Admin Order Management — Quản Lý & Duyệt Đơn Hàng (Spec 006)
 
-**Feature Branch**: `006-admin-order-management`
-
-**Created**: 2026-03-15
-
-**Status**: Draft
-
----
-
-## User Scenarios & Testing *(mandatory)*
-
-### User Story 1 — Xem Danh Sách Toàn Bộ Đơn Hàng (Priority: P1)
-
-Admin cần tổng quan toàn bộ đơn hàng trong hệ thống — lọc theo trạng thái, tìm kiếm theo email khách hàng hoặc mã đơn hàng để nhanh chóng xử lý các đơn hàng đang chờ.
-
-**Why this priority**: Không có danh sách đơn hàng thì Admin không thể duyệt — toàn bộ luồng kinh doanh bị tắc nghẽn.
-
-**Independent Test**: Đăng nhập Admin, truy cập trang Quản lý đơn hàng, xác nhận danh sách hiển thị tất cả đơn hàng với trạng thái đúng và khả năng lọc theo `pending_approval`.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đã đăng nhập và truy cập trang Quản lý đơn hàng, **When** trang tải, **Then** hiển thị bảng danh sách đơn hàng gồm: mã đơn, email khách hàng, tên sản phẩm, số tiền, trạng thái và thời gian đặt hàng — sắp xếp mặc định theo thứ tự mới nhất trước.
-2. **Given** Admin muốn tập trung vào đơn chờ duyệt, **When** họ chọn bộ lọc "Trạng thái: Chờ duyệt", **Then** danh sách chỉ hiển thị các đơn hàng có trạng thái `pending_approval`.
-3. **Given** Admin nhập mã đơn hàng hoặc email vào ô tìm kiếm, **When** kết quả được lọc, **Then** danh sách thu hẹp chỉ hiển thị đơn hàng khớp với từ khóa.
-4. **Given** không có đơn hàng nào khớp với bộ lọc, **When** trang hiển thị, **Then** hệ thống hiển thị trạng thái rỗng rõ ràng thay vì bảng trống gây nhầm lẫn.
+**Feature Branch**: `006-admin-order-management`  
+**Status**: Implemented  
+**Version**: 1.0.0  
+**Updated**: 2026-03-16  
+**Implementation Files**:
+- `src/app/admin/orders/page.tsx`
+- `src/app/admin/layout.tsx`
+- `src/lib/store.tsx`
+- `src/types/index.ts`
 
 ---
 
-### User Story 2 — Xem Chi Tiết Đầy Đủ Một Đơn Hàng (Priority: P1)
+## 1. Context & Goal
 
-Khi Admin cần duyệt đơn hàng, họ phải xem được TOÀN BỘ thông tin: thông tin khách hàng, sản phẩm đã mua, số tiền, ảnh bill thanh toán (đọc được rõ ràng) và lịch sử trạng thái đơn hàng.
-
-**Why this priority**: Không có đủ thông tin thì Admin không thể ra quyết định duyệt hay từ chối một cách chính xác — đây là lõi của quy trình phê duyệt.
-
-**Independent Test**: Bấm vào một đơn hàng `pending_approval`, xác nhận trang chi tiết hiển thị đầy đủ: thông tin khách, sản phẩm, số tiền, ảnh bill có thể xem kích thước đầy đủ, lịch sử trạng thái và nút duyệt/từ chối.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin bấm vào một đơn hàng trong danh sách, **When** trang chi tiết tải, **Then** hiển thị đầy đủ các section sau:
-   - **Thông tin khách hàng**: Tên, email, ngày đăng ký tài khoản.
-   - **Thông tin đơn hàng**: Mã đơn, ngày đặt, sản phẩm đã mua, giá tại thời điểm đặt, tổng tiền.
-   - **Ảnh Bill Thanh Toán**: Ảnh xem được với kích thước đủ lớn, nút "Xem ảnh đầy đủ" mở lightbox.
-   - **Lịch Sử Trạng Thái**: Timeline theo thứ tự thời gian gồm: đặt hàng → upload bill → thay đổi trạng thái (kèm timestamp từng bước).
-   - **Hành Động**: Nút "Duyệt đơn hàng" (màu xanh) và nút "Từ chối" (màu đỏ) — nếu đơn ở trạng thái `pending_approval`.
-2. **Given** Admin bấm "Xem ảnh đầy đủ" trên ảnh bill, **When** lightbox mở, **Then** ảnh hiển thị ở kích thước đầy đủ với khả năng zoom in để đọc thông tin chuyển khoản rõ ràng.
-3. **Given** đơn hàng đã ở trạng thái `completed` hoặc `rejected`, **When** Admin xem chi tiết, **Then** các nút hành động không hiển thị — chỉ hiển thị thông tin lịch sử và trạng thái cuối.
+- **Business Context**: Toàn bộ luồng doanh thu số của CodeVault Studio dựa trên nguyên tắc **Bắt buộc Admin duyệt đơn thủ công (Mandatory Admin Manual Approval)** sau khi đối chiếu ảnh chụp biên lai ngân hàng với biến động số dư thực tế. Chỉ khi Admin phê duyệt, quyền tải mã nguồn và tài liệu mới được mở khóa cho khách hàng.
+- **Feature Goal**: Xây dựng trung tâm điều hành duyệt đơn `/admin/orders` với bộ lọc trạng thái thông minh, công cụ phóng to biên lai (Lightbox Zoom), xem chi tiết khách hàng và 2 nút hành động then chốt: **[Duyệt Đơn & Mở Kho Tải]** và **[Từ Chối Đơn]** (kèm lý do).
+- **Success Metrics**:
+  - Thời gian duyệt đơn của Admin < 30 giây từ màn hình danh sách.
+  - Phóng to ảnh biên lai sắc nét để đọc được số tài khoản, mã giao dịch và số tiền.
+  - Khi duyệt thành công, trạng thái chuyển `completed` và kích hoạt mở kho tài nguyên số ngay lập tức.
 
 ---
 
-### User Story 3 — Duyệt Đơn Hàng (Approve) (Priority: P1)
+## 2. Actors & Roles
 
-Admin xem xét ảnh bill và xác nhận thanh toán hợp lệ. Bấm "Duyệt" để chuyển đơn sang `completed` và tự động mở khóa tài nguyên số cho khách hàng.
-
-**Why this priority**: Đây là điểm kích hoạt mở khóa tài nguyên — không có bước này thì khách hàng không bao giờ nhận được hàng dù đã trả tiền.
-
-**Independent Test**: Admin duyệt một đơn `pending_approval`, xác nhận trạng thái chuyển `completed`, khách hàng nhận email và có thể truy cập tài nguyên ngay sau đó.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang xem chi tiết đơn hàng có trạng thái `pending_approval`, **When** họ bấm "Duyệt đơn hàng" và xác nhận trong hộp thoại, **Then** hệ thống cập nhật trạng thái đơn sang `completed`, ghi lại timestamp và ID Admin đã duyệt, đồng thời kích hoạt gửi email thông báo cho khách hàng.
-2. **Given** Admin vừa duyệt đơn, **When** duyệt xong, **Then** trang chi tiết đơn hàng cập nhật trạng thái ngay lập tức (không cần F5) và hiển thị thông báo "Đã duyệt thành công".
-3. **Given** Admin bấm nhầm "Duyệt", **When** hộp thoại xác nhận xuất hiện, **Then** Admin có thể bấm "Hủy" để quay về mà không thay đổi trạng thái đơn hàng.
+| Actor | Quyền Hạn Trong Feature Này |
+|---|---|
+| **Quản trị viên (Admin)** | Xem danh sách đơn hàng, lọc theo trạng thái (`pending_approval`, `completed`, `rejected`, `all`), tìm kiếm, mở Drawer chi tiết đơn, phóng to ảnh bill, duyệt đơn hoặc từ chối kèm lý do. |
+| **Khách hàng (Customer)** | Không có quyền vào trang này (bị chặn bởi RBAC guard tại `src/app/admin/layout.tsx`). Nhận kết quả duyệt qua `/customer/orders`. |
 
 ---
 
-### User Story 4 — Từ Chối Đơn Hàng (Reject) (Priority: P1)
+## 3. User Scenarios & Acceptance Criteria
 
-Admin phát hiện bill không hợp lệ (sai số tiền, ảnh không rõ, thông tin chuyển khoản không khớp). Admin từ chối với lý do cụ thể để khách hàng biết cần làm gì.
+### User Story 1 — Lọc & Tìm Kiếm Đơn Hàng Cần Xử Lý (Priority: P1)
+- **GIVEN** Admin truy cập `/admin/orders`
+- **WHEN** trang tải
+- **THEN** mặc định hiển thị tab "Chờ duyệt" (`pending_approval`) kèm badge đếm số lượng đơn đang chờ xử lý; Admin có thể gõ mã đơn, email hoặc tên khách hàng để tìm kiếm ngay lập tức.
 
-**Why this priority**: Chống gian lận và bảo vệ doanh thu — đây là phần bắt buộc của quy trình phê duyệt.
+### User Story 2 — Kiểm Tra Chi Tiết Đơn Hàng & Phóng To Biên Lai (Priority: P1)
+- **GIVEN** Admin bấm "Xem & Duyệt" trên một đơn hàng
+- **WHEN** modal chi tiết đơn mở ra
+- **THEN** hiển thị đầy đủ:
+  1. Thẻ thông tin khách hàng (Tên, Email, User ID).
+  2. Thẻ thanh toán (Tổng tiền VNĐ, Nội dung memo chuyển khoản, Mã GD do khách cung cấp).
+  3. Danh sách sản phẩm trong đơn.
+  4. Khung xem ảnh biên lai với nút "Phóng to xem rõ" mở Lightbox toàn màn hình.
 
-**Independent Test**: Admin từ chối một đơn với lý do "Số tiền chuyển khoản không đúng", xác nhận trạng thái chuyển `rejected` và khách hàng nhận email với lý do từ chối.
+### User Story 3 — Duyệt Đơn Hàng Thành Công (Priority: P1)
+- **GIVEN** Admin kiểm tra biên lai thấy khớp số tiền và nội dung chuyển khoản
+- **WHEN** bấm nút **[Duyệt Đơn & Mở Kho Tải]**
+- **THEN** hệ thống gọi `adminReviewOrder(orderId, "approve")`, cập nhật trạng thái đơn thành `completed`, lưu thông tin `reviewed_by_admin_id`, `reviewed_at`, đóng modal và cập nhật trạng thái trên bảng.
 
-**Acceptance Scenarios**:
-
-1. **Given** Admin bấm "Từ chối" trên đơn hàng `pending_approval`, **When** hộp thoại xuất hiện, **Then** hiển thị ô nhập lý do từ chối với các gợi ý nhanh (ví dụ: "Bill không rõ", "Số tiền không khớp", "Ảnh giả mạo") và nút "Xác nhận từ chối".
-2. **Given** Admin nhập lý do và bấm "Xác nhận từ chối", **When** hệ thống xử lý, **Then** trạng thái đơn hàng chuyển sang `rejected`, lý do từ chối được lưu lại, và email thông báo được gửi cho khách hàng kèm lý do cụ thể.
-3. **Given** Admin cố từ chối mà không nhập lý do, **When** submit, **Then** hệ thống không cho phép và yêu cầu nhập lý do từ chối trước.
-
----
-
-### User Story 5 — Nhận Thông Báo Đơn Hàng Mới (Priority: P2)
-
-Admin cần biết ngay khi có đơn hàng mới cần duyệt mà không phải liên tục F5 trang quản lý.
-
-**Why this priority**: Giảm thời gian phản hồi — khách hàng không phải chờ hàng giờ để nhận tài nguyên.
-
-**Independent Test**: Khách hàng upload bill, xác nhận Admin nhận thông báo (badge số trên menu hoặc email) trong vòng 5 phút.
-
-**Acceptance Scenarios**:
-
-1. **Given** khách hàng vừa upload bill và đơn hàng chuyển sang `pending_approval`, **When** Admin xem menu quản lý đơn hàng, **Then** badge số trên menu cập nhật hiển thị số đơn hàng đang chờ duyệt.
-2. **Given** có đơn hàng mới chờ duyệt, **When** Admin nhận email thông báo, **Then** email chứa: tên khách hàng, sản phẩm, số tiền và link trực tiếp đến trang chi tiết đơn hàng đó trong Admin.
+### User Story 4 — Từ Chối Đơn Hàng Kèm Lý Do (Priority: P1)
+- **GIVEN** Admin phát hiện biên lai giả mạo hoặc chưa nhận được tiền
+- **WHEN** bấm nút **[Từ Chối Đơn]**
+- **THEN** modal xác nhận lý do từ chối xuất hiện; Admin nhập lý do chi tiết và bấm "Xác Nhận Từ Chối" -> Đơn hàng cập nhật thành `rejected`, lý do được lưu vào `admin_notes` để khách hàng đọc được tại trang lịch sử đơn.
 
 ---
 
-### Edge Cases
+## 4. Functional Requirements (EARS)
 
-- Điều gì xảy ra khi Admin duyệt đơn nhưng ảnh bill được Admin sau đó phát hiện là giả mạo — có thể rollback không?
-- Làm thế nào khi hai Admin cùng mở chi tiết một đơn hàng và cùng bấm duyệt — chỉ được xử lý một lần.
-- Điều gì xảy ra khi email thông báo không gửi được — đơn hàng vẫn phải được cập nhật trạng thái đúng.
-- Khi đơn bị reject, khách hàng có thể upload bill mới và yêu cầu duyệt lại không?
-
----
-
-## Requirements *(mandatory)*
-
-### Functional Requirements
-
-- **FR-001**: Hệ thống PHẢI hiển thị danh sách tất cả đơn hàng cho Admin với các cột: mã đơn, email khách, sản phẩm, số tiền, trạng thái, thời gian đặt.
-- **FR-002**: Hệ thống PHẢI hỗ trợ lọc đơn hàng theo trạng thái (pending_payment, pending_approval, completed, rejected) và tìm kiếm theo mã đơn hoặc email.
-- **FR-003**: Trang chi tiết đơn hàng PHẢI hiển thị đầy đủ: thông tin khách hàng, sản phẩm, giá, ảnh bill (với lightbox zoom), lịch sử trạng thái theo timeline.
-- **FR-004**: Hệ thống PHẢI hiển thị ảnh bill rõ ràng với khả năng zoom để Admin đọc được thông tin chuyển khoản.
-- **FR-005**: Hệ thống PHẢI cho phép Admin duyệt đơn hàng với một bước xác nhận (hộp thoại confirm).
-- **FR-006**: Hệ thống PHẢI yêu cầu Admin nhập lý do từ chối bắt buộc trước khi reject đơn hàng.
-- **FR-007**: Hệ thống PHẢI ghi lại thông tin Admin (ID, timestamp) khi thực hiện duyệt hoặc từ chối.
-- **FR-008**: Hệ thống PHẢI kích hoạt email thông báo cho khách hàng ngay khi trạng thái thay đổi (approved/rejected).
-- **FR-009**: Hệ thống PHẢI hiển thị badge số đơn hàng chờ duyệt trên menu Admin, cập nhật real-time.
-- **FR-010**: Hệ thống PHẢI ngăn chặn race condition — một đơn hàng chỉ được duyệt/từ chối một lần, dù có nhiều Admin cùng mở.
-- **FR-011**: Hệ thống PHẢI lưu lý do từ chối và hiển thị cho khách hàng trong email và trang chi tiết đơn hàng.
-- **FR-012**: Admin PHẢI có thể xem và tải về ảnh bill từ trang chi tiết đơn hàng (từ private storage, thông qua signed URL).
-
-### Key Entities
-
-- **Đơn Hàng (Order)**: Đầy đủ như đã định nghĩa trong `004-order-checkout-vietqr` + trường `reviewed_by` (Admin ID), `reviewed_at` (timestamp), `rejection_reason` (string).
-- **Lịch Sử Trạng Thái (Order Status History)**: Mỗi bản ghi gồm: trạng thái mới, timestamp, người thực hiện (khách hàng hoặc Admin).
-- **Thông Báo Admin**: Badge số đơn hàng chờ duyệt, email thông báo đơn mới.
+- **FR-001 (Ubiquitous)**: THE system SHALL restrict access to `/admin/orders` exclusively to users with `role === "admin"`.
+- **FR-002 (State-Driven)**: WHILE orders exist in `pending_approval`, THE system SHALL display an alert banner and badge counter on both the dashboard and orders header.
+- **FR-003 (Event-Driven)**: WHEN an admin clicks on the bill thumbnail or zoom button, THE system SHALL display the payment proof in a full-screen image lightbox.
+- **FR-004 (Event-Driven)**: WHEN an admin approves an order, THE system SHALL set order status to `completed`, record review timestamps, and immediately make deliverables visible in the customer's vault.
+- **FR-005 (Event-Driven)**: WHEN an admin rejects an order, THE system SHALL require an explanation note and set order status to `rejected`.
 
 ---
 
-## Success Criteria *(mandatory)*
+## 5. Data Model & Review Schema
 
-### Measurable Outcomes
-
-- **SC-001**: Admin có thể xem toàn bộ thông tin và ảnh bill của một đơn hàng trong vòng 30 giây sau khi vào trang chi tiết.
-- **SC-002**: Admin có thể duyệt hoặc từ chối đơn trong vòng 3 thao tác từ màn hình danh sách.
-- **SC-003**: 100% thao tác duyệt/từ chối được ghi lại với đầy đủ timestamp và ID Admin thực hiện.
-- **SC-004**: Khách hàng nhận email thông báo kết quả trong vòng 5 phút sau khi Admin thay đổi trạng thái.
-- **SC-005**: Badge số đơn hàng chờ duyệt cập nhật chính xác — không sai lệch dù có nhiều đơn hàng mới cùng lúc.
-- **SC-006**: Ảnh bill hiển thị rõ ràng với độ phân giải đủ để Admin đọc được thông tin giao dịch.
+```typescript
+export interface Order {
+  id: UUID;
+  order_code: string;
+  user_id: UUID;
+  user_email?: string;
+  user_name?: string;
+  total_amount: number;
+  status: OrderStatus;
+  payment_method: "vietqr";
+  vietqr_content: string;
+  payment_proof_image?: string;
+  transaction_ref?: string;
+  reviewed_by_admin_id?: UUID;
+  reviewed_at?: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at: string;
+  items?: OrderItem[];
+}
+```
 
 ---
 
-## Assumptions
+## 6. Verification & Test Plan
 
-- Ảnh bill được phục vụ qua Signed URL tạm thời (expire sau 30 phút) — không lưu URL tĩnh trong database.
-- Admin chỉ có thể duyệt đơn hàng ở trạng thái `pending_approval` — không thể can thiệp đơn ở các trạng thái khác.
-- Hệ thống không có chức năng rollback trạng thái sau khi đã completed — đây là quyết định không thể đảo ngược trong v1.
-- Việc gửi email thông báo Admin khi có đơn mới là tùy chọn (có thể bật/tắt trong cài đặt Admin) — badge real-time là bắt buộc.
+- **Automated**: `tsc --noEmit` đạt 0 lỗi.
+- **Manual Verification**:
+  1. Tạo đơn hàng mới từ Storefront -> Nộp ảnh bill ở Bước 2.
+  2. Mở `/admin/orders` -> Xác nhận đơn xuất hiện ở tab "Chờ duyệt".
+  3. Bấm "Xem & Duyệt" -> Bấm "Phóng to xem rõ" -> Kiểm tra ảnh biên lai hiển thị sắc nét.
+  4. Bấm "Duyệt Đơn & Mở Kho Tải" -> Kiểm tra đơn đổi sang badge xanh "Đã duyệt" -> Vào `/customer/vault` xác nhận sản phẩm đã được mở khóa tải về.

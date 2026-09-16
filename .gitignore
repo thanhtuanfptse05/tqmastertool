@@ -49,3 +49,6 @@ coverage/
 # Misc
 .cache/
 *.log
+.codegraph/
+graphify-out/cache/
+graphify-out/cost.json

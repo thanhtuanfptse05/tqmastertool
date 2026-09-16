@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { useStore } from "@/lib/store";
 import { Product, ProductCategory } from "@/types";
 import ProductCard from "@/components/store/ProductCard";
@@ -20,16 +19,6 @@ import {
   SlidersHorizontal,
   ChevronDown,
 } from "lucide-react";
-
-// Lazy load Three.js Canvas to optimize FCP and prevent SSR WebGL mismatch
-const HeroCanvas = dynamic(() => import("@/components/3d/HeroCanvas"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[460px] md:h-[540px] flex items-center justify-center">
-      <div className="w-12 h-12 rounded-full border-4 border-blue-500/20 border-t-blue-600 animate-spin" />
-    </div>
-  ),
-});
 
 export default function HomePage() {
   const { products } = useStore();
@@ -79,31 +68,44 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* 1. HERO SECTION WITH THREE.JS 3D CANVAS */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#0a0b12] via-[#0f1222] to-[#f4f7fc] text-white pt-12 pb-20">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-blue-600/15 rounded-full blur-[120px] pointer-events-none" />
+      {/* 1. CINEMATIC LIGHT 3D HERO SECTION (JAPANESE EDITORIAL MINIMALISM) */}
+      <section className="relative overflow-hidden bg-[#fafbfc] border-b border-slate-200/80 pt-10 sm:pt-14 pb-16 lg:pb-24">
+        {/* Background 3D Cinematic Render (Wide 16:9 Japanese Editorial Workspace) */}
+        <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+          <img
+            src="/images/hero-banner.jpg"
+            alt="CodeVault Studio 3D Developer Workspace"
+            className="w-full h-full object-cover object-center lg:object-right opacity-95 transition-transform duration-1000"
+          />
+          {/* Subtle soft architectural gradient masks for maximum text legibility & seamless edge blending */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#fafbfc] via-[#fafbfc]/90 to-transparent lg:w-[58%]" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fafbfc] to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/60 to-transparent" />
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Hero Left Content */}
-            <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Hero Left Content: Premium Editorial Typography */}
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left pt-2 lg:pt-6">
               {/* Highlight Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-cyan-300 text-xs font-bold backdrop-blur-md shadow-inner">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-                <span>Kho Mã Nguồn Số 1 Cho Sinh Viên IT & Kỹ Sư</span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-slate-200/90 text-blue-800 text-xs font-bold backdrop-blur-md shadow-sm">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                <span className="tracking-wide">Kho Mã Nguồn Số 1 Cho Sinh Viên IT &amp; Kỹ Sư</span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.15] text-white">
-                Mã Nguồn Đồ Án, Tools &amp;{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">
-                  Full 74 Bài LAB211
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.12] text-slate-900">
+                Code PROJECT, Tools &amp;{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600">
+                  Code LAB211
                 </span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              <p className="text-sm sm:text-base lg:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
                 Tối ưu 80% thời gian lập trình với các bộ đồ án tốt nghiệp chuẩn Clean Architecture, trọn gói tiện ích automation và trọn bộ mã nguồn Java OOP đạt điểm tuyệt đối.
               </p>
 
@@ -111,59 +113,66 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
                 <a
                   href="#catalog"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm shadow-xl shadow-blue-600/35 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-sm shadow-lg shadow-blue-500/25 transition-all active:scale-95"
                 >
                   <span>Khám Phá Sản Phẩm</span>
                   <ArrowRight className="w-4 h-4" />
                 </a>
                 <a
                   href="/customer/vault"
-                  className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-sm backdrop-blur-md border border-white/20 transition-colors"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white/85 hover:bg-white text-slate-700 font-bold text-sm backdrop-blur-md border border-slate-200/90 shadow-sm transition-all hover:shadow"
                 >
                   <span>Kho Tài Nguyên Của Tôi</span>
                 </a>
               </div>
 
-              {/* Trust Badges */}
-              <div className="pt-6 grid grid-cols-3 gap-3 text-left border-t border-white/10 max-w-lg mx-auto lg:mx-0">
+              {/* Trust Badges - Light Minimalist Design */}
+              <div className="pt-6 grid grid-cols-3 gap-4 text-left border-t border-slate-200/70 max-w-lg mx-auto lg:mx-0">
                 <div>
-                  <p className="text-lg sm:text-xl font-black text-blue-400">74+ Bài</p>
-                  <p className="text-[11px] text-slate-400">LAB211 Chuẩn OOP</p>
+                  <p className="text-xl sm:text-2xl font-black text-slate-900">74+ Bài</p>
+                  <p className="text-xs text-slate-500 font-medium">LAB211 Chuẩn OOP</p>
                 </div>
                 <div>
-                  <p className="text-lg sm:text-xl font-black text-cyan-400">Napas 24/7</p>
-                  <p className="text-[11px] text-slate-400">VietQR Tự Động</p>
+                  <p className="text-xl sm:text-2xl font-black text-blue-600">Napas 24/7</p>
+                  <p className="text-xs text-slate-500 font-medium">VietQR Tự Động</p>
                 </div>
                 <div>
-                  <p className="text-lg sm:text-xl font-black text-emerald-400">100% Clean</p>
-                  <p className="text-[11px] text-slate-400">Admin Duyệt Uy Tín</p>
+                  <p className="text-xl sm:text-2xl font-black text-emerald-600">100% Clean</p>
+                  <p className="text-xs text-slate-500 font-medium">Admin Duyệt Uy Tín</p>
                 </div>
               </div>
             </div>
 
-            {/* Hero Right: 3D THREE.JS CANVAS */}
-            <div className="lg:col-span-6 relative flex items-center justify-center">
-              <HeroCanvas />
+            {/* Hero Right: Interactive Floating Glass Cards on 3D Environment */}
+            <div className="lg:col-span-5 relative flex flex-col items-center justify-center min-h-[320px] sm:min-h-[420px]">
+              {/* Mobile/Tablet image showcase card */}
+              <div className="block lg:hidden w-full max-w-md rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 mb-4 bg-white/70 backdrop-blur-md">
+                <img
+                  src="/images/hero-banner.jpg"
+                  alt="3D Developer Space"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
 
-              {/* Floating Cyber Badge 1 */}
-              <div className="absolute top-10 right-4 sm:right-10 bg-slate-900/80 backdrop-blur-xl border border-blue-500/30 p-3 rounded-2xl shadow-xl hidden sm:flex items-center gap-3 animate-bounce duration-1000">
-                <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">
+              {/* Floating Glassmorphism Badge 1 (Top Right) */}
+              <div className="lg:absolute lg:top-4 lg:right-0 bg-white/90 backdrop-blur-xl border border-white/80 p-3.5 rounded-2xl shadow-xl shadow-slate-900/5 flex items-center gap-3 w-full max-w-[280px] lg:max-w-xs transition-transform hover:-translate-y-1 duration-300">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold shrink-0 shadow-inner">
                   <Code2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">Full Stack Java &amp; Next.js</p>
-                  <p className="text-[10px] text-slate-400">Clean MVC Pattern</p>
+                  <p className="text-xs font-extrabold text-slate-900">Full Stack Java &amp; Next.js</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Clean MVC &amp; Microservices</p>
                 </div>
               </div>
 
-              {/* Floating Cyber Badge 2 */}
-              <div className="absolute bottom-8 left-4 sm:left-8 bg-slate-900/80 backdrop-blur-xl border border-emerald-500/30 p-3 rounded-2xl shadow-xl hidden sm:flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+              {/* Floating Glassmorphism Badge 2 (Bottom Left / Right) */}
+              <div className="lg:absolute lg:bottom-4 lg:left-4 bg-white/90 backdrop-blur-xl border border-white/80 p-3.5 rounded-2xl shadow-xl shadow-slate-900/5 flex items-center gap-3 w-full max-w-[280px] lg:max-w-xs transition-transform hover:-translate-y-1 duration-300 mt-3 lg:mt-0">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 shadow-inner">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white">Bảo Vệ Bản Quyền</p>
-                  <p className="text-[10px] text-slate-400">Signed URL Tải Mã Nguồn</p>
+                  <p className="text-xs font-extrabold text-slate-900">Bảo Vệ Tài Nguyên Số</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Signed URL Tải Mã Nguồn</p>
                 </div>
               </div>
             </div>
@@ -276,7 +285,7 @@ export default function HomePage() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                Đồ Án Project
+                Project & Assignment
               </button>
               <button
                 onClick={() => setSelectedCategory("tool")}
@@ -340,24 +349,28 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          /* Dashed Empty State Card (matching design.md) */
+          /* Empty State */
           <div className="bg-white border-2 border-dashed border-slate-300 rounded-card p-12 text-center shadow-sm">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
               <Search className="w-7 h-7" />
             </div>
             <h3 className="text-base font-extrabold text-slate-900">
-              Không tìm thấy sản phẩm phù hợp
+              {products.length === 0 ? "Chưa có sản phẩm nào trong cơ sở dữ liệu" : "Không tìm thấy sản phẩm phù hợp"}
             </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1.5 leading-relaxed">
-              Hãy thử tìm kiếm với từ khóa khác hoặc bấm nút đặt lại bộ lọc để xem toàn bộ danh mục sản phẩm.
+              {products.length === 0
+                ? "Hệ thống đã sẵn sàng kết nối Database. Bạn có thể thêm sản phẩm trực tiếp vào Supabase hoặc qua trang Admin."
+                : "Hãy thử tìm kiếm với từ khóa khác hoặc bấm nút đặt lại bộ lọc để xem toàn bộ danh mục sản phẩm."}
             </p>
-            <button
-              onClick={resetFilters}
-              className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm hover:bg-blue-700 transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Đặt lại tất cả bộ lọc
-            </button>
+            {products.length > 0 && (
+              <button
+                onClick={resetFilters}
+                className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm hover:bg-blue-700 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Đặt lại tất cả bộ lọc
+              </button>
+            )}
           </div>
         )}
       </section>

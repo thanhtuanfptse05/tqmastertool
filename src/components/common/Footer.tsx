@@ -1,5 +1,5 @@
 import React from "react";
-import { Code2, ShieldCheck, Zap, Headphones, CheckCircle2 } from "lucide-react";
+import { Code2, ShieldCheck, Zap, Headphones, CheckCircle2, Facebook, Mail, Youtube } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -30,8 +30,8 @@ export default function Footer() {
               <Headphones className="w-5 h-5" />
             </div>
             <div>
-              <p className="font-bold text-slate-200 text-sm">Hỗ Trợ Cài Đặt</p>
-              <p className="text-xs text-slate-400">Kèm tài liệu hướng dẫn và hỗ trợ qua Zalo / Discord</p>
+              <p className="font-bold text-slate-200 text-sm">Hỗ Trợ Kỹ Thuật</p>
+              <p className="text-xs text-slate-400">Hỗ trợ cài đặt, giải đáp qua Facebook, Email & YouTube</p>
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="/#catalog" className="hover:text-blue-400 transition-colors">
-                  Đồ Án Tốt Nghiệp & Capstone
+                  Project & Assignment
                 </a>
               </li>
               <li>
@@ -86,22 +86,39 @@ export default function Footer() {
 
           <div>
             <h4 className="font-bold text-slate-200 text-xs uppercase tracking-wider mb-3">
-              Quản Trị & Hỗ Trợ
+              Liên Hệ & Hỗ Trợ
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <a href="/admin" className="text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
-                  Admin Dashboard
+                <a
+                  href="https://www.facebook.com/profile.php?id=61594039319453"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                >
+                  <Facebook className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>Facebook: Tuấn & Quân FPTU</span>
                 </a>
               </li>
               <li>
-                <span className="text-slate-400">Email: support@codevault.io</span>
+                <a
+                  href="mailto:lequan12305@gmail.com"
+                  className="flex items-center gap-2 hover:text-amber-400 transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Email: lequan12305@gmail.com</span>
+                </a>
               </li>
               <li>
-                <span className="text-slate-400">Hotline/Zalo: 0988.888.999</span>
-              </li>
-              <li>
-                <span className="text-slate-400">Hoạt động: 08:00 - 23:00 hàng ngày</span>
+                <a
+                  href="https://www.youtube.com/@tuanvaquanfptu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 hover:text-rose-400 transition-colors"
+                >
+                  <Youtube className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>YouTube: @tuanvaquanfptu</span>
+                </a>
               </li>
             </ul>
           </div>

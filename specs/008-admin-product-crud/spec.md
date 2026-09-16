@@ -1,146 +1,106 @@
-# Feature Specification: Admin Product CRUD — Quản Lý Sản Phẩm & Cấu Hình Demo
+# Feature Specification: Admin Product CRUD — Quản Lý Sản Phẩm & Cấu Hình Demo (Spec 008)
 
-**Feature Branch**: `008-admin-product-crud`
-
-**Created**: 2026-03-15
-
-**Status**: Draft
-
----
-
-## User Scenarios & Testing *(mandatory)*
-
-### User Story 1 — Tạo Sản Phẩm Mới (Priority: P1)
-
-Admin muốn thêm một sản phẩm mới vào hệ thống với đầy đủ thông tin: tiêu đề, mô tả, giá, danh mục, ảnh và cấu hình demo. Sản phẩm được tạo ở trạng thái `draft` và chỉ publish khi Admin sẵn sàng.
-
-**Why this priority**: Không có khả năng tạo sản phẩm thì không có gì để bán — đây là nền tảng của toàn bộ hệ thống.
-
-**Independent Test**: Admin tạo một sản phẩm Tool mới với ảnh, mô tả và giá — xác nhận sản phẩm xuất hiện trong danh sách Admin với trạng thái `draft` và chưa hiển thị trên storefront.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin truy cập trang "Thêm sản phẩm mới", **When** form hiển thị, **Then** Admin thấy đầy đủ các trường: tên sản phẩm, mô tả ngắn, mô tả đầy đủ (rich text editor), giá (VNĐ), danh mục (Tools/Projects/LAB211), trạng thái (draft/published), cờ "Nổi bật" và cờ "3D Showcase".
-2. **Given** Admin điền đầy đủ thông tin bắt buộc và bấm "Lưu nháp", **When** hệ thống xử lý, **Then** sản phẩm được tạo với trạng thái `draft` và Admin được điều hướng đến trang chỉnh sửa để tiếp tục thêm media và cấu hình demo.
-3. **Given** Admin bấm "Publish" sau khi điền đủ thông tin bắt buộc, **When** hệ thống xử lý, **Then** sản phẩm chuyển sang `published` và xuất hiện ngay trên storefront.
-4. **Given** Admin bỏ trống trường bắt buộc (tên, giá, danh mục), **When** submit, **Then** hệ thống không lưu và hiển thị thông báo lỗi cụ thể cho từng trường thiếu.
+**Feature Branch**: `008-admin-product-crud`  
+**Status**: Implemented  
+**Version**: 1.0.0  
+**Updated**: 2026-03-16  
+**Implementation Files**:
+- `src/app/admin/products/page.tsx`
+- `src/app/api/admin/upload/asset/route.ts`
+- `src/app/api/admin/upload/deliverable/route.ts`
+- `src/lib/store.tsx`
+- `src/types/index.ts`
 
 ---
 
-### User Story 2 — Quản Lý Media Gallery Sản Phẩm (Priority: P1)
+## 1. Context & Goal
 
-Admin cần upload nhiều ảnh, nhúng video YouTube/Vimeo và thêm link demo trực tiếp để tạo bộ demo phong phú cho sản phẩm.
-
-**Why this priority**: Media gallery chất lượng cao là yếu tố then chốt tăng tỉ lệ chuyển đổi — không có media thì trang sản phẩm kém thuyết phục.
-
-**Independent Test**: Admin upload 3 ảnh, thêm 1 video YouTube và 1 link demo — xác nhận tất cả hiển thị đúng thứ tự trên trang chi tiết sản phẩm (storefront).
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang chỉnh sửa sản phẩm, **When** họ vào section "Gallery & Demo", **Then** có thể upload tối đa 10 ảnh (JPG/PNG/WebP, tối đa 10MB mỗi ảnh) với chức năng kéo-thả và sắp xếp thứ tự bằng drag-and-drop.
-2. **Given** Admin nhập URL YouTube hoặc Vimeo vào ô "Thêm video", **When** xác nhận, **Then** hệ thống hiển thị preview thumbnail video và thêm vào gallery.
-3. **Given** Admin nhập URL demo trực tiếp và nhãn nút (ví dụ: "Xem Demo Trực Tiếp"), **When** lưu, **Then** nút demo với nhãn đó xuất hiện trên trang chi tiết sản phẩm.
-4. **Given** Admin kéo-thả để sắp xếp lại thứ tự ảnh, **When** lưu thứ tự mới, **Then** gallery trên storefront hiển thị đúng thứ tự mới.
+- **Business Context**: Quản trị viên cần công cụ toàn diện để thêm mới, cập nhật thông tin sản phẩm số, cấu hình media demo phong phú (ảnh, video, link web demo, code snippet), tải file mã nguồn bàn giao lên Private Storage và lưu trữ an toàn.
+- **Feature Goal**: Xây dựng trung tâm quản trị sản phẩm `/admin/products` với form tạo/chỉnh sửa modal đầy đủ các trường nghiệp vụ, 2 API upload chuyên dụng (ảnh public và file zip private) và cơ chế xóa mềm (`archived`).
+- **Success Metrics**:
+  - Hỗ trợ tạo và cập nhật sản phẩm đầy đủ thông tin trong < 2 phút.
+  - Tải ảnh thumbnail/gallery lên Supabase Storage bucket `product-assets` tự động.
+  - Tải file mã nguồn giao hàng lên private bucket `digital-deliverables` (tối đa 50MB) an toàn.
+  - Xóa mềm sản phẩm bằng trạng thái `archived`, không làm đứt gãy lịch sử đơn hàng cũ.
 
 ---
 
-### User Story 3 — Cấu Hình Thông Tin Kỹ Thuật & Nội Dung Sản Phẩm (Priority: P1)
+## 2. Actors & Roles
 
-Admin cần nhập danh sách "Bao gồm" (những gì khách hàng nhận được) và yêu cầu kỹ thuật (ngôn ngữ, framework, phiên bản) để khách hàng biết chính xác sản phẩm bao gồm gì.
-
-**Why this priority**: Thông tin rõ ràng giảm tỉ lệ hoàn tiền và tăng sự tin tưởng — đặc biệt quan trọng với sản phẩm số.
-
-**Independent Test**: Admin thêm 3 mục vào "Bao gồm" và 2 yêu cầu kỹ thuật — xác nhận chúng hiển thị đúng trên trang chi tiết sản phẩm.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang chỉnh sửa sản phẩm, **When** họ vào section "Nội dung & Yêu cầu", **Then** có thể thêm/xóa các mục trong danh sách "Bao gồm" (ví dụ: "Source code Java, tài liệu Word") và "Yêu cầu kỹ thuật" (ví dụ: "Java 17, Maven").
-2. **Given** Admin đã thêm danh sách bao gồm, **When** lưu, **Then** section "Bao gồm" xuất hiện trên trang chi tiết sản phẩm phía khách hàng.
+| Actor | Quyền Hạn Trong Feature Này |
+|---|---|
+| **Quản trị viên (Admin)** | Xem bảng danh sách sản phẩm, lọc theo danh mục, tìm kiếm, mở modal tạo mới/chỉnh sửa sản phẩm, upload ảnh & deliverable zip, chuyển trạng thái lưu trữ (`archived`). |
+| **Khách hàng** | Không có quyền truy cập trang này. Sản phẩm `published` sẽ hiển thị trên Storefront của khách. |
 
 ---
 
-### User Story 4 — Chỉnh Sửa & Xóa Sản Phẩm (Priority: P1)
+## 3. User Scenarios & Acceptance Criteria
 
-Admin cần chỉnh sửa thông tin sản phẩm đã tồn tại (cập nhật giá, mô tả, ảnh) hoặc ẩn/xóa sản phẩm không còn bán nữa.
+### User Story 1 — Tạo Sản Phẩm Mới Đầy Đủ Thông Tin (Priority: P1)
+- **GIVEN** Admin bấm nút "Thêm Sản Phẩm Mới" tại `/admin/products`
+- **WHEN** modal form mở ra, Admin điền:
+  - Danh mục: `lab211`, `project`, hoặc `tool`.
+  - Tiêu đề sản phẩm, slug tự động sinh hoặc tùy chỉnh.
+  - Giá bán (VNĐ) và Giá gốc (gợi ý giảm giá).
+  - Tải ảnh thumbnail qua nút upload hoặc dán link ảnh.
+  - Mô tả ngắn và Mô tả chi tiết.
+  - Trạng thái: `published` hoặc `draft`.
+- **THEN** hệ thống gọi `adminCreateProduct`, lưu vào state và Supabase `products` table, hiển thị sản phẩm mới ngay trong bảng.
 
-**Why this priority**: Quản lý vòng đời sản phẩm là tính năng CRUD cơ bản không thể thiếu.
+### User Story 2 — Cấu Hình Rich Demo & Code Snippet (Priority: P1)
+- **GIVEN** Admin đang tạo hoặc chỉnh sửa sản phẩm
+- **WHEN** Admin cấu hình phần "Demo & Trình Diễn":
+  - Dán URL website demo sống (`live_demo_url`).
+  - Dán URL video review demo (`video_demo_url`).
+  - Dán đoạn mã nguồn mẫu (`code_preview_snippet`) cho bài LAB211 hoặc đồ án.
+  - Nhập danh sách tính năng (`features_list`) và danh sách thẻ công nghệ (`tech_stack_tags`).
+  - Tải lên nhiều ảnh gallery qua API upload asset.
+- **THEN** dữ liệu được lưu vào `product_demos`, hiển thị trên storefront khi khách hàng xem chi tiết.
 
-**Independent Test**: Admin chỉnh sửa giá một sản phẩm, lưu và xác nhận giá mới hiển thị đúng trên storefront. Sau đó ẩn sản phẩm và xác nhận nó không còn hiện ở storefront.
+### User Story 3 — Tải File Mã Nguồn Bàn Giao (Deliverable Package) (Priority: P1)
+- **GIVEN** Admin cấu hình gói giao hàng cho sản phẩm
+- **WHEN** chọn file ZIP mã nguồn từ máy tính
+- **THEN** client gửi file qua `POST /api/admin/upload/deliverable`, server lưu vào private bucket `digital-deliverables` tại `packages/{timestamp}_{name}.zip`, điền tự động `storage_file_path` vào form.
 
-**Acceptance Scenarios**:
-
-1. **Given** Admin bấm "Chỉnh sửa" trên một sản phẩm, **When** trang chỉnh sửa tải, **Then** tất cả thông tin hiện tại được điền sẵn và Admin có thể thay đổi bất kỳ trường nào.
-2. **Given** Admin thay đổi giá và lưu, **When** hệ thống cập nhật, **Then** giá mới hiển thị ngay trên storefront — nhưng các đơn hàng cũ vẫn giữ nguyên giá tại thời điểm đặt.
-3. **Given** Admin chuyển trạng thái sản phẩm sang `hidden`, **When** lưu, **Then** sản phẩm biến mất khỏi storefront ngay lập tức nhưng vẫn tồn tại trong database và danh sách Admin.
-4. **Given** Admin cố xóa sản phẩm đã có đơn hàng, **When** thực hiện, **Then** hệ thống cảnh báo "Sản phẩm này đã có X đơn hàng — xóa sẽ ảnh hưởng đến lịch sử" và yêu cầu xác nhận kép.
-
----
-
-### User Story 5 — Danh Sách Sản Phẩm Admin (Priority: P1)
-
-Admin cần tổng quan danh sách tất cả sản phẩm với khả năng lọc, tìm kiếm và quản lý nhanh trạng thái.
-
-**Why this priority**: Điểm trung tâm quản lý sản phẩm — Admin cần thấy toàn bộ catalog.
-
-**Independent Test**: Truy cập trang quản lý sản phẩm, lọc theo danh mục "LAB211", xác nhận chỉ hiển thị sản phẩm LAB211.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin truy cập trang Quản lý sản phẩm, **When** trang tải, **Then** hiển thị bảng gồm: ảnh thumbnail, tên sản phẩm, danh mục, giá, trạng thái (draft/published/hidden), số đơn hàng và thao tác (Chỉnh sửa / Ẩn / Xóa).
-2. **Given** Admin chọn bộ lọc danh mục, **When** áp dụng, **Then** danh sách chỉ hiển thị sản phẩm thuộc danh mục đó.
-3. **Given** Admin bật cờ "Nổi bật" trực tiếp từ danh sách, **When** lưu, **Then** sản phẩm xuất hiện trong section Featured trên trang chủ.
-
----
-
-### Edge Cases
-
-- Điều gì xảy ra khi Admin xóa ảnh đang là ảnh thumbnail chính của sản phẩm?
-- Làm thế nào khi URL YouTube Admin nhập không hợp lệ hoặc video bị xóa?
-- Điều gì xảy ra khi Admin publish sản phẩm mà chưa upload file tài nguyên số?
-- Khi Admin chỉnh sửa mô tả sản phẩm, có tự động save nháp không (auto-save)?
+### User Story 4 — Chỉnh Sửa & Xóa Mềm Sản Phẩm (Priority: P1)
+- **GIVEN** Admin muốn cập nhật giá hoặc ẩn một sản phẩm
+- **WHEN** bấm nút "Sửa" hoặc "Xóa"
+- **THEN**:
+  - Bấm "Sửa": form điền sẵn dữ liệu cũ, bấm lưu gọi `adminUpdateProduct`.
+  - Bấm "Xóa": hệ thống thực hiện xóa mềm bằng cách gọi `adminArchiveProduct`, chuyển trạng thái thành `archived` và ẩn khỏi Storefront.
 
 ---
 
-## Requirements *(mandatory)*
+## 4. Functional Requirements (EARS)
 
-### Functional Requirements
-
-- **FR-001**: Admin PHẢI có thể tạo sản phẩm mới với các trường: tên, mô tả ngắn, mô tả đầy đủ (rich text), giá, danh mục, trạng thái, cờ nổi bật, cờ 3D showcase.
-- **FR-002**: Hệ thống PHẢI yêu cầu tên, giá và danh mục là các trường bắt buộc khi tạo/chỉnh sửa sản phẩm.
-- **FR-003**: Admin PHẢI có thể upload tối đa 10 ảnh (JPG/PNG/WebP, tối đa 10MB/ảnh) vào gallery sản phẩm.
-- **FR-004**: Admin PHẢI có thể sắp xếp thứ tự ảnh trong gallery bằng drag-and-drop.
-- **FR-005**: Admin PHẢI có thể nhúng video từ YouTube hoặc Vimeo bằng cách nhập URL.
-- **FR-006**: Admin PHẢI có thể thêm tối đa 3 link demo với nhãn tùy chỉnh.
-- **FR-007**: Admin PHẢI có thể quản lý danh sách "Bao gồm" và "Yêu cầu kỹ thuật" bằng cách thêm/xóa từng mục.
-- **FR-008**: Admin PHẢI có thể chuyển đổi trạng thái sản phẩm giữa draft/published/hidden.
-- **FR-009**: Hệ thống PHẢI cảnh báo khi Admin cố xóa sản phẩm đã có đơn hàng.
-- **FR-010**: Admin PHẢI có thể bật/tắt cờ "Nổi bật" và "3D Showcase" cho từng sản phẩm.
-- **FR-011**: Hệ thống PHẢI hiển thị danh sách sản phẩm Admin với bộ lọc theo danh mục, trạng thái và tìm kiếm theo tên.
-- **FR-012**: Khi Admin thay đổi giá, hệ thống PHẢI giữ nguyên giá trong các đơn hàng cũ — chỉ áp dụng giá mới cho đơn hàng mới.
-
-### Key Entities
-
-- **Sản Phẩm (Product)**: Tên, mô tả ngắn, mô tả đầy đủ (rich text HTML), giá, danh mục (tool/project/lab211), trạng thái (draft/published/hidden), cờ featured, cờ 3D showcase, danh sách bao gồm, yêu cầu kỹ thuật, timestamps.
-- **Media Item**: Loại (ảnh/video nhúng), URL, thứ tự, alt text, liên kết với sản phẩm.
-- **Demo Link**: URL, nhãn nút hiển thị, thứ tự.
+- **FR-001 (Ubiquitous)**: THE system SHALL validate that Title, Price, and Category are non-empty upon product save.
+- **FR-002 (Event-Driven)**: WHEN an admin uploads thumbnail or gallery files via `POST /api/admin/upload/asset`, THE server SHALL validate MIME types (JPG, PNG, WEBP, GIF, SVG), verify size <= 10MB, and store in bucket `product-assets`.
+- **FR-003 (Event-Driven)**: WHEN an admin uploads deliverable packages via `POST /api/admin/upload/deliverable`, THE server SHALL verify size <= 50MB and store in private bucket `digital-deliverables`.
+- **FR-004 (Event-Driven)**: WHEN an admin archives a product, THE system SHALL update its status to `archived` to preserve historical order references.
+- **FR-005 (State-Driven)**: WHILE editing a product, THE system SHALL support `deliverable_type` options: `download_file`, `git_access`, `license_key`, `instructions_only`.
 
 ---
 
-## Success Criteria *(mandatory)*
+## 5. API Endpoints Specification
 
-### Measurable Outcomes
+### 1. `POST /api/admin/upload/asset`
+- **Purpose**: Upload ảnh thumbnail và ảnh gallery vào bucket `product-assets`.
+- **Limit**: Max 10MB; Chấp nhận JPG, PNG, WEBP, GIF, SVG.
+- **Response**: `{ success: true, url: string, path: string, fileName: string, size: number }`.
 
-- **SC-001**: Admin có thể tạo một sản phẩm đầy đủ (thông tin cơ bản + ảnh + demo) trong vòng 10 phút.
-- **SC-002**: Thay đổi trạng thái sản phẩm (publish/hide) phản ánh ngay trên storefront trong vòng 5 giây.
-- **SC-003**: Upload 10 ảnh đồng thời hoàn tất trong vòng 60 giây trên kết nối internet bình thường.
-- **SC-004**: 100% sản phẩm ở trạng thái draft/hidden không xuất hiện trên storefront.
-- **SC-005**: Giá tại thời điểm đặt hàng trong đơn hàng cũ không thay đổi khi Admin cập nhật giá sản phẩm.
+### 2. `POST /api/admin/upload/deliverable`
+- **Purpose**: Upload file mã nguồn .ZIP vào private bucket `digital-deliverables`.
+- **Limit**: Max 50MB; MIME `application/zip` hoặc file nén.
+- **Response**: `{ success: true, storagePath: string, fileName: string, size: number }`.
 
 ---
 
-## Assumptions
+## 6. Verification & Test Plan
 
-- Rich text editor cho mô tả sản phẩm hỗ trợ định dạng cơ bản: bold, italic, heading, danh sách, liên kết.
-- Video nhúng từ YouTube/Vimeo — không hỗ trợ upload video trực tiếp trong v1.
-- Tối đa 10 ảnh và 3 link demo là đủ cho nhu cầu v1 — có thể tăng giới hạn trong v2.
-- Admin xóa "logic" (soft delete) sản phẩm — không xóa khỏi database để bảo toàn lịch sử đơn hàng.
+- **Automated**: `tsc --noEmit` đạt 0 lỗi.
+- **Manual Verification**:
+  1. Vào `/admin/products` -> Bấm "Thêm Sản Phẩm Mới".
+  2. Upload thumbnail ảnh -> Kiểm tra ảnh hiển thị preview ngay.
+  3. Upload file ZIP deliverable -> Kiểm tra trả về đường dẫn `packages/...`.
+  4. Điền code snippet và lưu -> Vào trang chủ kiểm tra sản phẩm mới hiển thị đầy đủ thông tin.
+  5. Bấm nút xóa sản phẩm -> Kiểm tra sản phẩm chuyển trạng thái và biến mất khỏi trang chủ.

@@ -1,144 +1,102 @@
-# Feature Specification: Admin Dashboard — Thống Kê & Phân Tích Doanh Thu
+# Feature Specification: Admin Dashboard — Thống Kê & Phân Tích Doanh Thu (Spec 009)
 
-**Feature Branch**: `009-admin-dashboard`
-
-**Created**: 2026-03-15
-
-**Status**: Draft
-
----
-
-## User Scenarios & Testing *(mandatory)*
-
-### User Story 1 — Tổng Quan Dashboard Doanh Thu (Priority: P1)
-
-Admin muốn có cái nhìn tổng quan ngay khi vào trang quản trị: tổng doanh thu, số đơn hàng hôm nay, số đơn chờ duyệt và tăng trưởng so với kỳ trước.
-
-**Why this priority**: Dashboard là điểm vào đầu tiên của Admin — cung cấp thông tin then chốt để ra quyết định nhanh (đặc biệt là số đơn chờ duyệt cần xử lý ngay).
-
-**Independent Test**: Đăng nhập Admin, xác nhận các thẻ KPI hiển thị đúng số liệu: tổng doanh thu (chỉ tính đơn `completed`), số đơn hôm nay và số đơn đang chờ duyệt — khớp với dữ liệu thực trong database.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đăng nhập và truy cập Dashboard, **When** trang tải, **Then** hiển thị 4 thẻ KPI chính:
-   - **Tổng doanh thu**: Tổng tiền từ các đơn hàng `completed` (tất cả thời gian).
-   - **Doanh thu tháng này**: Doanh thu từ đầu tháng đến nay.
-   - **Đơn chờ duyệt**: Số đơn hàng có trạng thái `pending_approval` — có badge đỏ nếu > 0.
-   - **Tổng đơn hàng**: Tổng số đơn hàng tất cả trạng thái.
-2. **Given** Dashboard đang hiển thị, **When** có đơn hàng mới được tạo hoặc duyệt, **Then** thẻ KPI tương ứng cập nhật mà không cần F5 trang (real-time hoặc polling mỗi 60 giây).
-3. **Given** Admin bấm vào thẻ "Đơn chờ duyệt", **When** điều hướng, **Then** chuyển thẳng đến trang Quản lý đơn hàng với bộ lọc `pending_approval` đã được áp dụng.
+**Feature Branch**: `009-admin-dashboard`  
+**Status**: Implemented  
+**Version**: 1.0.0  
+**Updated**: 2026-03-16  
+**Implementation Files**:
+- `src/app/admin/page.tsx`
+- `src/app/admin/layout.tsx`
+- `src/lib/store.tsx`
+- `src/lib/vietqr.ts`
+- `src/types/index.ts`
 
 ---
 
-### User Story 2 — Biểu Đồ Doanh Thu Theo Thời Gian (Priority: P1)
+## 1. Context & Goal
 
-Admin muốn thấy xu hướng doanh thu qua biểu đồ đường/cột theo ngày, tuần hoặc tháng để phân tích và lập kế hoạch kinh doanh.
-
-**Why this priority**: Biểu đồ xu hướng là công cụ quyết định cơ bản cho bất kỳ dashboard thương mại điện tử nào.
-
-**Independent Test**: Xem biểu đồ doanh thu 30 ngày qua, chọn bộ lọc "7 ngày" và xác nhận biểu đồ cập nhật đúng với dữ liệu trong khoảng thời gian đó.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang xem Dashboard, **When** nhìn vào section biểu đồ doanh thu, **Then** biểu đồ hiển thị mặc định doanh thu 30 ngày qua theo từng ngày với trục X là ngày và trục Y là số tiền VNĐ.
-2. **Given** Admin chọn bộ lọc thời gian (7 ngày / 30 ngày / 3 tháng / 12 tháng), **When** áp dụng, **Then** biểu đồ cập nhật ngay với khoảng thời gian mới và các điểm dữ liệu tương ứng.
-3. **Given** Admin hover chuột vào một điểm dữ liệu trên biểu đồ, **When** tooltip hiển thị, **Then** thấy ngày, tổng doanh thu và số đơn hàng completed trong ngày đó.
-4. **Given** không có đơn hàng completed trong khoảng thời gian được chọn, **When** biểu đồ hiển thị, **Then** hiển thị đường ngang tại 0 với thông báo "Chưa có doanh thu trong khoảng thời gian này" thay vì biểu đồ trống gây nhầm lẫn.
+- **Business Context**: Ban quản trị CodeVault Studio cần nắm bắt tức thì tình hình tài chính thực tế (chỉ tính các giao dịch VietQR đã được Admin phê duyệt thành công), theo dõi số lượng đơn hàng đang chờ duyệt để kịp thời đối chiếu ngân hàng và phân tích xu hướng bán chạy theo 3 danh mục (LAB211, Project, Tool).
+- **Feature Goal**: Xây dựng Admin Dashboard hoàn chỉnh tại `/admin` tuân thủ tiêu chuẩn `design.md`: 4 thẻ KPI pastel, banner cảnh báo đơn chờ duyệt khẩn cấp, biểu đồ Area Chart xu hướng doanh thu và biểu đồ Donut Chart phân bố danh mục.
+- **Success Metrics**:
+  - Doanh thu chỉ tính trên các đơn hàng `completed`, không tính đơn nháp hay đơn chờ.
+  - Thẻ cảnh báo đơn chờ duyệt hiển thị nổi bật kèm nút bấm điều hướng 1-click sang `/admin/orders`.
+  - Biểu đồ Area Chart và Donut Chart render mượt mà bằng vector SVG thuần, hỗ trợ lọc theo mốc thời gian 7 ngày, 30 ngày và 3 tháng.
 
 ---
 
-### User Story 3 — Thống Kê Theo Danh Mục Sản Phẩm (Priority: P2)
+## 2. Actors & Roles
 
-Admin muốn biết danh mục nào (Tools, Projects, LAB211) bán chạy nhất để tập trung phát triển sản phẩm.
-
-**Why this priority**: Insight theo danh mục giúp tối ưu hóa danh mục sản phẩm và chiến lược bán hàng.
-
-**Independent Test**: Xem biểu đồ tròn danh mục, xác nhận tổng tỉ lệ bằng 100% và khớp với số đơn hàng thực tế của từng danh mục.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang xem Dashboard, **When** nhìn vào section thống kê danh mục, **Then** biểu đồ tròn (pie chart) hiển thị tỉ lệ doanh thu theo từng danh mục (Tools, Projects, LAB211) cho tháng hiện tại.
-2. **Given** Admin hover vào một phần của biểu đồ tròn, **When** tooltip hiển thị, **Then** thấy tên danh mục, doanh thu, số đơn hàng và tỉ lệ phần trăm.
+| Actor | Quyền Hạn Trong Feature Này |
+|---|---|
+| **Quản trị viên (Admin)** | Xem toàn bộ các chỉ số KPI, lọc khoảng thời gian trên biểu đồ, bấm vào thông báo đơn chờ duyệt để chuyển sang màn hình phê duyệt, xem bảng 5 giao dịch gần nhất. |
+| **Khách hàng** | Không có quyền truy cập trang này (bị chặn bởi RBAC guard tại `src/app/admin/layout.tsx`). |
 
 ---
 
-### User Story 4 — Top Sản Phẩm Bán Chạy (Priority: P2)
+## 3. User Scenarios & Acceptance Criteria
 
-Admin muốn biết sản phẩm nào được mua nhiều nhất để hiểu sở thích khách hàng và tối ưu hóa featured products.
+### User Story 1 — Xem 4 Thẻ KPI Doanh Thu & Đơn Hàng (Priority: P1)
+- **GIVEN** Admin đăng nhập và truy cập `/admin`
+- **WHEN** trang tải
+- **THEN** hiển thị 4 thẻ thống kê pastel:
+  1. **Tổng Doanh Thu** (Nền `#edf5ff`, viền `#dbeafe`, chữ `#3b82f6`): Tổng tiền từ các đơn hàng `completed` (ví dụ: `formatVND(totalRevenue)`).
+  2. **Tổng Đơn Hàng** (Nền `#f3eefd`, viền `#ede9fe`, chữ `#8b5cf6`): Tổng số đơn với phân tích số đơn hoàn thành và số đơn chờ duyệt.
+  3. **Giá Trị Đơn TB** (Nền `#eafaf5`, viền `#d1fae5`, chữ `#059669`): Doanh thu trung bình trên mỗi đơn hoàn tất.
+  4. **Sinh Viên & Khách Hàng** (Nền `#fff7ed`, viền `#ffedd5`, chữ `#d97706`): Tổng số tài khoản đăng ký trên hệ thống.
 
-**Why this priority**: Top sản phẩm là insight thực tế nhất để điều chỉnh chiến lược marketing và inventory.
+### User Story 2 — Banner Cảnh Báo Đơn Chờ Duyệt Khẩn Cấp (Priority: P1)
+- **GIVEN** có ít nhất 1 đơn hàng ở trạng thái `pending_approval`
+- **WHEN** Admin vào Dashboard
+- **THEN** xuất hiện banner màu vàng cam nổi bật với icon chuông cảnh báo nhấp nháy, hiển thị số lượng đơn đang chờ duyệt và nút "Duyệt Đơn Ngay" dẫn thẳng đến `/admin/orders`.
 
-**Independent Test**: Xem bảng top sản phẩm, xác nhận thứ tự khớp với số đơn hàng `completed` thực tế của từng sản phẩm.
+### User Story 3 — Phân Tích Xu Hướng Doanh Thu Bằng Biểu Đồ Area Chart (Priority: P1)
+- **GIVEN** Admin xem khối biểu đồ Area Chart
+- **WHEN** bấm đổi các nút filter: "7 ngày", "30 ngày", "3 tháng"
+- **THEN** biểu đồ cập nhật mốc thời gian, hiển thị đường cong doanh thu mượt mà với dải gradient màu xanh `#3b82f6` và các điểm mốc dữ liệu nổi bật.
 
-**Acceptance Scenarios**:
+### User Story 4 — Cơ Cấu Doanh Số Theo Danh Mục Bằng Donut Chart (Priority: P2)
+- **GIVEN** Admin xem khối biểu đồ Donut Chart
+- **WHEN** hệ thống phân tích doanh số các đơn `completed` theo từng danh mục
+- **THEN** hiển thị hình vành khăn với 3 phân đoạn màu:
+  - LAB211 OOP: Màu xanh dương `#2563eb`
+  - Project & Assignment: Màu tím `#8b5cf6`
+  - Tiện Ích Tool: Màu xanh ngọc `#10b981`
+  kèm bảng chú giải phần trăm doanh thu tương ứng.
 
-1. **Given** Admin đang xem Dashboard, **When** nhìn vào section "Top sản phẩm", **Then** hiển thị bảng top 5 sản phẩm bán chạy nhất (theo số đơn `completed`) với: tên sản phẩm, danh mục, số đơn hàng và doanh thu tương ứng.
-2. **Given** Admin bấm vào tên sản phẩm trong bảng top, **When** điều hướng, **Then** chuyển đến trang chỉnh sửa sản phẩm đó trong Admin.
-
----
-
-### User Story 5 — Thống Kê Người Dùng (Priority: P3)
-
-Admin muốn biết số khách hàng mới đăng ký và tổng số tài khoản trong hệ thống.
-
-**Why this priority**: Metric tăng trưởng người dùng là chỉ số sức khỏe của nền tảng — quan trọng nhưng không cấp bách.
-
-**Independent Test**: Xem thẻ KPI "Người dùng mới tháng này", xác nhận số khớp với tài khoản đăng ký trong tháng hiện tại.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đang xem Dashboard, **When** nhìn vào section thống kê người dùng, **Then** thấy: tổng số tài khoản, số tài khoản mới trong 30 ngày qua và số khách hàng đã mua ít nhất một sản phẩm.
-
----
-
-### Edge Cases
-
-- Điều gì xảy ra khi doanh thu = 0 cho tất cả các kỳ — biểu đồ có hiển thị đúng không?
-- Làm thế nào khi đơn hàng bị reject sau khi đã counted trong doanh thu tháng — số liệu có được cập nhật ngược lại không?
-- Điều gì xảy ra khi có hàng nghìn đơn hàng — dashboard có bị chậm không?
-- Doanh thu theo VNĐ — có cần format số thân thiện (1.500.000 thay vì 1500000)?
-
----
-
-## Requirements *(mandatory)*
-
-### Functional Requirements
-
-- **FR-001**: Dashboard PHẢI hiển thị 4 thẻ KPI: tổng doanh thu (tất cả thời gian), doanh thu tháng này, số đơn chờ duyệt và tổng số đơn hàng.
-- **FR-002**: KPI chỉ tính đơn hàng có trạng thái `completed` trong tính toán doanh thu — không tính `pending` hay `rejected`.
-- **FR-003**: Dashboard PHẢI hiển thị biểu đồ doanh thu theo thời gian với các tùy chọn: 7 ngày, 30 ngày, 3 tháng, 12 tháng.
-- **FR-004**: Dashboard PHẢI hiển thị biểu đồ tỉ lệ doanh thu theo danh mục sản phẩm.
-- **FR-005**: Dashboard PHẢI hiển thị bảng top 5 sản phẩm bán chạy nhất.
-- **FR-006**: Số đơn chờ duyệt PHẢI được cập nhật tự động (polling hoặc real-time) — không cần F5 trang.
-- **FR-007**: Tất cả số tiền PHẢI được định dạng theo đơn vị VNĐ với dấu phân cách nghìn (ví dụ: 1.500.000 đ).
-- **FR-008**: Admin PHẢI có thể bấm vào thẻ KPI "Đơn chờ duyệt" để điều hướng nhanh đến danh sách đơn hàng đó.
-- **FR-009**: Dashboard PHẢI hiển thị thống kê người dùng: tổng tài khoản, tài khoản mới trong 30 ngày.
-- **FR-010**: Biểu đồ PHẢI hiển thị trạng thái rỗng/không có dữ liệu một cách rõ ràng thay vì vẽ biểu đồ trống.
-
-### Key Entities
-
-- **Dữ Liệu Doanh Thu Tổng Hợp (Revenue Aggregate)**: Tổng hợp từ các đơn hàng `completed`, nhóm theo ngày/tuần/tháng và theo danh mục.
-- **KPI Snapshot**: Tổng doanh thu all-time, doanh thu tháng hiện tại, số đơn chờ, tổng đơn hàng, tổng người dùng.
-- **Top Sản Phẩm**: Danh sách sản phẩm được sắp xếp theo số đơn hàng `completed` giảm dần.
+### User Story 5 — Bảng 5 Đơn Hàng Gần Nhất (Priority: P2)
+- **GIVEN** Admin cuộn xuống cuối Dashboard
+- **WHEN** xem section "Đơn Hàng Gần Đây"
+- **THEN** bảng hiển thị tối đa 5 đơn hàng mới nhất với: Mã đơn, Khách hàng, Sản phẩm, Số tiền, Badge trạng thái màu và nút xem chi tiết.
 
 ---
 
-## Success Criteria *(mandatory)*
+## 4. Functional Requirements (EARS)
 
-### Measurable Outcomes
-
-- **SC-001**: Dashboard tải và hiển thị đầy đủ trong vòng 3 giây.
-- **SC-002**: Số liệu KPI chính xác 100% — không sai lệch so với truy vấn trực tiếp database.
-- **SC-003**: Số đơn chờ duyệt cập nhật tự động — Admin không phải F5 để thấy đơn mới.
-- **SC-004**: Biểu đồ doanh thu cập nhật đúng khi Admin thay đổi khoảng thời gian — phản hồi trong vòng 1 giây.
-- **SC-005**: Tất cả số tiền hiển thị đúng định dạng VNĐ với dấu phân cách nghìn.
+- **FR-001 (Ubiquitous)**: THE system SHALL calculate `totalRevenue` and `avgOrderValue` using ONLY orders where `status === "completed"`.
+- **FR-002 (State-Driven)**: WHILE there are orders with `status === "pending_approval"`, THE system SHALL render the urgent pending approval alert banner with count and direct CTA.
+- **FR-003 (Event-Driven)**: WHEN the admin toggles chart timeframe between `7d`, `30d`, and `3m`, THE system SHALL update the active timeframe state and re-render the SVG Area Chart.
+- **FR-004 (State-Driven)**: WHILE rendering the Donut Chart, THE system SHALL calculate percentage proportions across categories (`lab211`, `project`, `tool`) based on completed order items.
+- **FR-005 (Ubiquitous)**: THE system SHALL format all currency values in Vietnamese Đồng (`formatVND()`).
 
 ---
 
-## Assumptions
+## 5. UI Style System (Conforming to design.md)
 
-- Tất cả doanh thu tính bằng VNĐ — không cần hỗ trợ đa tiền tệ.
-- Dashboard chỉ dành cho Admin — không có phiên bản khách hàng.
-- Dữ liệu thống kê được tính toán trực tiếp từ bảng `orders` — chưa cần data warehouse hay materialized views trong v1.
-- Auto-refresh KPI theo polling mỗi 60 giây là đủ — không cần WebSocket real-time trong v1.
-- Số liệu tháng hiện tại được tính từ ngày 1 của tháng đến thời điểm hiện tại.
+| Component | Background | Border | Primary Text | Icon |
+|---|---|---|---|---|
+| Card Doanh Thu | `#edf5ff` | `#dbeafe` | `#3b82f6` | `TrendingUp` (Emerald) |
+| Card Đơn Hàng | `#f3eefd` | `#ede9fe` | `#8b5cf6` | `ShoppingBag` (Purple) |
+| Card Giá Trị TB | `#eafaf5` | `#d1fae5` | `#059669` | `CreditCard` (Emerald) |
+| Card Khách Hàng | `#fff7ed` | `#ffedd5` | `#d97706` | `Users` (Amber) |
+
+---
+
+## 6. Verification & Test Plan
+
+- **Automated**: `tsc --noEmit` đạt 0 lỗi.
+- **Manual Verification**:
+  1. Đăng nhập quyền Admin -> Mở `/admin`.
+  2. Kiểm tra số liệu 4 thẻ pastel: Doanh thu hiển thị đúng tiền VNĐ.
+  3. Tạo đơn hàng mới và up bill -> Vào lại Dashboard -> Kiểm tra banner màu cam cảnh báo đơn chờ duyệt xuất hiện.
+  4. Bấm chuyển các mốc "7 ngày", "30 ngày", "3 tháng" trên biểu đồ Area Chart.
+  5. Bấm nút "Xem tất cả" tại bảng đơn hàng -> Điều hướng đúng sang `/admin/orders`.

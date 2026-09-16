@@ -32,7 +32,7 @@ export default function ProductCard({ product, onSelectDetail }: ProductCardProp
         };
       case "project":
         return {
-          label: "Đồ Án Project",
+          label: "Project & Assignment",
           icon: Layers,
           className: "bg-purple-50 text-purple-700 border-purple-200",
         };

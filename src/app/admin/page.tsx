@@ -47,7 +47,7 @@ export default function AdminDashboardPage() {
   const totalCatSum = categorySales.lab211 + categorySales.project + categorySales.tool || 1;
   const catPercentages = [
     { label: "LAB211 OOP", value: Math.round((categorySales.lab211 / totalCatSum) * 100) || 45, color: "#2563eb" },
-    { label: "Đồ Án Project", value: Math.round((categorySales.project / totalCatSum) * 100) || 35, color: "#8b5cf6" },
+    { label: "Project & Assignment", value: Math.round((categorySales.project / totalCatSum) * 100) || 35, color: "#8b5cf6" },
     { label: "Tiện Ích Tool", value: Math.round((categorySales.tool / totalCatSum) * 100) || 20, color: "#10b981" },
   ];
 

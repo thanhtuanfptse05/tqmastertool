@@ -1,124 +1,98 @@
-# Feature Specification: Product Detail & Rich Demo Engine
+# Feature Specification: Product Detail & Rich Demo Engine (Spec 003)
 
-**Feature Branch**: `003-product-detail-demo`
-
-**Created**: 2026-03-15
-
-**Status**: Draft
-
----
-
-## User Scenarios & Testing *(mandatory)*
-
-### User Story 1 — Xem Chi Tiết Sản Phẩm Với Demo Phong Phú (Priority: P1)
-
-Một người dùng quan tâm đến một sản phẩm (Tool, Project hoặc LAB211) muốn xem thông tin chi tiết đầy đủ trước khi mua. Trang chi tiết hiển thị mô tả đầy đủ, bộ demo phong phú (ảnh, video, link demo sống) và thông tin giá.
-
-**Why this priority**: Demo chất lượng cao là yếu tố quyết định hành vi mua hàng — người dùng cần "xem trước khi mua" để tin tưởng vào sản phẩm số.
-
-**Independent Test**: Truy cập trang chi tiết sản phẩm bất kỳ, xác nhận gallery media hiển thị, có thể bấm vào ảnh/video để xem lớn hơn, và link demo (nếu có) mở đúng trong tab mới.
-
-**Acceptance Scenarios**:
-
-1. **Given** người dùng bấm vào một sản phẩm từ danh sách, **When** trang chi tiết tải, **Then** hiển thị đầy đủ: tiêu đề, mô tả chi tiết, giá, danh mục, bộ media gallery (ảnh + video), nút "Thêm vào giỏ hàng" / "Mua ngay".
-2. **Given** Admin đã gắn link demo trực tiếp vào sản phẩm, **When** người dùng bấm nút "Xem Demo", **Then** link demo mở trong tab mới mà không điều hướng rời khỏi trang sản phẩm.
-3. **Given** sản phẩm có nhiều ảnh trong gallery, **When** người dùng bấm vào một ảnh, **Then** hiển thị lightbox toàn màn hình với khả năng điều hướng qua lại giữa các ảnh bằng phím mũi tên hoặc vuốt.
-4. **Given** sản phẩm có video nhúng (YouTube / Vimeo), **When** người dùng bấm nút play, **Then** video phát trực tiếp trong trang mà không điều hướng ra ngoài.
+**Feature Branch**: `003-product-detail-demo`  
+**Status**: Implemented  
+**Version**: 1.0.0  
+**Updated**: 2026-03-16  
+**Implementation Files**:
+- `src/components/store/ProductDetailModal.tsx`
+- `src/app/products/[slug]/page.tsx`
+- `src/components/3d/HeroCanvas.tsx`
+- `src/types/index.ts`
 
 ---
 
-### User Story 2 — Demo Tương Tác 3D (Priority: P2)
+## 1. Context & Goal
 
-Một số sản phẩm có thể được trình bày với hiệu ứng 3D tương tác trên canvas — tạo trải nghiệm trực quan nổi bật hơn các cửa hàng số thông thường.
-
-**Why this priority**: Tạo sự khác biệt thương hiệu và tăng mức độ tương tác — không block luồng mua hàng nhưng ảnh hưởng đến tỉ lệ chuyển đổi.
-
-**Independent Test**: Truy cập một sản phẩm có 3D canvas được bật, xác nhận canvas render và tương tác được (xoay/zoom) mà không gây lag hoặc lỗi hiển thị.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đã bật tùy chọn "3D Showcase" cho sản phẩm, **When** người dùng truy cập trang chi tiết, **Then** 3D canvas được hiển thị ở vị trí nổi bật trong trang với khả năng xoay và phóng to bằng chuột/cảm ứng.
-2. **Given** 3D canvas đang hiển thị, **When** người dùng tương tác (kéo để xoay), **Then** canvas phản hồi mượt mà ở tốc độ ≥ 30 FPS trên thiết bị trung bình.
-3. **Given** thiết bị của người dùng không hỗ trợ WebGL hoặc canvas 3D chạy chậm, **When** hệ thống phát hiện, **Then** tự động fallback hiển thị ảnh tĩnh thay thế mà không gây lỗi.
+- **Business Context**: Các sản phẩm số (mã nguồn, bot tự động, đồ án tốt nghiệp, bài lab Java) đòi hỏi khách hàng phải thấy được bằng chứng chất lượng cụ thể trước khi quyết định chuyển khoản: xem ảnh chụp màn hình, xem trích đoạn code thực tế, trải nghiệm website demo trực tiếp và danh sách tính năng cam kết.
+- **Feature Goal**: Cung cấp cơ chế trình diễn đa phương tiện (Rich Demo Engine) với 2 chế độ xem (Modal xem nhanh trên Storefront + Trang chi tiết riêng biệt `/products/[slug]`) và canvas 3D tối ưu WebGL không rò rỉ bộ nhớ.
+- **Success Metrics**:
+  - Hỗ trợ xem gallery ảnh với thanh chuyển thumbnail mượt mà.
+  - Sao chép code mẫu thực tế 1-click với phản hồi trực quan "Đã copy".
+  - Nút mở link demo trực tiếp sang tab mới an toàn (`rel="noreferrer"`).
+  - Three.js canvas đạt 60 FPS và giải phóng tài nguyên WebGL (`dispose()`) khi unmount.
 
 ---
 
-### User Story 3 — Xem Thông Tin Kỹ Thuật & Bao Gồm (Priority: P2)
+## 2. Actors & Roles
 
-Người dùng muốn biết chính xác sản phẩm số bao gồm những gì trước khi mua (danh sách file, công nghệ sử dụng, phiên bản, hướng dẫn cài đặt).
-
-**Why this priority**: Giảm tỉ lệ hoàn trả và tăng sự tin tưởng — người dùng mua hàng số cần biết chính xác họ nhận được gì.
-
-**Independent Test**: Xem trang chi tiết và xác nhận phần "Bao gồm" hoặc "Thông tin kỹ thuật" hiển thị danh sách nội dung sản phẩm.
-
-**Acceptance Scenarios**:
-
-1. **Given** Admin đã nhập danh sách nội dung sản phẩm, **When** người dùng xem trang chi tiết, **Then** một section rõ ràng hiển thị danh sách những gì được bao gồm (ví dụ: "Source code Java, tài liệu Word, README").
-2. **Given** Admin đã nhập yêu cầu kỹ thuật, **When** người dùng xem, **Then** hiển thị thông tin về ngôn ngữ lập trình, công nghệ, phiên bản phần mềm cần thiết.
+| Actor | Quyền Hạn Trong Feature Này |
+|---|---|
+| **Khách vãng lai & Khách hàng** | Xem modal chi tiết hoặc truy cập `/products/[slug]`, bấm xem ảnh gallery, copy code snippet, mở link demo ngoài, bấm "Đặt Mua Ngay (VietQR)". |
+| **Quản trị viên (Admin)** | Cấu hình media demo cho sản phẩm (gallery, live demo URL, video URL, code snippet, features list, tech stack tags) qua `/admin/products`. |
 
 ---
 
-### User Story 4 — Sản Phẩm Liên Quan (Priority: P3)
+## 3. User Scenarios & Acceptance Criteria
 
-Sau khi xem chi tiết một sản phẩm, người dùng thấy các sản phẩm tương tự cùng danh mục để khuyến khích khám phá thêm.
+### User Story 1 — Xem Nhanh Qua Modal Chi Tiết Trên Trang Chủ (Priority: P1)
+- **GIVEN** người dùng đang ở trang chủ
+- **WHEN** bấm nút "Xem Chi Tiết" trên một card sản phẩm
+- **THEN** `ProductDetailModal` mở ra ngay lập tức mà không làm mất vị trí cuộn trang, hiển thị đầy đủ gallery, mô tả chi tiết, code snippet và nút "Đặt Mua Ngay (VietQR)".
 
-**Why this priority**: Tăng cơ hội cross-sell — giá trị thêm nhưng không ảnh hưởng đến trải nghiệm cốt lõi.
+### User Story 2 — Trang Chi Tiết Riêng Biệt `/products/[slug]` (Priority: P1)
+- **GIVEN** người dùng truy cập trực tiếp URL sản phẩm theo slug (ví dụ: `/products/lab211-j1-s-p0001-bubble-sort`)
+- **WHEN** trang tải
+- **THEN** hệ thống render trang chi tiết với layout 2 cột:
+  - Cột trái: Gallery ảnh lớn, thanh thumbnail, khối Code Preview Snippet có nút copy code, nội dung mô tả chi tiết Markdown/HTML.
+  - Cột phải (Sticky): Thông tin danh mục, giá bán, giá gốc, nút mua hàng VietQR, nút xem demo web thực tế, danh sách đặc quyền kèm trust badges.
 
-**Independent Test**: Ở cuối trang chi tiết, xác nhận section "Sản phẩm liên quan" hiển thị tối thiểu 3 sản phẩm cùng danh mục.
+### User Story 3 — Trải Nghiệm Code Preview Snippet (Priority: P1)
+- **GIVEN** sản phẩm có cấu hình `demo.code_preview_snippet` (đặc biệt là các bài LAB211 Java OOP)
+- **WHEN** người dùng xem phần trích đoạn code và bấm nút "Copy code"
+- **THEN** nội dung snippet được sao chép vào clipboard, nút chuyển sang icon Check và chữ "Đã copy" trong 2 giây.
 
-**Acceptance Scenarios**:
-
-1. **Given** người dùng đang xem chi tiết một sản phẩm Tools, **When** họ cuộn xuống cuối trang, **Then** hệ thống hiển thị tối thiểu 3 sản phẩm Tools khác với ảnh và giá.
-
----
-
-### Edge Cases
-
-- Điều gì xảy ra khi sản phẩm không có ảnh nào — có hiển thị placeholder không?
-- Làm thế nào khi link demo do Admin nhập không còn hoạt động (404)?
-- Khi 3D canvas đang tải, có hiển thị skeleton/loading indicator không?
-- Người dùng đã mua sản phẩm truy cập lại trang chi tiết — có thấy nút "Tải về" thay vì "Mua ngay" không?
-
----
-
-## Requirements *(mandatory)*
-
-### Functional Requirements
-
-- **FR-001**: Hệ thống PHẢI hiển thị trang chi tiết sản phẩm với đầy đủ: tiêu đề, mô tả chi tiết (hỗ trợ rich text), giá, danh mục và trạng thái.
-- **FR-002**: Hệ thống PHẢI hỗ trợ gallery media với nhiều ảnh và video nhúng từ YouTube/Vimeo.
-- **FR-003**: Hệ thống PHẢI hiển thị lightbox khi người dùng bấm vào ảnh trong gallery.
-- **FR-004**: Hệ thống PHẢI hiển thị nút "Xem Demo" nếu Admin đã gắn link demo — link mở trong tab mới.
-- **FR-005**: Hệ thống PHẢI hiển thị section "Bao gồm" liệt kê nội dung sản phẩm nếu Admin đã nhập.
-- **FR-006**: Hệ thống PHẢI hỗ trợ hiển thị 3D canvas tương tác khi Admin bật tùy chọn "3D Showcase".
-- **FR-007**: Hệ thống PHẢI tự động fallback sang ảnh tĩnh nếu thiết bị không hỗ trợ 3D canvas.
-- **FR-008**: Hệ thống PHẢI hiển thị sản phẩm liên quan cùng danh mục ở cuối trang chi tiết.
-- **FR-009**: Hệ thống PHẢI hiển thị nút "Tải về" / "Truy cập ngay" thay vì "Mua ngay" với người dùng đã mua sản phẩm đó.
-- **FR-010**: Trang chi tiết sản phẩm PHẢI có URL thân thiện và hỗ trợ chia sẻ mạng xã hội với metadata OG đầy đủ.
-
-### Key Entities
-
-- **Sản Phẩm chi tiết (Product Detail)**: Mô tả đầy đủ (rich text), danh sách ảnh, danh sách video nhúng, link demo, danh sách nội dung bao gồm, yêu cầu kỹ thuật, cờ 3D showcase.
-- **Media Item**: Loại (ảnh / video nhúng), URL, thứ tự hiển thị, alt text.
-- **Demo Link**: URL đến trang demo bên ngoài, nhãn hiển thị.
+### User Story 4 — Hiệu Ứng 3D Tương Tác & Tối Ưu Bộ Nhớ (Priority: P2)
+- **GIVEN** Hero section hoặc showcase 3D tải `HeroCanvas`
+- **WHEN** người dùng di chuyển chuột hoặc cuộn trang
+- **THEN** vật thể 3D (Cyber Tech Core) phản hồi chuyển động mượt mà ở 60 FPS; khi component unmount, toàn bộ geometry và material được giải phóng (`dispose()`) để chống tràn RAM.
 
 ---
 
-## Success Criteria *(mandatory)*
+## 4. Functional Requirements (EARS)
 
-### Measurable Outcomes
-
-- **SC-001**: Trang chi tiết sản phẩm tải đầy đủ trong vòng 3 giây.
-- **SC-002**: 3D canvas tương tác ở tốc độ ≥ 30 FPS trên thiết bị trung bình (không phải high-end).
-- **SC-003**: 100% trường hợp thiết bị không hỗ trợ 3D đều hiển thị fallback ảnh tĩnh mà không có lỗi console.
-- **SC-004**: Người dùng đã mua sản phẩm thấy nút tải về/truy cập đúng — không thấy nút mua lại.
-- **SC-005**: Link demo luôn mở trong tab mới — không điều hướng rời khỏi trang chi tiết.
+- **FR-001 (Ubiquitous)**: THE system SHALL support viewing product details either via popup modal or direct `/products/[slug]` route.
+- **FR-002 (State-Driven)**: WHILE rendering the demo gallery, THE system SHALL display the selected image in the main viewport and allow switching by clicking thumbnail items.
+- **FR-003 (Optional Feature)**: WHERE `product.demo.code_preview_snippet` is provided, THE system SHALL render the code block inside a syntax container with a one-click clipboard copy button.
+- **FR-004 (Optional Feature)**: WHERE `product.demo.live_demo_url` is provided, THE system SHALL render an external link button with `target="_blank"` and `rel="noreferrer"`.
+- **FR-005 (Event-Driven)**: WHEN the user clicks "Đặt Mua Ngay (VietQR)", THE system SHALL trigger `openCheckout(product)` to open the VietQR payment modal.
 
 ---
 
-## Assumptions
+## 5. Data Model & Interfaces
 
-- Admin sẽ cung cấp link YouTube/Vimeo cho video nhúng — không hỗ trợ upload video trực tiếp lên server trong v1.
-- 3D canvas sử dụng model 3D đơn giản hoặc hiệu ứng particle — không cần render model 3D phức tạp của sản phẩm thực.
-- Link demo được Admin nhập thủ công — hệ thống không tự động crawl hay kiểm tra tính hợp lệ của link.
-- Sản phẩm liên quan được tìm tự động theo danh mục — không cần Admin cấu hình thủ công.
+```typescript
+export interface ProductDemo {
+  id: UUID;
+  product_id: UUID;
+  gallery_images: string[];
+  live_demo_url?: string;
+  video_demo_url?: string;
+  demo_credentials?: string;
+  code_preview_snippet?: string;
+  features_list: string[];
+  tech_stack_tags: string[];
+  updated_at?: string;
+}
+```
+
+---
+
+## 6. Verification & Test Plan
+
+- **Automated**: `tsc --noEmit` đạt 0 lỗi.
+- **Manual Verification**:
+  1. Trên trang chủ: Bấm "Xem Chi Tiết" sản phẩm -> Kiểm tra modal hiển thị đúng ảnh và nội dung.
+  2. Truy cập trực tiếp đường dẫn `/products/[slug]` -> Kiểm tra giao diện 2 cột và nút "Quay lại danh mục".
+  3. Bấm "Copy code" trên bài có code snippet -> Paste ra editor kiểm tra đúng mã nguồn.
+  4. Bấm "Xem Website Demo Thực Tế" -> Mở tab mới đúng URL.

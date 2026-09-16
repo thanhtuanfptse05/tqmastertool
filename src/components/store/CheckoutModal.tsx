@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   AlertCircle,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 
 export default function CheckoutModal() {
@@ -39,6 +40,38 @@ export default function CheckoutModal() {
   );
   const [transactionRef, setTransactionRef] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingBill, setIsUploadingBill] = useState(false);
+  const [billUploadError, setBillUploadError] = useState<string | null>(null);
+
+  const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingBill(true);
+    setBillUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/orders/upload-proof", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể tải lên ảnh biên lai");
+      }
+
+      setBillImage(data.url);
+    } catch (err: any) {
+      setBillUploadError(err.message || "Lỗi tải ảnh lên");
+    } finally {
+      setIsUploadingBill(false);
+      e.target.value = "";
+    }
+  };
 
   // If there's a checkout product and no active order yet, create one
   React.useEffect(() => {
@@ -252,31 +285,74 @@ export default function CheckoutModal() {
               </p>
             </div>
 
-            {/* Bill Preview Area */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700">
-                Ảnh biên lai chuyển khoản (Screenshot / Bill):
+            {/* Bill Upload & Preview Area */}
+            <div className="space-y-3 p-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/40">
+              <label className="block text-xs font-bold text-slate-800">
+                Ảnh biên lai chuyển khoản (Screenshot / Bill) *
               </label>
-              <div className="flex items-center gap-4">
-                <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-dashed border-blue-300 bg-blue-50/50 flex items-center justify-center shrink-0">
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="w-28 h-28 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-sm relative group">
                   {billImage ? (
                     <img src={billImage} alt="Bill proof" className="w-full h-full object-cover" />
                   ) : (
                     <UploadCloud className="w-8 h-8 text-blue-400" />
                   )}
                 </div>
-                <div className="flex-1 space-y-2">
-                  <input
-                    type="text"
-                    value={billImage}
-                    onChange={(e) => setBillImage(e.target.value)}
-                    placeholder="Dán link ảnh biên lai hoặc dùng ảnh mặc định..."
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-600"
-                  />
-                  <p className="text-[11px] text-slate-400">
-                    Hệ thống đã chuẩn bị sẵn mẫu biên lai ngân hàng mẫu để bạn thử nghiệm luồng duyệt đơn ngay lập tức.
+
+                <div className="flex-1 space-y-2 w-full">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all active:scale-95">
+                      {isUploadingBill ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Đang Tải Ảnh...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-4 h-4" />
+                          <span>Tải Ảnh Biên Lai Lên</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp"
+                        disabled={isUploadingBill}
+                        onChange={handleBillFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {billImage && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        Đã có ảnh biên lai
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-[11px] text-slate-500">
+                    Chụp màn hình chuyển khoản thành công từ App ngân hàng (Vietcombank, MB, Techcombank,...) rồi bấm nút để tải lên.
                   </p>
+
+                  {billUploadError && (
+                    <p className="text-xs text-red-600 font-semibold">{billUploadError}</p>
+                  )}
                 </div>
+              </div>
+
+              {/* Optional URL input fallback */}
+              <div className="pt-2 border-t border-blue-100">
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">
+                  Hoặc dán URL ảnh biên lai:
+                </span>
+                <input
+                  type="text"
+                  value={billImage}
+                  onChange={(e) => setBillImage(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-600 bg-white"
+                />
               </div>
             </div>
 

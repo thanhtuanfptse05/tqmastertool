@@ -20,6 +20,13 @@ import {
   FileCode,
   Play,
   Upload,
+  Loader2,
+  UploadCloud,
+  CheckCircle2,
+  AlertCircle,
+  FileArchive,
+  ShieldCheck,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export default function AdminProductsPage() {
@@ -50,6 +57,115 @@ export default function AdminProductsPage() {
   const [formGitRepo, setFormGitRepo] = useState("");
   const [formInstructions, setFormInstructions] = useState("");
 
+  // Upload States
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [thumbnailUploadError, setThumbnailUploadError] = useState<string | null>(null);
+
+  const [isUploadingDeliverable, setIsUploadingDeliverable] = useState(false);
+  const [deliverableUploadError, setDeliverableUploadError] = useState<string | null>(null);
+  const [uploadedDeliverableInfo, setUploadedDeliverableInfo] = useState<{ name: string; size: number } | null>(null);
+
+  const [formGalleryImages, setFormGalleryImages] = useState<string[]>([]);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingThumbnail(true);
+    setThumbnailUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "thumbnails");
+
+      const res = await fetch("/api/admin/upload/asset", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể tải ảnh lên Supabase Storage");
+      }
+
+      setFormThumbnail(data.url);
+    } catch (err: any) {
+      setThumbnailUploadError(err.message || "Lỗi tải ảnh lên");
+    } finally {
+      setIsUploadingThumbnail(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeliverableUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingDeliverable(true);
+    setDeliverableUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload/deliverable", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể tải file lên Private Bucket");
+      }
+
+      setFormStoragePath(data.storagePath);
+      setUploadedDeliverableInfo({ name: data.fileName, size: data.size });
+    } catch (err: any) {
+      setDeliverableUploadError(err.message || "Lỗi tải file giao hàng lên");
+    } finally {
+      setIsUploadingDeliverable(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingGallery(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "gallery");
+
+        const res = await fetch("/api/admin/upload/asset", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (res.ok && data.url) {
+          uploadedUrls.push(data.url);
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        setFormGalleryImages((prev) => [...prev, ...uploadedUrls]);
+      }
+    } catch (err) {
+      console.error("Gallery upload error:", err);
+    } finally {
+      setIsUploadingGallery(false);
+      e.target.value = "";
+    }
+  };
+
   const handleOpenCreate = () => {
     setEditingProduct(null);
     setFormCategory("lab211");
@@ -57,7 +173,7 @@ export default function AdminProductsPage() {
     setFormSlug("");
     setFormPrice(199000);
     setFormOriginalPrice(299000);
-    setFormThumbnail("https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800");
+    setFormThumbnail("");
     setFormShortDesc("");
     setFormDetailedDesc("");
     setFormStatus("published");
@@ -67,9 +183,13 @@ export default function AdminProductsPage() {
     setFormFeatures("Mã nguồn sạch chuẩn OOP\nHỗ trợ cài đặt trọn đời");
     setFormTechStack("Java, Spring, Next.js");
     setFormDeliverableType("download_file");
-    setFormStoragePath("source-code-v1.zip");
+    setFormStoragePath("");
     setFormGitRepo("");
     setFormInstructions("Giải nén và import vào IDE.");
+    setFormGalleryImages([]);
+    setThumbnailUploadError(null);
+    setDeliverableUploadError(null);
+    setUploadedDeliverableInfo(null);
     setIsModalOpen(true);
   };
 
@@ -93,6 +213,10 @@ export default function AdminProductsPage() {
     setFormStoragePath(prod.storage_file_path || "");
     setFormGitRepo(prod.git_repo_url || "");
     setFormInstructions(prod.access_instructions || "");
+    setFormGalleryImages(prod.demo?.gallery_images || (prod.thumbnail_url ? [prod.thumbnail_url] : []));
+    setThumbnailUploadError(null);
+    setDeliverableUploadError(null);
+    setUploadedDeliverableInfo(null);
     setIsModalOpen(true);
   };
 
@@ -115,7 +239,7 @@ export default function AdminProductsPage() {
       slug: formSlug || formTitle.toLowerCase().replace(/[^a-z0-9]/g, "-"),
       price: Number(formPrice),
       original_price: Number(formOriginalPrice),
-      thumbnail_url: formThumbnail,
+      thumbnail_url: formThumbnail || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
       short_description: formShortDesc,
       detailed_description: formDetailedDesc,
       status: formStatus,
@@ -126,7 +250,7 @@ export default function AdminProductsPage() {
       demo: {
         id: editingProduct?.demo?.id || `demo-${Date.now()}`,
         product_id: editingProduct?.id || `prod-${Date.now()}`,
-        gallery_images: [formThumbnail],
+        gallery_images: formGalleryImages.length > 0 ? formGalleryImages : [formThumbnail || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800"],
         live_demo_url: formLiveDemo,
         video_demo_url: formVideoDemo,
         code_preview_snippet: formCodeSnippet,
@@ -244,88 +368,89 @@ export default function AdminProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {filteredProducts.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-4 px-4 flex items-center gap-3">
-                    <img
-                      src={p.thumbnail_url}
-                      alt={p.title}
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                    />
-                    <div className="min-w-0 max-w-xs">
-                      <p className="font-extrabold text-slate-900 truncate">{p.title}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{p.slug}</p>
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-4 uppercase text-[10px] font-extrabold text-slate-600">
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200">
-                      {p.category}
-                    </span>
-                  </td>
-
-                  <td className="py-4 px-4 font-black text-slate-900">
-                    {formatVND(p.price)}
-                  </td>
-
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-1 text-[11px] text-slate-500">
-                      {p.demo?.code_preview_snippet && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">
-                          Code
-                        </span>
-                      )}
-                      {p.demo?.video_demo_url && (
-                        <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold">
-                          Video
-                        </span>
-                      )}
-                      {p.demo?.live_demo_url && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
-                          Live
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className="py-4 px-4">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
-                        p.status === "published"
-                          ? "bg-[#dcfce7] text-[#15803d] border-[#bbf7d0]"
-                          : p.status === "draft"
-                          ? "bg-[#fef3c7] text-[#b45309] border-[#fde68a]"
-                          : "bg-slate-100 text-slate-500 border-slate-200"
-                      }`}
-                    >
-                      {p.status === "published"
-                        ? "Đang bán"
-                        : p.status === "draft"
-                        ? "Bản nháp"
-                        : "Đã lưu trữ"}
-                    </span>
-                  </td>
-
-                  <td className="py-4 px-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => handleOpenEdit(p)}
-                        className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600"
-                        title="Chỉnh sửa"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => adminArchiveProduct(p.id)}
-                        className="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-600"
-                        title="Lưu trữ / Xóa mềm"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <Package className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p className="font-bold text-sm text-slate-600">Chưa có sản phẩm nào trong hệ thống</p>
+                    <p className="text-xs text-slate-400 mt-1">Bấm &quot;+ Thêm Sản Phẩm Mới&quot; để tạo sản phẩm hoặc nạp trực tiếp vào Supabase.</p>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredProducts.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-4 px-4 flex items-center gap-3">
+                      <img
+                        src={p.thumbnail_url}
+                        alt={p.title}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200"
+                      />
+                      <div>
+                        <p className="font-bold text-slate-900 line-clamp-1">{p.title}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">slug: {p.slug}</p>
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <span className="capitalize px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[10px]">
+                        {p.category}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <p className="font-bold text-slate-900">{formatVND(p.price)}</p>
+                      {p.original_price && (
+                        <p className="text-[10px] text-slate-400 line-through">
+                          {formatVND(p.original_price)}
+                        </p>
+                      )}
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <span className="text-slate-500 text-[11px]">
+                        {p.demo?.features_list?.length || 0} tính năng
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          p.status === "published"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : p.status === "draft"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {p.status === "published"
+                          ? "Đang bán"
+                          : p.status === "draft"
+                          ? "Bản nháp"
+                          : "Đã lưu trữ"}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(p)}
+                          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600"
+                          title="Chỉnh sửa"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => adminArchiveProduct(p.id)}
+                          className="p-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-600"
+                          title="Lưu trữ / Xóa mềm"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -364,7 +489,7 @@ export default function AdminProductsPage() {
                     className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-600"
                   >
                     <option value="lab211">LAB211 OOP Java</option>
-                    <option value="project">Đồ Án Project</option>
+                    <option value="project">Project &amp; Assignment</option>
                     <option value="tool">Tiện Ích &amp; Tool</option>
                   </select>
                 </div>
@@ -404,14 +529,99 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
+              {/* Thumbnail Image Upload Section */}
               <div>
-                <label className="block font-bold text-slate-700 mb-1">URL Ảnh Thumbnail</label>
-                <input
-                  type="text"
-                  value={formThumbnail}
-                  onChange={(e) => setFormThumbnail(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-600"
-                />
+                <label className="block font-bold text-slate-700 mb-1">
+                  Ảnh Đại Diện Sản Phẩm (Thumbnail) *
+                </label>
+                <div className="p-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/30 hover:bg-blue-50/50 transition-colors space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    {/* Image Preview Box */}
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-sm group">
+                      {formThumbnail ? (
+                        <>
+                          <img
+                            src={formThumbnail}
+                            alt="Thumbnail preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormThumbnail("")}
+                            className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1"
+                            title="Gỡ ảnh này"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <span>Gỡ</span>
+                          </button>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-400 p-2 text-center">
+                          <ImageIcon className="w-7 h-7 mb-1 text-blue-400" />
+                          <span className="text-[10px] font-semibold">Chưa có ảnh</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Upload Buttons & Status */}
+                    <div className="flex-1 space-y-2 w-full">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all active:scale-95">
+                          {isUploadingThumbnail ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Đang Tải Lên Supabase...</span>
+                            </>
+                          ) : (
+                            <>
+                              <UploadCloud className="w-4 h-4" />
+                              <span>Tải Ảnh Lên Từ Máy</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/webp, image/gif"
+                            disabled={isUploadingThumbnail}
+                            onChange={handleThumbnailUpload}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {formThumbnail && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            Đã tải lên Supabase Storage
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-[11px] text-slate-500">
+                        Chấp nhận định dạng JPG, PNG, WEBP tối đa 10MB. File sẽ được lưu trữ tại Bucket <code className="text-blue-600 font-mono font-semibold">product-assets</code>.
+                      </p>
+
+                      {thumbnailUploadError && (
+                        <p className="text-xs text-red-600 font-semibold flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          {thumbnailUploadError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fallback URL Input */}
+                  <div className="pt-2 border-t border-blue-100/60">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                      Hoặc dán trực tiếp đường dẫn URL ảnh:
+                    </span>
+                    <input
+                      type="text"
+                      value={formThumbnail}
+                      onChange={(e) => setFormThumbnail(e.target.value)}
+                      placeholder="https://images.unsplash.com/... hoặc link ảnh công khai"
+                      className="w-full p-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-blue-600 bg-white"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -435,8 +645,61 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Demo Fields */}
-              <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-3">
+              <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-4">
                 <h4 className="font-extrabold text-blue-900 uppercase text-[10px]">Cấu hình Rich Demo (Spec 003)</h4>
+                
+                {/* Gallery Images Upload */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block font-bold text-slate-700 text-xs">
+                      Gallery Ảnh Demo ({formGalleryImages.length} ảnh)
+                    </label>
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm shadow-blue-500/20 transition-all active:scale-95">
+                      {isUploadingGallery ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang Tải...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>Tải Thêm Ảnh Demo</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/png, image/jpeg, image/webp, image/gif"
+                        disabled={isUploadingGallery}
+                        onChange={handleGalleryUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {formGalleryImages.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
+                      {formGalleryImages.map((imgUrl, idx) => (
+                        <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-video bg-slate-100 shadow-sm">
+                          <img src={imgUrl} alt={`Demo ${idx}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setFormGalleryImages(formGalleryImages.filter((_, i) => i !== idx))}
+                            className="absolute top-1 right-1 p-1 bg-red-600/80 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Xóa ảnh này"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 italic">
+                      Chưa có ảnh gallery. Bấm "Tải Thêm Ảnh Demo" để đăng tải nhiều ảnh chụp màn hình tính năng cho sản phẩm.
+                    </p>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block font-bold text-slate-700 mb-0.5">Live Demo URL</label>
@@ -445,7 +708,7 @@ export default function AdminProductsPage() {
                       value={formLiveDemo}
                       onChange={(e) => setFormLiveDemo(e.target.value)}
                       placeholder="https://..."
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                     />
                   </div>
                   <div>
@@ -455,7 +718,7 @@ export default function AdminProductsPage() {
                       value={formVideoDemo}
                       onChange={(e) => setFormVideoDemo(e.target.value)}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                     />
                   </div>
                 </div>
@@ -478,7 +741,7 @@ export default function AdminProductsPage() {
                       rows={2}
                       value={formFeatures}
                       onChange={(e) => setFormFeatures(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                     />
                   </div>
                   <div>
@@ -487,25 +750,105 @@ export default function AdminProductsPage() {
                       rows={2}
                       value={formTechStack}
                       onChange={(e) => setFormTechStack(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Deliverable Settings */}
-              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-3">
-                <h4 className="font-extrabold text-emerald-900 uppercase text-[10px]">Tài Nguyên Bàn Giao (Deliverable Vault - Spec 007)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-0.5">Tên File ZIP Trong Storage</label>
+              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-emerald-900 uppercase text-[10px] flex items-center gap-1.5">
+                    <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+                    Tài Nguyên Bàn Giao (Deliverable Vault - Spec 007)
+                  </h4>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    Bảo mật Private Bucket
+                  </span>
+                </div>
+
+                {/* File ZIP Upload Box */}
+                <div className="p-4 rounded-2xl border-2 border-dashed border-emerald-300 bg-white space-y-3 shadow-sm">
+                  <label className="block font-bold text-slate-800 text-xs">
+                    Tải Lên File Mã Nguồn / Tài Liệu Bàn Giao (.ZIP, .RAR, .PDF) *
+                  </label>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all active:scale-95">
+                      {isUploadingDeliverable ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Đang Đẩy Lên Supabase Storage...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileArchive className="w-4 h-4" />
+                          <span>Chọn File Từ Máy Để Tải Lên</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept=".zip,.rar,.7z,.tar,.gz,.pdf,.doc,.docx"
+                        disabled={isUploadingDeliverable}
+                        onChange={handleDeliverableUpload}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {formStoragePath && (
+                      <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-xs text-emerald-800 font-mono max-w-full overflow-hidden">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">{formStoragePath}</span>
+                        {uploadedDeliverableInfo && (
+                          <span className="text-[10px] text-emerald-600 font-sans shrink-0">
+                            ({(uploadedDeliverableInfo.size / (1024 * 1024)).toFixed(1)} MB)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {deliverableUploadError && (
+                    <p className="text-xs text-red-600 font-semibold flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      {deliverableUploadError}
+                    </p>
+                  )}
+
+                  <p className="text-[11px] text-slate-500">
+                    File tải lên được lưu an toàn trong Private Bucket <code className="text-emerald-700 font-bold font-mono">digital-deliverables</code>. Khách hàng chỉ tải được sau khi đơn hàng được Admin duyệt (hệ thống sinh Signed URL có hiệu lực 60 phút).
+                  </p>
+
+                  {/* Fallback Storage Path Input */}
+                  <div className="pt-2 border-t border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                      Hoặc nhập đường dẫn file trong Storage:
+                    </span>
                     <input
                       type="text"
                       value={formStoragePath}
                       onChange={(e) => setFormStoragePath(e.target.value)}
-                      placeholder="package-source-v1.zip"
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      placeholder="packages/1789531228305_shopee_bot_v2.zip"
+                      className="w-full p-2 text-xs rounded-xl border border-slate-200 bg-slate-50 font-mono text-slate-700"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-0.5">Hình Thức Bàn Giao</label>
+                    <select
+                      value={formDeliverableType}
+                      onChange={(e) => setFormDeliverableType(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800"
+                    >
+                      <option value="download_file">Tải File Mã Nguồn (.ZIP / PDF)</option>
+                      <option value="git_access">Cấp Quyền GitHub Repository</option>
+                      <option value="license_key">Mã Bản Quyền (License Key)</option>
+                      <option value="instructions_only">Chỉ Hướng Dẫn Kích Hoạt</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-0.5">Private GitHub Repo URL (nếu có)</label>
@@ -514,18 +857,19 @@ export default function AdminProductsPage() {
                       value={formGitRepo}
                       onChange={(e) => setFormGitRepo(e.target.value)}
                       placeholder="https://github.com/..."
-                      className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                      className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-0.5">Hướng Dẫn Cài Đặt Cho Khách Hàng</label>
+                  <label className="block font-bold text-slate-700 mb-0.5">Hướng Dẫn Cài Đặt / Chạy Đồ Án Cho Khách Hàng</label>
                   <textarea
                     rows={2}
                     value={formInstructions}
                     onChange={(e) => setFormInstructions(e.target.value)}
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-white"
+                    placeholder="1. Giải nén file\n2. Mở terminal gõ npm install\n3. Chạy npm start"
+                    className="w-full p-2 rounded-xl border border-slate-200 bg-white text-xs"
                   />
                 </div>
               </div>
