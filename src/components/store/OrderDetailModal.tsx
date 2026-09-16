@@ -298,6 +298,40 @@ export default function OrderDetailModal({
             )}
           </div>
 
+          {/* Payment Proof Image — hiện khi đã nộp bill */}
+          {(order.status === "pending_approval" || order.status === "completed" || order.status === "rejected") && order.payment_proof_image && (
+            <div>
+              <h4 className="font-extrabold text-slate-900 mb-2 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                Ảnh Biên Lai Chuyển Khoản:
+              </h4>
+              <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-sm">
+                <a
+                  href={order.payment_proof_image}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Xem ảnh biên lai đầy đủ"
+                  className="block relative group"
+                >
+                  <img
+                    src={order.payment_proof_image}
+                    alt="Biên lai chuyển khoản"
+                    className="w-full max-h-64 object-contain bg-white"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                    <ExternalLink className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" />
+                  </div>
+                </a>
+                <div className="px-3 py-2 text-[10px] text-slate-500 border-t border-slate-200">
+                  Nhấn vào ảnh để xem đầy đủ trong tab mới
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Payment & Audit Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
             <div>

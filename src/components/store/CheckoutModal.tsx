@@ -35,9 +35,8 @@ export default function CheckoutModal() {
 
   const [step, setStep] = useState<"qr" | "upload" | "success">("qr");
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [billImage, setBillImage] = useState<string>(
-    "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80"
-  );
+  // Không có ảnh mặc định — user phải tải ảnh thực
+  const [billImage, setBillImage] = useState<string>("");
   const [transactionRef, setTransactionRef] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingBill, setIsUploadingBill] = useState(false);
@@ -95,13 +94,38 @@ export default function CheckoutModal() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleBillSubmit = (e: React.FormEvent) => {
+  const handleBillSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!billImage) {
+      setBillUploadError("Vui lòng tải ảnh biên lai chuyển khoản trước khi xác nhận.");
+      return;
+    }
     setIsSubmitting(true);
+    setBillUploadError(null);
 
-    setTimeout(() => {
-      submitPaymentProof(order.id, billImage, transactionRef || `MB${Date.now()}`);
-      setIsSubmitting(false);
+    try {
+      const ref = transactionRef || `MB${Date.now()}`;
+
+      // 1. Cập nhật DB qua server-side API (supabaseAdmin) để tránh RLS block
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          status: "pending_approval",
+          payment_proof_image: billImage,
+          transaction_ref: ref,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Không thể lưu thông tin thanh toán");
+      }
+
+      // 2. Cập nhật store local để UI phản ánh ngay
+      submitPaymentProof(order.id, billImage, ref);
+
       setStep("success");
 
       // Celebrate with confetti
@@ -114,7 +138,11 @@ export default function CheckoutModal() {
       } catch (err) {
         console.error(err);
       }
-    }, 600);
+    } catch (err: any) {
+      setBillUploadError(err.message || "Lỗi khi gửi xác nhận thanh toán");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -286,17 +314,21 @@ export default function CheckoutModal() {
             </div>
 
             {/* Bill Upload & Preview Area */}
-            <div className="space-y-3 p-4 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/40">
+            <div className={`space-y-3 p-4 rounded-2xl border-2 border-dashed ${!billImage ? 'border-rose-300 bg-rose-50/30' : 'border-blue-200 bg-blue-50/40'}`}>
               <label className="block text-xs font-bold text-slate-800">
-                Ảnh biên lai chuyển khoản (Screenshot / Bill) *
+                Ảnh biên lai chuyển khoản (Screenshot / Bill)
+                <span className="text-rose-500 ml-1">* Bắt buộc</span>
               </label>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="w-28 h-28 rounded-xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center shrink-0 shadow-sm relative group">
+                <div className={`w-28 h-28 rounded-xl overflow-hidden border bg-white flex items-center justify-center shrink-0 shadow-sm relative group ${billImage ? 'border-emerald-300' : 'border-dashed border-rose-300'}`}>
                   {billImage ? (
                     <img src={billImage} alt="Bill proof" className="w-full h-full object-cover" />
                   ) : (
-                    <UploadCloud className="w-8 h-8 text-blue-400" />
+                    <div className="flex flex-col items-center gap-1 text-rose-400">
+                      <UploadCloud className="w-8 h-8" />
+                      <span className="text-[9px] font-bold text-center px-1">Chưa có ảnh</span>
+                    </div>
                   )}
                 </div>
 
@@ -323,10 +355,15 @@ export default function CheckoutModal() {
                       />
                     </label>
 
-                    {billImage && (
+                    {billImage ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        Đã có ảnh biên lai
+                        Đã tải ảnh biên lai thành công
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-[11px] font-semibold">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        Chưa có ảnh — vui lòng tải lên
                       </span>
                     )}
                   </div>
@@ -381,11 +418,12 @@ export default function CheckoutModal() {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50"
+                disabled={isSubmitting || !billImage}
+                title={!billImage ? "Vui lòng tải ảnh biên lai trước" : ""}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
-                  <span>Đang gửi xác nhận...</span>
+                  <><Loader2 className="w-4 h-4 animate-spin" /><span>Đang gửi xác nhận...</span></>
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4" />

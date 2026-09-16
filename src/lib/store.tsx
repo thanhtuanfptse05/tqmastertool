@@ -748,15 +748,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         transaction_ref: transactionRef,
       });
     }
-
-    if (isSupabaseConfigured) {
-      supabase.from("orders").update({
-        status: "pending_approval",
-        payment_proof_image: proofUrl,
-        transaction_ref: transactionRef,
-        updated_at: new Date().toISOString(),
-      }).eq("id", orderId);
-    }
+    // NOTE: DB update is handled by the caller (CheckoutModal) via /api/orders PATCH
+    // using supabaseAdmin to bypass RLS. Do NOT use anon client here.
   };
 
   const adminReviewOrder = (orderId: string, action: "approve" | "reject", adminNotes?: string) => {
