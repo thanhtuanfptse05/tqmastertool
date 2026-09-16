@@ -80,24 +80,59 @@
     - Nếu ĐỦ TIỀN: Cập nhật `order.status = 'completed'`, lưu log SePay, mở khóa tài nguyên.
     - Nếu THIẾU TIỀN: Chuyển sang `pending_approval`, KHÔNG mở khóa, ghi chú Admin: `"Chuyển thiếu: Nhận ${transferAmount}đ / Cần ${total_amount}đ"`.
 
-### Scenario 4 — Server-Side Order Mutation API (`/api/orders`) (RLS Bypass & Persistent Mutations)
-- **GIVEN** Client frontend (Admin hoặc User) thực hiện hành động Sửa hoặc Xóa đơn hàng
-- **WHEN** Gọi API `/api/orders`
+### Scenario 4 — Server-Side Order Mutation API (`/api/orders`) & Phân Quyền RBAC Nghiêm Ngặt
+- **GIVEN** Client frontend (Admin hoặc Khách hàng) gọi API `/api/orders`
+- **WHEN** Gửi request `PATCH` hoặc `DELETE`
 - **THEN**:
-  - `DELETE /api/orders?orderId=xxx`: Server sử dụng `supabaseAdmin` (Service Role Key) xóa dòng `order_items` và xóa dòng `orders` tương ứng. Đảm bảo xóa vĩnh viễn trong database, khi F5/reload không bị load lại.
-  - `PATCH /api/orders`: Server nhận `{ orderId, status, admin_notes, transaction_ref, total_amount }`, sử dụng `supabaseAdmin` cập nhật vào database. Nếu có lỗi check constraint `blocked`, fallback ghi nhận `status: 'rejected'` kèm ghi chú `[BLOCKED]`.
+  - **Khách hàng (Customer)**:
+    - CHỈ được phép cập nhật đơn của chính mình (`order.user_id === user.id`).
+    - CHỈ được phép cập nhật: `status: 'pending_approval'`, `payment_proof_image`, `transaction_ref` (khi nộp biên lai) hoặc `status: 'cancelled'` (khi hủy đơn chưa thanh toán).
+    - CẤM TUYỆT ĐỐI (HTTP 403): Khách hàng gửi `status: 'completed'`, `status: 'rejected'`, `status: 'blocked'`, sửa đổi `admin_notes`, hoặc đổi `total_amount`. Mọi hành vi tự duyệt đơn đều bị chặn ngay lập tức.
+  - **Quản trị viên (Admin)**:
+    - Bắt buộc phải có token xác thực hoặc email nằm trong whitelist Admin chính thức (`lequan12305@gmail.com`, `admin@codevault.io`) và `profile.role === 'admin'`.
+    - Có toàn quyền: Duyệt đơn (`completed`), Từ chối (`rejected`), Chặn quyền (`blocked`), Sửa ghi chú, Xóa đơn hàng (`DELETE`).
+
+### Scenario 5 — Chống Tấn Công IDOR Truy Cập Trái Phép Tài Nguyên Deliverables
+- **GIVEN** Người dùng yêu cầu xem (`/api/deliverables/lab/view`) hoặc tải (`/api/deliverables/lab/download`)
+- **WHEN** Gửi tham số `orderId`
+- **THEN**:
+  - Hệ thống xác thực danh tính người gọi (Auth Token).
+  - Kiểm tra điều kiện:
+    - `order.status === 'completed'` VÀ `order.status !== 'blocked'`.
+    - Người gọi PHẢI LÀ CHỦ SỞ HỮU ĐƠN HÀNG (`order.user_id === user.id`) HOẶC LÀ QUẢN TRỊ VIÊN (`isAdmin`).
+  - Nếu user A cố tình dùng `orderId` của user B -> Trả về HTTP 403 Forbidden.
+
+### Scenario 6 — SePay Fail-Closed & Chống Tấn Công Double-Spending (Chi Tiêu Kép)
+- **GIVEN** Webhook SePay nhận dữ liệu giao dịch
+- **WHEN** Xử lý tại `/api/webhooks/sepay`
+- **THEN**:
+  - Bắt buộc `process.env.SEPAY_API_KEY` phải tồn tại. Nếu không có hoặc token sai -> HTTP 401 ngay lập tức (Fail-Closed).
+  - Tra cứu xem `refCode` (mã giao dịch SePay/Ngân hàng) đã từng được dùng để duyệt một đơn hàng `completed` khác hay chưa. Nếu đã có -> Chặn đứng hành vi dùng 1 lần chuyển khoản để duyệt nhiều đơn (Replay/Double-spending attack).
+  - So sánh `transferAmount >= order.total_amount`. Nếu thiếu tiền -> Chuyển sang `pending_approval`, gắn cờ cảnh báo Admin, không mở khóa tự động.
+
+### Scenario 7 — Bảo Vệ Các Endpoint Upload Quản Trị Viên (`/api/admin/upload/*`)
+- **GIVEN** Người dùng hoặc hacker gọi API `/api/admin/upload/asset`, `/api/admin/upload/deliverable`, hoặc `/api/admin/upload/lab-package`
+- **WHEN** Gửi request `POST` kèm file
+- **THEN**:
+  - Máy chủ bắt buộc kiểm tra phiên đăng nhập và quyền Quản Trị Viên (`isAdmin === true`).
+  - Nếu không có quyền Admin hoặc chưa xác thực danh tính -> Trả về HTTP 403 Forbidden ngay lập tức.
+  - Ngăn chặn triệt để hành vi upload mã độc hoặc kích hoạt extractor trái phép trên hệ thống.
 
 ---
 
 ## 4. Functional Requirements (EARS)
 
-- **FR-001 (Security)**: THE `/api/webhooks/sepay` endpoint SHALL reject any request without a valid `Authorization: Apikey ${SEPAY_API_KEY}` header with HTTP 401.
+- **FR-001 (Security)**: THE `/api/webhooks/sepay` endpoint SHALL reject any request without a valid `Authorization: Apikey ${SEPAY_API_KEY}` header with HTTP 401, failing closed if `SEPAY_API_KEY` is undefined.
 - **FR-002 (Integrity)**: THE SePay webhook handler SHALL verify that `transferAmount >= order.total_amount` before marking any order as `completed`.
-- **FR-003 (Idempotency)**: THE system SHALL log SePay transaction IDs and prevent duplicate processing of the same transaction reference.
+- **FR-003 (Idempotency & Anti-Double-Spend)**: THE system SHALL verify that transaction references are unique across completed orders and reject duplicate reuse of the same transaction reference.
 - **FR-004 (Master Override)**: THE system SHALL allow administrators to transition any order to `blocked`, `completed`, `rejected`, or delete the order at any time, with admin actions superseding automated webhook states.
 - **FR-005 (Access Revocation)**: WHEN an order has status `blocked`, `rejected`, `pending_payment`, or `cancelled`, THE deliverables view and download endpoints SHALL deny access with HTTP 403.
 - **FR-006 (Customer CRUD)**: THE system SHALL allow authenticated customers to view order details, cancel `pending_payment` orders, and delete inactive orders from their personal view.
-- **FR-007 (Server Mutation Persistence)**: THE system SHALL process order DELETE and status PATCH via a server-side route `/api/orders` using `supabaseAdmin`, ensuring changes persist across page reloads and cannot be silently blocked by client RLS.
+- **FR-007 (Server Mutation Persistence)**: THE system SHALL process order DELETE and status PATCH via a server-side route `/api/orders` using `supabaseAdmin`, ensuring changes persist across page reloads.
+- **FR-008 (RBAC Order Mutation Defense)**: THE `/api/orders` endpoint SHALL strictly enforce role-based access control: customers CANNOT transition orders to `completed`, `rejected`, or `blocked`, and cannot delete orders. Any unauthorized mutation attempt SHALL return HTTP 403 Forbidden.
+- **FR-009 (Anti-IDOR Deliverables Access)**: THE deliverables view and download endpoints SHALL verify that the requester is the legitimate owner of the order (`order.user_id === user.id`) or a verified administrator.
+- **FR-010 (Admin Role Whitelist Integrity)**: THE system SHALL restrict administrator elevation strictly to verified database roles (`profiles.role === 'admin'`) and explicit whitelist emails, rejecting arbitrary email pattern matches.
+- **FR-011 (Admin Upload Security)**: ALL endpoints under `/api/admin/upload/*` SHALL require verified administrator credentials (`isAdmin === true`) and return HTTP 403 Forbidden for any unauthorized requests.
 
 ---
 
@@ -105,8 +140,13 @@
 
 | Nguy Cơ Hack | Biện Pháp Phòng Vệ Kỹ Thuật |
 |---|---|
-| Hacker gửi request giả mạo SePay | Xác thực SePay API Key bí mật qua Header `Authorization: Apikey <TOKEN>` |
+| Hacker gửi request giả mạo SePay | Xác thực SePay API Key bắt buộc qua Header `Authorization: Apikey <TOKEN>` (Fail-Closed) |
 | Hacker chuyển 1.000đ để chiếm đoạt sản phẩm 80.000đ | Kiểm tra toán học nghiêm ngặt `transferAmount >= total_amount`; nếu thiếu thì cắm cờ cảnh báo gian lận |
-| Hacker gửi lại gói tin webhook cũ (Replay) | Kiểm tra `transaction_ref` duy nhất, chống xử lý lặp (Idempotent) |
-| Hacker cố tình truy cập link tải private | API `/api/deliverables/lab/download` kiểm tra đơn `completed` và `!= blocked` |
+| Hacker dùng 1 giao dịch ngân hàng để duyệt 2 đơn (Double-Spend) | Kiểm tra `transaction_ref` duy nhất trên bảng orders, chặn tái sử dụng mã giao dịch |
+| Khách hàng tự gọi API PATCH để tự duyệt đơn thành `completed` | Phân quyền RBAC tại server: Chỉ Admin mới có quyền duyệt đơn; Customer bị chặn 403 |
+| Hacker đoán mã đơn hàng của người khác để tải code (IDOR) | API `/api/deliverables/lab/*` kiểm tra `order.user_id === user.id` hoặc Admin |
 | Khách gian lận hoặc chargeback sau khi đã duyệt | Nút **[Chặn Quyền (Block)]** của Admin vô hiệu hóa tức thì quyền tải và đọc mã nguồn |
+| Hacker đăng ký email `hacker+admin@gmail.com` để chiếm quyền Admin | Loại bỏ regex lỏng lẻo, chỉ chấp nhận whitelist email cứng và role `admin` từ DB |
+| Kẻ xấu upload file rác/mã độc vào Storage qua `/api/admin/upload/*` | Bắt buộc xác thực Quản trị viên (`isAdmin === true`), từ chối 403 với bất kỳ request nào khác |
+
+

@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-server";
+import { getAuthenticatedUser, supabaseAdmin } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
+    const { isAdmin } = await getAuthenticatedUser(req);
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Truy cập bị từ chối: Yêu cầu quyền Quản Trị Viên để tải lên tệp tin giao hàng." },
+        { status: 403 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

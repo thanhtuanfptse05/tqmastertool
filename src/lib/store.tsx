@@ -78,14 +78,12 @@ const STORAGE_KEYS = {
   CART: "cv_cart",
 };
 
-// Check if an email has administrative privileges
+// Check if an email has administrative privileges (Strict Whitelist - Anti-Hack)
 const checkIsAdminEmail = (email: string): boolean => {
   const clean = email.trim().toLowerCase();
   return (
     clean === "lequan12305@gmail.com" ||
-    clean === "admin@codevault.io" ||
-    clean.startsWith("admin@") ||
-    clean.includes("+admin@")
+    clean === "admin@codevault.io"
   );
 };
 
@@ -753,6 +751,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // using supabaseAdmin to bypass RLS. Do NOT use anon client here.
   };
 
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (isSupabaseConfigured) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+      } catch (e) {
+        console.warn("Could not retrieve session token:", e);
+      }
+    }
+    return headers;
+  };
+
   const adminReviewOrder = (orderId: string, action: "approve" | "reject", adminNotes?: string) => {
     const status = action === "approve" ? ("completed" as const) : ("rejected" as const);
     const updated = orders.map((o) => {
@@ -770,17 +783,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      fetch("/api/orders", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          status,
-          reviewed_by_admin_id: currentUser?.id,
-          reviewed_at: new Date().toISOString(),
-          admin_notes: adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ."),
-        }),
-      }).catch((e) => console.warn("Failed to call /api/orders in adminReviewOrder:", e));
+      getAuthHeaders().then((headers) => {
+        fetch("/api/orders", {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            orderId,
+            status,
+            reviewed_by_admin_id: currentUser?.id,
+            reviewed_at: new Date().toISOString(),
+            admin_notes: adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ."),
+          }),
+        }).catch((e) => console.warn("Failed to call /api/orders in adminReviewOrder:", e));
+      });
     }
   };
 
@@ -801,9 +816,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (isSupabaseConfigured) {
       try {
+        const headers = await getAuthHeaders();
         await fetch("/api/orders", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             orderId,
             status,
@@ -838,9 +854,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (isSupabaseConfigured) {
       try {
+        const headers = await getAuthHeaders();
         await fetch("/api/orders", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             orderId,
             ...data,
@@ -865,9 +882,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (isSupabaseConfigured) {
       try {
+        const headers = await getAuthHeaders();
         await fetch("/api/orders", {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             orderId,
             status: "cancelled",
@@ -887,8 +905,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (isSupabaseConfigured) {
       try {
+        const headers = await getAuthHeaders();
         const res = await fetch(`/api/orders?orderId=${encodeURIComponent(orderId)}`, {
           method: "DELETE",
+          headers,
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));

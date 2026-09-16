@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useStore } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 import {
   generateVietQRUrl,
   DEFAULT_VIETQR_CONFIG,
@@ -107,9 +108,17 @@ export default function CheckoutModal() {
       const ref = transactionRef || `MB${Date.now()}`;
 
       // 1. Cập nhật DB qua server-side API (supabaseAdmin) để tránh RLS block
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+      } catch {}
+
       const res = await fetch("/api/orders", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           orderId: order.id,
           status: "pending_approval",

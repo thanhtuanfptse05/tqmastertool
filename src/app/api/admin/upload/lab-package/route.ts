@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isPathSafe } from "@/lib/lab-parser";
 import { getAllLabExercises } from "@/lib/lab-data";
+import { getAuthenticatedUser } from "@/lib/supabase-server";
 import fs from "fs";
 import path from "path";
 import { exec } from "child_process";
@@ -16,6 +17,14 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(req: NextRequest) {
   try {
+    const { isAdmin } = await getAuthenticatedUser(req);
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Truy cập bị từ chối: Yêu cầu quyền Quản Trị Viên để nhập gói bài tập Lab." },
+        { status: 403 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

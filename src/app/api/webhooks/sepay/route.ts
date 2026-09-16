@@ -34,7 +34,15 @@ export async function POST(req: NextRequest) {
       receivedToken = authHeader.trim();
     }
 
-    if (expectedApiKey && receivedToken !== expectedApiKey) {
+    if (!expectedApiKey) {
+      console.error("[SePay Webhook] 🚨 Server Configuration Error: SEPAY_API_KEY is not defined in environment!");
+      return NextResponse.json(
+        { success: false, error: "Server authentication configuration missing" },
+        { status: 500 }
+      );
+    }
+
+    if (!receivedToken || receivedToken !== expectedApiKey) {
       console.warn("[SePay Webhook] 🚨 BLOCKED: Invalid or missing API key!");
       return NextResponse.json(
         { success: false, error: "Unauthorized: Invalid SePay API Key" },
@@ -156,6 +164,30 @@ export async function POST(req: NextRequest) {
     // -----------------------------------------------------------
     const requiredAmount = Number(order.total_amount) || 0;
     const refCode = body.referenceCode || String(body.id);
+
+    // -----------------------------------------------------------
+    // 6.1 ANTI-DOUBLE-SPENDING / REPLAY ATTACK CHECK
+    // -----------------------------------------------------------
+    const { data: dupOrders } = await supabase
+      .from("orders")
+      .select("id, order_code")
+      .eq("transaction_ref", refCode)
+      .eq("status", "completed")
+      .neq("id", order.id)
+      .limit(1);
+
+    if (dupOrders && dupOrders.length > 0) {
+      console.warn(
+        `[SePay Webhook] 🚨 REPLAY / DOUBLE-SPEND ATTEMPT: Ref ${refCode} was already used by order ${dupOrders[0].order_code}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Replay attack detected: Transaction reference ${refCode} has already been consumed by another order.`,
+        },
+        { status: 400 }
+      );
+    }
 
     if (transferAmount < requiredAmount) {
       console.warn(
