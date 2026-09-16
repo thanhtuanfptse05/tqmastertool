@@ -432,19 +432,19 @@ export default function CheckoutModal() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={closeCheckout}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
+              >
+                Đóng &amp; Tiếp Tục Xem Sản Phẩm
+              </button>
               <a
                 href="/customer/orders"
                 onClick={closeCheckout}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all text-center"
               >
                 Xem Lịch Sử Đơn Hàng
-              </a>
-              <a
-                href="/admin/orders"
-                onClick={closeCheckout}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all"
-              >
-                (Demo) Vào Admin Duyệt Ngay
               </a>
             </div>
           </div>
