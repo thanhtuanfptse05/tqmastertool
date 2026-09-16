@@ -73,8 +73,8 @@ export default function LabDeliverableModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-2 pb-2 sm:pt-4 sm:pb-4 px-2 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-[98vw] xl:max-w-[1400px] bg-slate-900 rounded-3xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col" style={{minHeight: '94vh', maxHeight: '94vh'}}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-1 pb-1 sm:pt-2 sm:pb-2 px-1 sm:px-2 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[99.5vw] md:max-w-[99vw] 2xl:max-w-[99.2vw] bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col" style={{minHeight: '97vh', maxHeight: '97vh'}}>
         {/* Top Header */}
         <div className="px-6 py-4 bg-[#161b22] border-b border-slate-800 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
@@ -187,7 +187,7 @@ export default function LabDeliverableModal({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-950">
+        <div className="p-3 sm:p-5 lg:p-6 overflow-y-auto space-y-6 flex-1 bg-slate-950">
           {/* SECTION 1: WORD DOCUMENT PREVIEW */}
           <div>
             <div className="flex items-center justify-between mb-2">
