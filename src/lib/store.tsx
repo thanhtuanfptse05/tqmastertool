@@ -943,28 +943,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const targetId = userId || currentUser?.id;
     if (!targetId) return [];
 
-    const completedOrders = orders.filter((o) => o.user_id === targetId && o.status === "completed");
+    const completedOrders = orders.filter(
+      (o) =>
+        o.status === "completed" &&
+        // Match by user_id if present, otherwise allow admin-created orders with matching email
+        (o.user_id === targetId ||
+          (!o.user_id && o.user_email === currentUser?.email))
+    );
     const deliverables: UnlockedDeliverable[] = [];
 
     completedOrders.forEach((order) => {
       order.items?.forEach((item) => {
+        // Try to find full product info from store, but DON'T require it.
+        // Order items already carry enough info (title, category, price).
         const product = products.find((p) => p.id === item.product_id);
-        if (product) {
-          deliverables.push({
-            order_id: order.id,
-            product_id: product.id,
-            product_title: product.title,
-            product_category: product.category,
-            signed_download_url: product.storage_file_path
-              ? `https://storage.codevault.io/deliverables/${product.storage_file_path}?token=sig_${Date.now()}`
-              : undefined,
-            git_repo_url: product.git_repo_url,
-            license_key: product.license_key_template
-              ? `CV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
-              : undefined,
-            instructions: product.access_instructions || "Liên hệ hỗ trợ kỹ thuật qua Zalo/Discord nếu cần hướng dẫn thêm.",
-          });
-        }
+
+        deliverables.push({
+          order_id: order.id,
+          product_id: item.product_id,
+          product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
+          product_category: product?.category || item.product_category || "lab211",
+          signed_download_url: product?.storage_file_path
+            ? `https://storage.codevault.io/deliverables/${product.storage_file_path}?token=sig_${Date.now()}`
+            : undefined,
+          git_repo_url: product?.git_repo_url,
+          license_key: product?.license_key_template
+            ? `CV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+            : undefined,
+          instructions:
+            product?.access_instructions ||
+            "Bấm nút 'Xem Đề & Code' hoặc 'Vào Vault' bên dưới để truy cập mã nguồn và đề bài.",
+        });
       });
     });
 
