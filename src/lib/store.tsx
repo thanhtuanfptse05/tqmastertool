@@ -943,12 +943,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const targetId = userId || currentUser?.id;
     if (!targetId) return [];
 
+    const userEmail = currentUser?.email?.toLowerCase();
     const completedOrders = orders.filter(
       (o) =>
         o.status === "completed" &&
-        // Match by user_id if present, otherwise allow admin-created orders with matching email
+        // Match by Supabase user_id OR by email (handles local UUID ↔ Supabase UUID mismatch)
         (o.user_id === targetId ||
-          (!o.user_id && o.user_email === currentUser?.email))
+          (userEmail && o.user_email?.toLowerCase() === userEmail))
     );
     const deliverables: UnlockedDeliverable[] = [];
 

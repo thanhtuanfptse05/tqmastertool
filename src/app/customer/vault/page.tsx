@@ -22,8 +22,49 @@ import LabDeliverableModal from "@/components/store/LabDeliverableModal";
 import { getAllLabExercises } from "@/lib/lab-data";
 
 export default function DeliverableVaultPage() {
-  const { currentUser, getUnlockedDeliverables, orders } = useStore();
-  const deliverables = getUnlockedDeliverables();
+  const { currentUser, orders, products, getUnlockedDeliverables } = useStore();
+
+  // Compute deliverables directly so this component re-renders reactively
+  // when orders or currentUser changes (fixes stale closure issue)
+  const deliverables = React.useMemo(() => {
+    if (!currentUser) return [];
+    const userEmail = currentUser.email?.toLowerCase();
+    const completed = orders.filter(
+      (o) =>
+        o.status === "completed" &&
+        (o.user_id === currentUser.id ||
+          (userEmail && o.user_email?.toLowerCase() === userEmail))
+    );
+    const result: Array<{
+      order_id: string;
+      product_id: string;
+      product_title: string;
+      product_category: string;
+      instructions: string;
+      signed_download_url?: string;
+      git_repo_url?: string;
+      license_key?: string;
+    }> = [];
+    completed.forEach((order) => {
+      order.items?.forEach((item) => {
+        const product = products.find((p) => p.id === item.product_id);
+        result.push({
+          order_id: order.id,
+          product_id: item.product_id,
+          product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
+          product_category: product?.category || item.product_category || "lab211",
+          instructions:
+            product?.access_instructions ||
+            "Bấm nút 'Xem Đề & Code' hoặc 'Vào Vault' bên dưới để truy cập mã nguồn.",
+          signed_download_url: product?.storage_file_path
+            ? `/api/deliverables/download?orderId=${order.id}&path=${product.storage_file_path}`
+            : undefined,
+          git_repo_url: product?.git_repo_url,
+        });
+      });
+    });
+    return result;
+  }, [currentUser, orders, products]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [activeLabModal, setActiveLabModal] = useState<{
     isOpen: boolean;
