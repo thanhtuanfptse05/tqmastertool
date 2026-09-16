@@ -190,7 +190,7 @@ export class AppointmentService {
 - **Notification Service**: Kafka consumer gửi email & push notification
 - **API Gateway**: Spring Cloud Gateway định tuyến và rate-limiting',
     750000,
-    1100000,
+    180000,
     'https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80',
     'published',
     'download_file',
@@ -220,8 +220,8 @@ public void handleOrderCreated(OrderEvent event) {
   -- --------------------------------------------------------
 
   -- ========================================================
-  -- DANH SÁCH 18 SẢN PHẨM LAB211 THEO GIẢNG VIÊN (FPT)
-  -- ========================================================
+
+-- DANH SÁCH 18 SẢN PHẨM LAB211 THEO GIẢNG VIÊN (FPT - ĐỒNG GIÁ 100,000đ)
   -- --------------------------------------------------------
   -- LAB211: HIENNM23
   -- --------------------------------------------------------
@@ -237,29 +237,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN HIENNM23',
       'source-code-lab211-giang-vien-hiennm23',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HIENNM23 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HIENNM23
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Chấm cực kỳ kỹ về mô hình MVC chuẩn và cấu trúc packages rành mạch. Đặt biệt chú trọng giải thích data flow giữa Controller và View.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HIENNM23 (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN HIENNM23
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên HIENNM23.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ HIENNM23:
+- **Phong cách chấm đặc thù:** Chấm cực kỳ kỹ về mô hình MVC chuẩn và cấu trúc packages rành mạch. Đặt biệt chú trọng giải thích data flow giữa Controller và View.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// J1.L.P0023 - Validation chuẩn phong cách HIENNM23\npublic static int checkIntLimit(String msg, int min, int max) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HIENNM23", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV HIENNM23', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -278,29 +324,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN TAMNT',
       'source-code-lab211-giang-vien-tamnt',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TAMNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TAMNT
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Yêu cầu tuyệt đối không để crash chương trình khi nhập sai dữ liệu. Bắt buộc toàn bộ validation phải nằm trong package controller.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TAMNT (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN TAMNT
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên TAMNT.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ TAMNT:
+- **Phong cách chấm đặc thù:** Yêu cầu tuyệt đối không để crash chương trình khi nhập sai dữ liệu. Bắt buộc toàn bộ validation phải nằm trong package controller.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// InputValidator chuẩn TAMNT - Không bao giờ crash\npublic class InputValidator {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TAMNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV TAMNT', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -319,29 +411,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN ANHLT',
       'source-code-lab211-giang-vien-anhlt',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANHLT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên ANHLT
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Rất thích hỏi sâu về 4 tính chất OOP (Kế thừa, Đa hình, Đóng gói, Trừu tượng). Code phân tách POJO Entity cực sạch.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANHLT (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN ANHLT
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên ANHLT.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ ANHLT:
+- **Phong cách chấm đặc thù:** Rất thích hỏi sâu về 4 tính chất OOP (Kế thừa, Đa hình, Đóng gói, Trừu tượng). Code phân tách POJO Entity cực sạch.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Tính đa hình & trừu tượng chuẩn phong cách ANHLT\npublic abstract class Shape {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV ANHLT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV ANHLT', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -360,29 +498,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN HUYNM',
       'source-code-lab211-giang-vien-huynm',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HUYNM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HUYNM
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Tập trung vào tối ưu thuật toán tìm kiếm và sắp xếp. Hỏi cách vận hành của Binary Search và phân tích độ phức tạp O(log n).
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HUYNM (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN HUYNM
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên HUYNM.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ HUYNM:
+- **Phong cách chấm đặc thù:** Tập trung vào tối ưu thuật toán tìm kiếm và sắp xếp. Hỏi cách vận hành của Binary Search và phân tích độ phức tạp O(log n).
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Binary Search đệ quy & vòng lặp chuẩn HUYNM\npublic static int binarySearch(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HUYNM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV HUYNM', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -401,29 +585,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN VANTTN',
       'source-code-lab211-giang-vien-vanttn',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên VANTTN (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên VANTTN
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Yêu cầu giao diện Console hiển thị menu gọn gàng, in hóa đơn căn lề chuẩn theo bảng cột (%-15s %-10d).
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên VANTTN (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN VANTTN
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên VANTTN.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ VANTTN:
+- **Phong cách chấm đặc thù:** Yêu cầu giao diện Console hiển thị menu gọn gàng, in hóa đơn căn lề chuẩn theo bảng cột (%-15s %-10d).
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// In bảng hóa đơn căn lề đẹp chuẩn VANTTN\nSystem.out.printf(...);',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV VANTTN", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV VANTTN', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -442,29 +672,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN HOAIBM',
       'source-code-lab211-giang-vien-hoaibm',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HOAIBM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HOAIBM
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Đặc biệt chú trọng Clean Code, đặt tên biến camelCase chuẩn tiếng Anh, tuân thủ DRY và comment theo chuẩn Javadoc.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HOAIBM (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN HOAIBM
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên HOAIBM.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ HOAIBM:
+- **Phong cách chấm đặc thù:** Đặc biệt chú trọng Clean Code, đặt tên biến camelCase chuẩn tiếng Anh, tuân thủ DRY và comment theo chuẩn Javadoc.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '/**\n * Quản lý lương nhân viên chuẩn HOAIBM\n */',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HOAIBM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV HOAIBM', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -483,29 +759,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN THANHDT',
       'source-code-lab211-giang-vien-thanhdt',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANHDT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên THANHDT
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Quan tâm đến cách xử lý cấu trúc dữ liệu Collections (ArrayList, HashMap, Hashtable). Hỏi kỹ về equals() và hashCode().
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANHDT (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN THANHDT
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên THANHDT.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ THANHDT:
+- **Phong cách chấm đặc thù:** Quan tâm đến cách xử lý cấu trúc dữ liệu Collections (ArrayList, HashMap, Hashtable). Hỏi kỹ về equals() và hashCode().
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Sử dụng Hashtable lưu đơn hàng chuẩn THANHDT\nHashtable<String, ArrayList<OrderItem>> orders = new Hashtable<>();',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV THANHDT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV THANHDT', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -524,29 +846,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN THANGPD',
       'source-code-lab211-giang-vien-thangpd',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANGPD (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên THANGPD
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Thường yêu cầu sinh viên live coding sửa 1 method nhỏ tại chỗ để kiểm tra xem có tự hiểu code hay không. Kèm hướng dẫn chi tiết từng dòng.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANGPD (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN THANGPD
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên THANGPD.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ THANGPD:
+- **Phong cách chấm đặc thù:** Thường yêu cầu sinh viên live coding sửa 1 method nhỏ tại chỗ để kiểm tra xem có tự hiểu code hay không. Kèm hướng dẫn chi tiết từng dòng.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Code modular cực kỳ dễ sửa tại chỗ khi thầy THANGPD yêu cầu\npublic boolean checkExistId(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV THANGPD", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV THANGPD', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -565,29 +933,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN TRUNGNT',
       'source-code-lab211-giang-vien-trungnt',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRUNGNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TRUNGNT
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Hỏi bản chất Java SE 8, kiểm tra kiến thức về Garbage Collection, bộ nhớ Heap/Stack và tại sao phải đóng Scanner.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRUNGNT (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN TRUNGNT
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên TRUNGNT.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ TRUNGNT:
+- **Phong cách chấm đặc thù:** Hỏi bản chất Java SE 8, kiểm tra kiến thức về Garbage Collection, bộ nhớ Heap/Stack và tại sao phải đóng Scanner.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Đóng tài nguyên an toàn chuẩn TRUNGNT\ntry (Scanner scanner = new Scanner(System.in)) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TRUNGNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV TRUNGNT', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -606,29 +1020,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN DONGLM',
       'source-code-lab211-giang-vien-donglm',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DONGLM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên DONGLM
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Yêu cầu cao về tính toàn vẹn của dữ liệu: Mã sinh viên, Số điện thoại, Email phải validate Regex chặt chẽ không có kẽ hở.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DONGLM (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN DONGLM
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên DONGLM.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ DONGLM:
+- **Phong cách chấm đặc thù:** Yêu cầu cao về tính toàn vẹn của dữ liệu: Mã sinh viên, Số điện thoại, Email phải validate Regex chặt chẽ không có kẽ hở.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Regex chặt chẽ cho Account & Phone chuẩn DONGLM\npublic static final String PHONE_REGEX = ...',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV DONGLM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV DONGLM', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -647,29 +1107,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN TUANVM',
       'source-code-lab211-giang-vien-tuanvm',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TUANVM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TUANVM
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Thích sinh viên có tư duy tổ chức code khoa học, chia nhỏ hàm < 30 dòng và viết test case bao phủ toàn bộ luồng biên.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TUANVM (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN TUANVM
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên TUANVM.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ TUANVM:
+- **Phong cách chấm đặc thù:** Thích sinh viên có tư duy tổ chức code khoa học, chia nhỏ hàm < 30 dòng và viết test case bao phủ toàn bộ luồng biên.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Hàm ngắn gọn, tách nhỏ đúng Single Responsibility chuẩn TUANVM\npublic void processOrder() {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TUANVM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV TUANVM', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -688,29 +1194,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN YNT4',
       'source-code-lab211-giang-vien-ynt4',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên YNT4 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên YNT4
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Hỏi sâu về xử lý mảng 2 chiều (Matrix calculation) và cách xử lý chuỗi chuẩn hóa văn bản (Normalize text).
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên YNT4 (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN YNT4
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên YNT4.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ YNT4:
+- **Phong cách chấm đặc thù:** Hỏi sâu về xử lý mảng 2 chiều (Matrix calculation) và cách xử lý chuỗi chuẩn hóa văn bản (Normalize text).
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Phép nhân 2 ma trận chuẩn thuật toán YNT4\npublic int[][] multiplyMatrix(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV YNT4", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV YNT4', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -729,29 +1281,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN ANNV22',
       'source-code-lab211-giang-vien-annv22',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANNV22 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên ANNV22
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Đề cao sự trung thực và hiểu rõ code: Bắt buộc giải thích được cơ chế Captcha trong bài EBank (P0070) và cách sinh số ngẫu nhiên.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANNV22 (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN ANNV22
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên ANNV22.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ ANNV22:
+- **Phong cách chấm đặc thù:** Đề cao sự trung thực và hiểu rõ code: Bắt buộc giải thích được cơ chế Captcha trong bài EBank (P0070) và cách sinh số ngẫu nhiên.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Sinh Captcha ngẫu nhiên an toàn chuẩn ANNV22\npublic static String generateCaptcha(int len) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV ANNV22", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV ANNV22', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -770,29 +1368,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN TRITD',
       'source-code-lab211-giang-vien-tritd',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRITD (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TRITD
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Quan tâm đến việc kiểm thử bài làm với số lượng lớn dữ liệu đầu vào. Tặng kèm bộ 50 câu hỏi vấn đáp thực chiến của thầy.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRITD (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN TRITD
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên TRITD.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ TRITD:
+- **Phong cách chấm đặc thù:** Quan tâm đến việc kiểm thử bài làm với số lượng lớn dữ liệu đầu vào. Tặng kèm web lý thuyết OOP củng cố kiến thức vững chắc.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Kiểm tra dữ liệu danh sách lớn chuẩn TRITD\npublic boolean validateCapacity(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TRITD", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV TRITD', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -811,29 +1455,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN NUINX',
       'source-code-lab211-giang-vien-nuinx',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NUINX (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên NUINX
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Chấm tỉ mỉ từng chi tiết, yêu cầu menu quay vòng chuẩn xác, phím thoát rõ ràng, thông báo lỗi bằng tiếng Anh chuẩn mực.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NUINX (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN NUINX
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên NUINX.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ NUINX:
+- **Phong cách chấm đặc thù:** Chấm tỉ mỉ từng chi tiết, yêu cầu menu quay vòng chuẩn xác, phím thoát rõ ràng, thông báo lỗi bằng tiếng Anh chuẩn mực.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Menu thân thiện, thông báo lỗi tiếng Anh chuẩn mực NUINX\npublic void showMenu() {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV NUINX", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV NUINX', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -852,29 +1542,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN DIEUNT',
       'source-code-lab211-giang-vien-dieunt',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DIEUNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên DIEUNT
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Hỏi cặn kẽ về tư duy giải quyết bài toán và cách tổ chức package MVC. Code sạch, comment giải thích từng dòng.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DIEUNT (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN DIEUNT
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên DIEUNT.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ DIEUNT:
+- **Phong cách chấm đặc thù:** Hỏi cặn kẽ về tư duy giải quyết bài toán và cách tổ chức package MVC. Code sạch, comment giải thích từng dòng.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Quản lý Doctor Management chuẩn DIEUNT\npublic void addDoctor(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV DIEUNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV DIEUNT', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -893,29 +1629,75 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN HANHNT84',
       'source-code-lab211-giang-vien-hanhnt84',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HANHNT84 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HANHNT84
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Kiểm tra kỹ việc xử lý ngày tháng (Date format dd/MM/yyyy) và tính toán khoảng thời gian (Plan time từ 8.0 đến 17.5 trong P0071).
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HANHNT84 (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN HANHNT84
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên HANHNT84.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ HANHNT84:
+- **Phong cách chấm đặc thù:** Kiểm tra kỹ việc xử lý ngày tháng (Date format dd/MM/yyyy) và tính toán khoảng thời gian (Plan time từ 8.0 đến 17.5 trong P0071).
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Validate thời gian làm việc chuẩn HANHNT84\npublic static double checkTime(...) {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HANHNT84", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV HANHNT84', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
 
@@ -934,30 +1716,77 @@ public void handleOrderCreated(OrderEvent event) {
       'lab211',
       'SOURCE CODE LAB211 GIẢNG VIÊN NANGNTH',
       'source-code-lab211-giang-vien-nangnth',
-      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NANGNTH (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
-      '### Bộ Source Code LAB211 Chuẩn Giảng Viên NANGNTH
-- Đầy đủ 12 bài Lab chuẩn FPT.
-- Bám sát phong cách chấm: Đặc biệt chú trọng phong thái tự tin khi bảo vệ lab: Hướng dẫn mẹo trả lời trúng trọng tâm câu hỏi của cô, lấy trọn điểm 10/10.
-- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
-      100000,
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NANGNTH (Đại học FPT). Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, TẶNG KÈM Web Lý Thuyết OOP nền tảng bảo vệ điểm 10.',
+      '### 🌟 TỔNG QUAN GÓI BÀI LAB211 — GIẢNG VIÊN NANGNTH
+Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đối tượng OOP) được tối ưu hóa đặc thù theo phong cách giảng dạy và barem chấm điểm của Giảng viên NANGNTH.
+
+---
+
+### 🎁 TẶNG KÈM ĐẶC QUYỀN NỀN TẢNG:
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📦 4 ĐẦU RA HOÀN CHỈNH BÀN GIAO CHO SINH VIÊN:
+1. **File Đề Bài Word Gốc (.docx)**: Đầy đủ 12 đề bài gốc, quy chuẩn LOC, slot học, đặc tả chi tiết hàm & test cases chuẩn FPT.
+2. **Trọn Bộ Source Code Java MVC (.java & .zip)**: 100% chuẩn Java 8 (JDK 1.8), dự án Apache NetBeans 17, Ant, không dùng thư viện ngoài, không crash.
+3. **Bản Ghi Kết QuẢ Chạy Mẫu (Console Run Output)**: Mẫu chạy thử nghiệm từng chức năng menu, validation dữ liệu biên, bảng hóa đơn căn lề chuẩn.
+4. **Website Full Lý Thuyết OOP Nền Tảng**: Truy cập vĩnh viễn kho lý thuyết 4 tính chất OOP, Class, Object, Exception, Collection thi PE/Final: https://thanhtuanfptse05.github.io/PRO192-21392-theory/
+
+---
+
+### 📚 DANH SÁCH 12 BÀI LAB HOÀN CHỈNH TRONG GÓI:
+1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng trái cây & giỏ hàng shopping - Long Assignment 175 LOC).
+2. **J1.S.P0006**: Binary Search Algorithm (Thuật toán tìm kiếm nhị phân & sắp xếp mảng).
+3. **J1.S.P0009**: Fibonacci Sequence Generator (Dãy số Fibonacci đệ quy & vòng lặp tối ưu).
+4. **J1.S.P0010**: Linear Search Algorithm (Tìm kiếm tuyến tính & phát hiện phần tử trùng lặp).
+5. **J1.S.P0011**: Convert Base Number System (Chuyển đổi cơ số nhị phân, thập phân, thập lục phân 2, 10, 16).
+6. **J1.S.P0051**: BMI Calculator & Matrix Computer (Tính chỉ số thể trọng & tính toán ma trận cơ bản).
+7. **J1.S.P0056**: Worker Management & Salary History (Quản lý hồ sơ công nhân & biến động tăng/giảm lương).
+8. **J1.S.P0057**: User Management System (Quản lý tài khoản, mã hóa mật khẩu & kiểm tra đăng nhập).
+9. **J1.S.P0061**: Calculate Perimeters & Areas (Tính chu vi & diện tích hình Tam giác, Chữ nhật, Tròn).
+10. **J1.S.P0070**: TPBank Login & Captcha System (Hệ thống đăng nhập ngân hàng Ebank & xác thực Captcha).
+11. **J1.S.P0071**: Task Management Program (Quản lý tiến độ công việc theo Task Type & khoảng thời gian).
+12. **J1.S.P0074**: Matrix Calculation Program (Cộng, trừ, nhân 2 ma trận hai chiều chuẩn toán học).
+
+---
+
+### 🎯 ĐẶC ĐIỂM BẢO KÊ ĐIỂM 10 BẢO VỆ VỚI THẦY/CÔ NANGNTH:
+- **Phong cách chấm đặc thù:** Đặc biệt chú trọng phong thái tự tin khi bảo vệ lab: Hướng dẫn mẹo trả lời trúng trọng tâm câu hỏi của cô, lấy trọn điểm 10/10.
+- **Tuân thủ triệt để rule.md:**
+  - 100% code tương thích **JDK 8 (Java SE 1.8)** và **Apache NetBeans 17**.
+  - Dự án chuẩn **Java with Ant**, tuyệt đối không dùng thư viện ngoài.
+  - Thiết kế chuẩn **MVC (Model - View - Controller)**.
+  - Toàn bộ class validation (`InputValidator.java`) đặt chuẩn ở tầng **Controller**.
+  - Thuộc tính private đóng gói chặt chẽ, method comment Javadoc chi tiết.
+- **Tặng kèm đặc quyền:** Trọn bộ Website lý thuyết OOP & Lập trình hướng đối tượng chuyên sâu (PRO192 & LAB211) chuẩn bị kiến thức nền tảng vững chắc bảo vệ điểm 10: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
+      80000,
       200000,
       'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
       'published',
       'download_file',
       'digital-deliverables/lab211/LAB211.zip',
       NULL,
-      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+      '1. Sau khi đơn hàng được Admin duyệt, truy cập Kho Lưu Trữ (Deliverables Vault).
+2. Bạn có thể xem trực tiếp Đề bài Word (.docx) và duyệt mã nguồn Java IDE có highlight cú pháp.
+3. Tải về file Word gốc hoặc tải trọn bộ project NetBeans .ZIP để nộp bài hoặc ôn thi.
+4. Truy cập ngay Web Lý Thuyết OOP nền tảng được tặng kèm: https://thanhtuanfptse05.github.io/PRO192-21392-theory/'
     );
 
     INSERT INTO public.product_demos (
-      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
     ) VALUES (
       lab_id,
-      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      NULL,
+      NULL,
+      'Tặng kèm Web lý thuyết OOP: https://thanhtuanfptse05.github.io/PRO192-21392-theory/',
       '// Code mẫu chuẩn phong cách cô NANGNTH\npublic class TaskController {...}',
-      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV NANGNTH", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
-      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+      ARRAY['Trọn bộ 12 bài lab chuẩn đề thi FPT', 'Tối ưu hóa theo phong cách chấm của GV NANGNTH', 'Tặng Kèm: Web Lý Thuyết OOP Nền Tảng (PRO192/LAB211) Bảo Vệ Điểm 10', 'Đầy đủ 4 đầu ra: Đề Word, Code MVC, Console Output, Web OOP', 'Xử lý ngoại lệ triệt để 100% không crash', 'Bảo hành sửa code 1-1 trước kỳ thi'],
+      ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
+      ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
   END;
+
 
 END $$;

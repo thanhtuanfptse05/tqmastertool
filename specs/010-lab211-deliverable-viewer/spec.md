@@ -83,6 +83,43 @@
   - Trả về HTTP 403 Forbidden kèm lý do cụ thể ("Đơn hàng chưa thanh toán hoặc chưa được Admin phê duyệt").
   - Tuyệt đối không trả về link storage hay nội dung source code.
 
+### User Story 5 — Hiển Thị Mô Tả Chi Tiết Giàu Định Dạng (Rich Markdown Parser) (Priority: P1)
+- **GIVEN** Khách hàng xem chi tiết sản phẩm LAB211 trong `ProductDetailModal`
+- **WHEN** Modal hiển thị `detailed_description` chứa cú pháp markdown (`###`, `**`, `-`, `1.`, `---`)
+- **THEN**:
+  - Hệ thống parse và render thành giao diện trực quan cao cấp, không hiển thị text thô hay ký tự markdown.
+  - Các mục `###` được render thành header badges và section headers có icon.
+  - Các dòng số thứ tự 12 bài lab được hiển thị dạng thẻ danh sách có mã bài (`J1.L.P0023`), tiêu đề, và ghi chú rõ ràng.
+  - Các gạch đầu dòng đặc điểm chấm điểm được render dạng bullet list có highlight.
+  - Phần "Tặng kèm đặc quyền" được đóng khung nổi bật dạng quà tặng (Gift Card VIP) có link dẫn đến web lý thuyết OOP.
+
+### User Story 6 — Tặng Kèm Full Web Lý Thuyết Nền Tảng OOP (Priority: P1)
+- **GIVEN** Sản phẩm LAB211 của 18 Giảng viên
+- **WHEN** Khách hàng xem sản phẩm trước mua hoặc truy cập Vault sau mua
+- **THEN**:
+  - Toàn bộ phần quà tặng được chuẩn hóa thành: **Full Website Lý thuyết Nền tảng OOP (PRO192 & LAB211)**: `https://thanhtuanfptse05.github.io/PRO192-21392-theory/`.
+  - Trong Deliverable Vault và chi tiết sản phẩm, xuất hiện nút truy cập trực tiếp "Mở Web Lý Thuyết OOP".
+
+### User Story 7 — Đầu Ra Rõ Ràng Của Mỗi Sản Phẩm LAB211 (Deliverable Outputs) (Priority: P1)
+- **GIVEN** Khách hàng mở modal chi tiết sản phẩm hoặc xem trong Vault
+- **WHEN** Khách hàng kiểm tra "Đầu ra sản phẩm" (Outputs)
+- **THEN** Hệ thống liệt kê chi tiết 4 thành phần đầu ra hoàn chỉnh:
+  1. **Tài liệu Đề bài Word (.docx)**: Đề bài gốc 12 bài có quy định LOC, test cases.
+  2. **Trọn bộ Mã nguồn MVC Java (.java & .zip)**: 100% chuẩn JDK 8 / NetBeans 17, clean code.
+  3. **Console Run Output Thực Tế**: Bản ghi kết quả chạy mẫu, menu, validation đầu ra.
+  4. **Tài liệu Lý Thuyết OOP Nền Tảng**: Link web lý thuyết OOP ôn tập vấn đáp.
+
+### User Story 8 — Trải Nghiệm Demo Chân Thực Không Lộ Mã Nguồn (Priority: P1)
+- **GIVEN** Khách hàng bấm sang tab "Demo & Chạy Thử" trên Modal chi tiết sản phẩm
+- **WHEN** Khách hàng muốn xem sản phẩm hoạt động như thế nào trước khi mua
+- **THEN**:
+  - Không để lộ code logic/thuật toán Java nhằm bảo vệ bản quyền.
+  - Hiển thị giao diện mô phỏng **Terminal Console NetBeans IDE 17** cực kỳ chân thực:
+    - Có header NetBeans/Console với các nút Run, Stop, Clear, Build Success `JDK 1.8`.
+    - Cho phép chọn xem các bài lab tiêu biểu (`J1.L.P0023 - Fruit Shop`, `J1.S.P0070 - TPBank Captcha`, `J1.S.P0074 - Matrix Calculation`, `J1.S.P0056 - Worker Management`).
+    - Hiển thị kịch bản chạy mẫu thực tế từng bước: Menu, nhập dữ liệu, validation khi nhập sai, bảng tính toán kết quả format đẹp mắt.
+    - Có chế độ tương tác giả lập các lệnh menu để người dùng bấm thử và thấy phản hồi console ngay lập tức.
+
 ---
 
 ## 4. Functional Requirements (EARS)
@@ -90,8 +127,10 @@
 - **FR-001 (Ubiquitous)**: THE system SHALL strictly enforce that LAB deliverables are accessible ONLY when an order associated with the user has `status === 'completed'`.
 - **FR-002 (Event-Driven)**: WHEN an admin uploads a LAB zip archive, THE system SHALL extract all docx files, parse their structure, extract Java source files, and store the resulting lab package manifest.
 - **FR-003 (Event-Driven)**: WHEN an authorized customer requests a file download, THE system SHALL stream the file with HTTP header `Content-Disposition: attachment; filename="${exactName}"; filename*=UTF-8''${encodeURIComponent(exactName)}`.
-- **FR-004 (State-Driven)**: WHILE the customer is viewing a LAB deliverable, THE system SHALL display the Word assignment document first, followed by the source code explorer and viewer underneath.
+- **FR-004 (State-Driven)**: WHILE the customer is viewing a LAB deliverable, THE system SHALL display the Word assignment document first, followed by the source code explorer and viewer underneath, accompanied by the OOP Theory website link banner.
 - **FR-005 (Safety)**: THE system SHALL validate all archive entry paths against Directory Traversal (Zip Slip) and reject any entries containing `..` or leading slashes.
+- **FR-006 (Rich Formatting)**: THE system SHALL parse product markdown descriptions into structured UI components including headers, list items, badges, and gift cards.
+- **FR-007 (Demo Simulation & IP Protection)**: THE system SHALL provide an interactive NetBeans 17 console run simulator in the product demo tab WITHOUT exposing internal Java code implementations.
 
 ---
 
@@ -168,7 +207,7 @@ export interface LabPackageManifest {
 
 ## 8. Catalog Definition: Danh Sách Sản Phẩm LAB211 Theo Giảng Viên (18 Thầy/Cô)
 
-- Đơn giá đồng bộ: **100,000 VNĐ** (Giá gốc: 200,000 VNĐ).
+- Đơn giá đồng bộ: **80,000 VNĐ** (Giá gốc: 200,000 VNĐ - Giảm giá đặc biệt cho sinh viên FPT).
 - File deliverable dùng chung: `LAB211.zip` (đầy đủ 12 bài lab + Word docx + code MVC Java 8 + test case 10/10).
 - Tên chuẩn hóa: `SOURCE CODE LAB211 GIẢNG VIÊN [MÃ_GIẢNG_VIÊN_IN_HOA]`.
 

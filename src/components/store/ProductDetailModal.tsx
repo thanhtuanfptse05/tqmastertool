@@ -16,7 +16,10 @@ import {
   Layers,
   ChevronRight,
   ShoppingBag,
+  Terminal,
 } from "lucide-react";
+import ProductDescriptionRenderer from "./ProductDescriptionRenderer";
+import NetBeansConsoleSimulator from "./NetBeansConsoleSimulator";
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -113,7 +116,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                 Mã Nguồn Mẫu (Snippet)
               </button>
             )}
-            {(demo?.live_demo_url || demo?.video_demo_url) && (
+            {(demo?.live_demo_url || demo?.video_demo_url || product.category === "lab211") && (
               <button
                 onClick={() => setActiveTab("demo")}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
@@ -122,8 +125,8 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                <Play className="w-3.5 h-3.5" />
-                Live Demo & Video
+                <Terminal className="w-3.5 h-3.5" />
+                Demo & Chạy Console
               </button>
             )}
           </div>
@@ -178,10 +181,11 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                 </div>
               )}
 
-              {/* Detailed Description */}
-              <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                <p className="whitespace-pre-line text-xs">{product.detailed_description}</p>
-              </div>
+              {/* Detailed Description (Rich Cards Renderer with OOP Theory Gift Link) */}
+              <ProductDescriptionRenderer
+                description={product.detailed_description || ""}
+                category={product.category}
+              />
 
               {/* Tech Stack Tags */}
               {demo?.tech_stack_tags && (
@@ -206,7 +210,7 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
           {activeTab === "code" && demo?.code_preview_snippet && (
             <div className="space-y-3 animate-in fade-in duration-150">
               <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>Trích đoạn mã nguồn thực tế:</span>
+                <span>Trích đoạn cấu trúc kiến trúc mã nguồn:</span>
                 <button
                   onClick={handleCopyCode}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
@@ -225,15 +229,25 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                 </button>
               </div>
 
+              {/* IP Protection notice */}
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Mã nguồn hiển thị trích đoạn kiến trúc package MVC. Toàn bộ code xử lý logic 100% mở khóa trong Kho Lưu Trữ sau khi duyệt đơn.</span>
+              </div>
+
               <div className="relative rounded-2xl bg-slate-950 p-4 font-mono text-xs text-cyan-300 overflow-x-auto border border-slate-800 shadow-inner max-h-[380px]">
                 <pre>{demo.code_preview_snippet}</pre>
               </div>
             </div>
           )}
 
-          {/* TAB 3: DEMO & VIDEO */}
+          {/* TAB 3: DEMO & TERMINAL SIMULATOR */}
           {activeTab === "demo" && (
             <div className="space-y-4 animate-in fade-in duration-150">
+              {product.category === "lab211" && (
+                <NetBeansConsoleSimulator />
+              )}
+
               {demo?.live_demo_url && (
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                   <div>

@@ -13,6 +13,7 @@ import {
   ChevronUp,
   FileCheck2,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
 
 interface LabDocViewerProps {
@@ -126,9 +127,22 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
           </div>
         )}
 
-        <div className="ml-auto flex items-center gap-1 text-[11px] text-emerald-700 font-bold">
-          <FileCheck2 className="w-3.5 h-3.5" />
-          <span>Chuẩn đề thi FPT LAB211</span>
+        <div className="ml-auto flex items-center gap-2">
+          <a
+            href="https://thanhtuanfptse05.github.io/PRO192-21392-theory/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-[11px] border border-amber-300 transition-colors"
+          >
+            <Sparkles className="w-3 h-3 text-amber-600" />
+            <span>Web Lý Thuyết OOP</span>
+            <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+          </a>
+
+          <div className="hidden sm:flex items-center gap-1 text-[11px] text-emerald-700 font-bold">
+            <FileCheck2 className="w-3.5 h-3.5" />
+            <span>Chuẩn đề thi FPT LAB211</span>
+          </div>
         </div>
       </div>
 
