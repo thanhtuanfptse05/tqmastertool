@@ -1,9 +1,9 @@
 # Feature Specification: LAB211 Deliverable Viewer & Secure Downloader (Spec 010)
 
 **Feature Branch**: `010-lab211-deliverable-viewer`  
-**Status**: Draft (Planning Mode)  
-**Version**: 1.0.0  
-**Updated**: 2026-03-16  
+**Status**: Implemented (Production)  
+**Version**: 2.1.0  
+**Updated**: 2026-09-17  
 **Implementation Files**:
 - `src/types/index.ts`
 - `src/lib/lab-parser.ts`
@@ -249,3 +249,32 @@ Danh sách 18 giảng viên:
 17. `SOURCE CODE LAB211 GIẢNG VIÊN HANHNT84`
 18. `SOURCE CODE LAB211 GIẢNG VIÊN NANGNTH`
 
+---
+
+## 9. Implementation Notes (v2.1 — 2026-09-17)
+
+### 9.1 Vault Page (`/customer/vault`) — Đã Triển Khai
+- **Thiết kế**: Card ngang gọn — icon danh mục, tên sản phẩm đúng từ DB, badge xác nhận, 2 nút: **Xem Ngay** (mở LabDeliverableModal) + **Tải .ZIP** (authenticated fetch).
+- **Reactive state**: Dùng `React.useMemo([currentUser, orders, products])` thay vì closure từ store, đảm bảo re-render đúng khi orders thay đổi.
+- **Filter orders**: `o.user_id === currentUser.id || o.user_email === currentUser.email` — khớp với logic trang Đơn Hàng.
+
+### 9.2 Order Items Fetch — 3-Tier Fallback
+Supabase join RLS có thể block `order_items (*)` trong nested select. `fetchOrdersFromDB` dùng 3 tầng:
+1. **Tier 1**: Supabase join `select('*, order_items (*)')` 
+2. **Tier 2**: Standalone client `select('*').from('order_items').in('order_id', [...])`
+3. **Tier 3**: Server-side `GET /api/orders?orderIds=...` dùng `supabaseAdmin` (Service Role) — bypass hoàn toàn RLS, trả về items kèm `product_title` đúng.
+
+### 9.3 Authenticated Download
+- **Vấn đề cũ**: `<a href="/api/deliverables/...">` không gửi Authorization header → API trả 403.
+- **Fix**: `handleAuthDownload()` dùng `fetch()` + `Bearer <supabase_session_token>` → nhận Blob → tạo object URL → trigger download.
+- Download button hiển thị trạng thái "Đang tải..." khi đang fetch.
+
+### 9.4 Giá Sản Phẩm
+- LAB211: **90,000đ** (cập nhật 2026-09-17, trước đó 80,000đ)
+
+### 9.5 API Endpoints Liên Quan
+| Method | Endpoint | Mô Tả |
+|--------|----------|--------|
+| `GET` | `/api/orders?orderIds=id1,id2` | Lấy orders + items dùng admin client (bypass RLS) |
+| `GET` | `/api/deliverables/lab/download` | Tải file docx/zip/java có xác thực |
+| `GET` | `/api/deliverables/lab/view` | Xem nội dung bài lab (JSON) |

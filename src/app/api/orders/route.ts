@@ -108,6 +108,56 @@ export async function DELETE(req: NextRequest) {
 }
 
 /**
+ * GET /api/orders?orderIds=id1,id2,...
+ * Returns orders WITH order_items using service role (bypasses Supabase RLS join issue).
+ * Security: Only returns orders owned by the authenticated user (or all for Admin).
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const orderIdsParam = searchParams.get("orderIds");
+
+    if (!orderIdsParam) {
+      return NextResponse.json({ error: "Thiếu tham số orderIds" }, { status: 400 });
+    }
+
+    const orderIds = orderIdsParam.split(",").map((id) => id.trim()).filter(Boolean);
+    if (orderIds.length === 0) {
+      return NextResponse.json({ data: [] });
+    }
+
+    // Authenticate
+    const { user, isAdmin } = await getAuthenticatedUser(req);
+    if (!user && !isAdmin) {
+      return NextResponse.json({ error: "Unauthorized — Vui lòng đăng nhập để tiếp tục." }, { status: 401 });
+    }
+
+    // Fetch orders WITH items using admin client (bypasses RLS)
+    const { data: orders, error } = await supabaseAdmin
+      .from("orders")
+      .select("id, user_id, user_email, order_code, status, total_amount, order_items(*)")
+      .in("id", orderIds);
+
+    if (error) {
+      console.error("[API GET /api/orders] DB error:", error);
+      return NextResponse.json({ error: "Lỗi truy vấn cơ sở dữ liệu" }, { status: 500 });
+    }
+
+    // Filter: customer only sees their own orders
+    const filtered = isAdmin
+      ? orders
+      : (orders || []).filter(
+          (o: any) => o.user_id === user?.id || o.user_email === user?.email
+        );
+
+    return NextResponse.json({ data: filtered });
+  } catch (err: any) {
+    console.error("[API GET /api/orders] Exception:", err);
+    return NextResponse.json({ error: err.message || "Lỗi server" }, { status: 500 });
+  }
+}
+
+/**
  * PATCH /api/orders
  * Body: { orderId, status, admin_notes, transaction_ref, payment_proof_image, ... }
  * Security: RBAC enforcement — only Admin can approve/reject/block; Customers can only submit proof or cancel

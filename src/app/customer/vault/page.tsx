@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useStore } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
 import {
   Package,
   ShieldCheck,
@@ -9,6 +10,7 @@ import {
   Sparkles,
   BookOpen,
   Unlock,
+  Download,
 } from "lucide-react";
 import LabDeliverableModal from "@/components/store/LabDeliverableModal";
 
@@ -20,6 +22,42 @@ export default function DeliverableVaultPage() {
     orderCode?: string;
     labCode?: string;
   } | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  // Authenticated download — sends Bearer token so API security gate passes
+  const handleAuthDownload = async (
+    orderId: string,
+    labId: string,
+    type: "docx" | "zip" | "java",
+    fileName: string
+  ) => {
+    const key = `${orderId}-${labId}-${type}`;
+    setDownloading(key);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const url = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(labId)}&type=${type}`;
+      const res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Lỗi không xác định" }));
+        alert(err.error || `Lỗi tải file (${res.status})`);
+        return;
+      }
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (e: any) {
+      alert(e?.message || "Không thể tải file. Vui lòng thử lại.");
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   // Compute deliverables reactively — same logic as orders page filter
   const deliverables = React.useMemo(() => {
@@ -144,31 +182,43 @@ export default function DeliverableVaultPage() {
                     </p>
                   </div>
 
-                  {/* CTA Button — prominent */}
-                  {lab ? (
+                  {/* CTA Buttons */}
+                  <div className="shrink-0 flex items-center gap-2 flex-wrap">
+                    {lab && (
+                      <button
+                        onClick={() =>
+                          setActiveLabModal({
+                            isOpen: true,
+                            orderId: item.order_id,
+                            orderCode: item.order_code,
+                            labCode: "J1.L.P0023",
+                          })
+                        }
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/30 transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        Xem Ngay
+                      </button>
+                    )}
                     <button
                       onClick={() =>
-                        setActiveLabModal({
-                          isOpen: true,
-                          orderId: item.order_id,
-                          orderCode: item.order_code,
-                          labCode: "J1.L.P0023",
-                        })
+                        handleAuthDownload(
+                          item.order_id,
+                          lab ? "all" : item.product_id,
+                          "zip",
+                          `${item.product_title.replace(/[^a-zA-Z0-9]/g, "_")}.zip`
+                        )
                       }
-                      className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/30 transition-all active:scale-95 whitespace-nowrap"
+                      disabled={downloading === `${item.order_id}-${lab ? "all" : item.product_id}-zip`}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 whitespace-nowrap"
                     >
-                      <BookOpen className="w-4 h-4" />
-                      Xem Ngay
+                      <Download className="w-4 h-4" />
+                      {downloading === `${item.order_id}-${lab ? "all" : item.product_id}-zip`
+                        ? "Đang tải..."
+                        : "Tải .ZIP"}
                     </button>
-                  ) : (
-                    <a
-                      href={`/api/deliverables/lab/download?orderId=${encodeURIComponent(item.order_id)}&labId=all&type=zip`}
-                      className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 transition-all active:scale-95 whitespace-nowrap"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      Xem Ngay
-                    </a>
-                  )}
+                  </div>
+
                 </div>
               </div>
             );

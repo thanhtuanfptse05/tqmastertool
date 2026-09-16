@@ -188,8 +188,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         let ordersData = data;
 
-        // If any order has empty items array, try fetching order_items separately
-        // (Supabase join RLS can block nested selects even when parent is accessible)
+        // Tier-2: standalone client query for orders with empty items
         const orderIdsWithNoItems = data
           .filter((o: any) => !o.order_items || o.order_items.length === 0)
           .map((o: any) => o.id);
@@ -203,12 +202,38 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           standaloneItems = itemsData || [];
         }
 
+        // Tier-3: if STILL no items after client query, call server API (supabaseAdmin bypasses RLS)
+        const stillNoItems = orderIdsWithNoItems.filter(
+          (id: string) => standaloneItems.filter((i: any) => i.order_id === id).length === 0
+        );
+        let serverItems: any[] = [];
+        if (stillNoItems.length > 0) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const token = session?.access_token;
+            const res = await fetch(
+              `/api/orders?orderIds=${stillNoItems.join(",")}`,
+              token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+            );
+            if (res.ok) {
+              const json = await res.json();
+              (json.data || []).forEach((ord: any) => {
+                (ord.order_items || []).forEach((item: any) => {
+                  serverItems.push({ ...item, order_id: ord.id });
+                });
+              });
+            }
+          } catch (apiErr) {
+            console.warn("[fetchOrdersFromDB] Server API items fetch failed:", apiErr);
+          }
+        }
+        const allFallbackItems = [...standaloneItems, ...serverItems];
+
         const mappedOrders: Order[] = ordersData.map((o: any) => {
-          // Use joined items if present, else fall back to standalone fetch
           const rawItems =
             o.order_items && o.order_items.length > 0
               ? o.order_items
-              : standaloneItems.filter((i: any) => i.order_id === o.id);
+              : allFallbackItems.filter((i: any) => i.order_id === o.id);
 
           return {
             id: o.id,
