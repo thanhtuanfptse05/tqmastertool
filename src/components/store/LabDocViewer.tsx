@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { LabExerciseItem } from "@/types";
 import {
   FileText,
@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Maximize2,
   Minimize2,
-  Copy,
+  Loader2,
+  AlertCircle,
   BookOpen,
 } from "lucide-react";
 
@@ -26,74 +27,89 @@ interface LabDocViewerProps {
   onDownloadDocx?: () => void;
 }
 
-function escapeRegExp(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 /**
- * Formats raw docx HTML:
- * 1. Eliminates duplicate paragraph tags that repeat table metadata.
- * 2. Transforms console/terminal output lines into styled terminal blocks.
- * 3. Preserves 100% of the actual problem statement, test cases, and guidelines.
+ * LabDocViewer — renders Word DOCX files exactly as they appear in Microsoft Word.
+ *
+ * Strategy:
+ *  1. Fetch the DOCX binary from the secure download API
+ *  2. Use mammoth.js (browser bundle) to convert DOCX → clean HTML
+ *  3. Inject into a sandboxed container with scoped Word-like CSS
+ *
+ * This preserves 100% of the original Word formatting: tables, paragraphs,
+ * heading styles, numbered lists, bold/italic, indentation, etc.
  */
-function cleanAndFormatDocxHtml(rawHtml: string, lab: LabExerciseItem): string {
-  if (!rawHtml) return "";
-
-  let cleaned = rawHtml;
-
-  // 1. Remove duplicate metadata paragraphs that repeat table content
-  const patternsToRemove = [
-    /<p[^>]*>\s*LAB\s*211\s*Assignment\s*<\/p>/gi,
-    /<p[^>]*>\s*(Short|Long)\s*Assignment\s*<\/p>/gi,
-    new RegExp(`<p[^>]*>\\s*${lab.code.replace(/[\s.]/g, "[\\s.]*")}\\s*<\\/p>`, "gi"),
-    lab.loc ? new RegExp(`<p[^>]*>\\s*${lab.loc}\\s*<\\/p>`, "gi") : null,
-    lab.slots ? new RegExp(`<p[^>]*>\\s*${lab.slots}\\s*<\\/p>`, "gi") : null,
-    new RegExp(`<p[^>]*>\\s*${escapeRegExp(lab.title)}\\s*<\\/p>`, "gi"),
-  ].filter(Boolean) as RegExp[];
-
-  for (const pattern of patternsToRemove) {
-    cleaned = cleaned.replace(pattern, "");
-  }
-
-  // 2. Format console and sample simulation lines (light harmonious cards)
-  cleaned = cleaned.replace(/<p[^>]*>(.*?)<\/p>/gi, (match, text) => {
-    const trimmed = text.trim();
-    const isHeaderLine =
-      trimmed.startsWith("| ++") ||
-      trimmed.startsWith("Product | Quantity") ||
-      trimmed === "FRUIT SHOP SYSTEM" ||
-      trimmed === "List of Fruit:";
-
-    const isSampleLine =
-      trimmed.startsWith("Customer:") ||
-      trimmed.startsWith("Total:") ||
-      trimmed.startsWith("Step ") ||
-      /^\d+\s+(Coconut|Orange|Apple|Grape|Mango)/i.test(trimmed) ||
-      trimmed.startsWith("You selected:") ||
-      trimmed.startsWith("Please input quantity:");
-
-    if (isHeaderLine) {
-      return `<div class="word-doc-sample-header">${text}</div>`;
-    }
-    if (isSampleLine) {
-      return `<div class="word-doc-sample-block">${text}</div>`;
-    }
-    return match;
-  });
-
-  return cleaned;
-}
-
 export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocViewerProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMaxHeight, setIsMaxHeight] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [loadingDocx, setLoadingDocx] = useState(false);
+  const [docxHtml, setDocxHtml] = useState<string | null>(null);
+  const [docxError, setDocxError] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState<"normal" | "large">("normal");
 
-  const formattedHtml = useMemo(() => {
-    return cleanAndFormatDocxHtml(lab.docxContentHtml, lab);
-  }, [lab.docxContentHtml, lab]);
+  // Cache: labId → html, to avoid re-fetching on tab switch
+  const cacheRef = useRef<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!isExpanded) return;
+
+    const labKey = lab.id;
+    if (cacheRef.current[labKey]) {
+      setDocxHtml(cacheRef.current[labKey]);
+      setDocxError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingDocx(true);
+    setDocxHtml(null);
+    setDocxError(null);
+
+    const fetchAndConvert = async () => {
+      try {
+        // 1. Fetch DOCX binary from our secure API
+        const url = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=docx`;
+        const resp = await fetch(url, { credentials: "include" });
+
+        if (!resp.ok) {
+          let msg = `Tải file thất bại (HTTP ${resp.status})`;
+          try {
+            const j = await resp.json();
+            if (j?.error) msg = j.error;
+          } catch { /* ignore */ }
+          throw new Error(msg);
+        }
+
+        const arrayBuffer = await resp.arrayBuffer();
+        if (cancelled) return;
+
+        // 2. Dynamically import mammoth (browser build) to keep bundle lean
+        const mammoth = await import("mammoth/mammoth.browser");
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+
+        if (cancelled) return;
+
+        if (result.messages?.length > 0) {
+          // Log warnings only — not blocking
+          console.debug("[mammoth warnings]", result.messages);
+        }
+
+        cacheRef.current[labKey] = result.value;
+        setDocxHtml(result.value);
+      } catch (err: unknown) {
+        if (cancelled) return;
+        const msg = err instanceof Error ? err.message : String(err);
+        setDocxError(msg);
+      } finally {
+        if (!cancelled) setLoadingDocx(false);
+      }
+    };
+
+    fetchAndConvert();
+    return () => { cancelled = true; };
+  // Re-run when lab changes or panel is first expanded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lab.id, orderId, isExpanded]);
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -116,14 +132,6 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
     }
   };
 
-  const handleCopyText = () => {
-    const textToCopy = lab.docxTextPreview || "";
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  };
-
   return (
     <div className="bg-white rounded-3xl border border-blue-200/90 shadow-xl overflow-hidden transition-all">
       {/* Word Header */}
@@ -141,13 +149,13 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
                 {lab.docxFileName}
               </span>
             </div>
-            <h3 className="text-base font-black text-white mt-1 tracking-tight flex items-center gap-2">
-              <span>Đề Bài & Đặc Tả Yêu Cầu: {lab.code}</span>
+            <h3 className="text-base font-black text-white mt-1 tracking-tight">
+              Đề Bài &amp; Đặc Tả Yêu Cầu: {lab.code}
             </h3>
           </div>
         </div>
 
-        {/* Action & Reader Controls */}
+        {/* Action Controls */}
         <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
           {/* Font Size Toggle */}
           <div className="flex items-center bg-white/15 rounded-xl p-0.5 border border-white/20 text-white text-xs font-bold">
@@ -171,24 +179,14 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             </button>
           </div>
 
-          {/* Max Height / Airy View Toggle */}
+          {/* Expand Height Toggle */}
           <button
             onClick={() => setIsMaxHeight(!isMaxHeight)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs border border-white/20 transition-all active:scale-95"
-            title={isMaxHeight ? "Thu gọn về chiều cao tiêu chuẩn" : "Mở rộng chiều cao tối đa để đọc thoáng"}
+            title={isMaxHeight ? "Thu gọn về chiều cao tiêu chuẩn" : "Mở rộng chiều cao tối đa"}
           >
             {isMaxHeight ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{isMaxHeight ? "Chiều cao chuẩn" : "Xem thoáng (Max Height)"}</span>
-          </button>
-
-          {/* Copy Text Button */}
-          <button
-            onClick={handleCopyText}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs border border-white/20 transition-all active:scale-95"
-            title="Sao chép nội dung tóm tắt đề bài"
-          >
-            {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{isCopied ? "Đã chép" : "Chép đề"}</span>
+            <span className="hidden sm:inline">{isMaxHeight ? "Chiều cao chuẩn" : "Xem thoáng"}</span>
           </button>
 
           {/* Download docx Button */}
@@ -203,21 +201,21 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             ) : (
               <Download className="w-4 h-4" />
             )}
-            <span>Tải File Đề Bài (.docx)</span>
+            <span>Tải File Đề (.docx)</span>
           </button>
 
-          {/* Accordion Toggle */}
+          {/* Collapse Toggle */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-white transition-colors"
-            title={isExpanded ? "Thu gọn nội dung" : "Mở rộng nội dung"}
+            title={isExpanded ? "Thu gọn" : "Mở rộng"}
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
       </div>
 
-      {/* Metadata Chips Bar */}
+      {/* Metadata Chips */}
       <div className="px-6 py-3 bg-blue-50/70 border-b border-blue-100 flex flex-wrap items-center gap-3.5 text-xs text-slate-700">
         <div className="flex items-center gap-1.5 font-bold text-blue-950">
           <Code className="w-4 h-4 text-blue-600" />
@@ -266,48 +264,221 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
         </div>
       </div>
 
-      {/* Word Content Body (Document Paper) */}
+      {/* Document Body */}
       {isExpanded && (
         <div
-          className={`p-6 sm:p-8 md:p-10 overflow-y-auto text-slate-800 font-sans transition-all duration-300 bg-white ${
+          className={`overflow-y-auto bg-white transition-all duration-300 ${
             isMaxHeight
-              ? "min-h-[750px] max-h-none"
-              : "min-h-[560px] max-h-[760px] xl:max-h-[820px] 2xl:max-h-[860px]"
+              ? "min-h-[600px] max-h-none"
+              : "min-h-[480px] max-h-[760px] xl:max-h-[820px] 2xl:max-h-[860px]"
           }`}
         >
-          {/* Assignment Title Paper Header */}
-          <div className="mb-6 pb-5 border-b border-slate-200/90">
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-blue-600 mb-1">
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>TRƯỜNG ĐẠI HỌC FPT • MÔN HỌC LAB211 (JAVA OOP)</span>
+          {/* Loading state */}
+          {loadingDocx && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+              <p className="text-sm font-medium">Đang tải &amp; render đề bài từ file Word...</p>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              {lab.code} — {lab.title}
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-1">
-              Tài liệu đề thi & đặc tả chương trình chính thức trích xuất từ file gốc:{" "}
-              <code className="text-blue-700 font-mono font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                {lab.docxFileName}
-              </code>
-            </p>
-          </div>
+          )}
 
-          {/* Formatted Docx Content */}
-          {lab.docxContentHtml ? (
-            <div
-              className={`word-doc-body w-full ${
-                fontSize === "large" ? "text-base" : "text-sm"
-              }`}
-              dangerouslySetInnerHTML={{ __html: formattedHtml }}
-            />
-          ) : (
-            <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed">
-              {lab.docxTextPreview}
-            </p>
+          {/* Error state */}
+          {!loadingDocx && docxError && (
+            <div className="p-8">
+              <div className="rounded-2xl border border-orange-200 bg-orange-50 p-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-orange-800 mb-1">Không thể render file Word</p>
+                    <p className="text-xs text-orange-700 mb-3">{docxError}</p>
+                    <p className="text-xs text-slate-500">
+                      Hãy dùng nút <strong>"Tải File Đề (.docx)"</strong> ở trên để mở bằng Microsoft Word hoặc Google Docs.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Rendered DOCX content */}
+          {!loadingDocx && docxHtml && (
+            <div className={`px-8 sm:px-12 md:px-16 py-8 sm:py-10 ${fontSize === "large" ? "text-base" : "text-sm"}`}>
+              {/* Paper header */}
+              <div className="mb-6 pb-5 border-b border-slate-200/90">
+                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-blue-600 mb-1">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>TRƯỜNG ĐẠI HỌC FPT • MÔN HỌC LAB211 (JAVA OOP)</span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {lab.code} — {lab.title}
+                </h1>
+              </div>
+
+              {/* mammoth-rendered DOCX HTML with Word-accurate CSS */}
+              <div
+                className="mammoth-docx-output"
+                style={{ fontSize: fontSize === "large" ? "1rem" : "0.875rem" }}
+                dangerouslySetInnerHTML={{ __html: docxHtml }}
+              />
+            </div>
           )}
         </div>
       )}
+
+      {/* Scoped DOCX styles — matches Word default rendering */}
+      <style jsx global>{`
+        .mammoth-docx-output {
+          color: #1e293b;
+          line-height: 1.75;
+          font-family: "Calibri", "Segoe UI", Arial, sans-serif;
+          max-width: 100%;
+        }
+
+        /* Paragraphs */
+        .mammoth-docx-output p {
+          margin: 0.45em 0;
+          color: #1e293b;
+        }
+        .mammoth-docx-output p:empty {
+          margin: 0.2em 0;
+          min-height: 0.5em;
+        }
+
+        /* Headings */
+        .mammoth-docx-output h1 {
+          font-size: 1.5em;
+          font-weight: 900;
+          color: #0f172a;
+          margin: 1.2em 0 0.4em;
+          border-bottom: 2px solid #dbeafe;
+          padding-bottom: 0.25em;
+        }
+        .mammoth-docx-output h2 {
+          font-size: 1.2em;
+          font-weight: 800;
+          color: #1d4ed8;
+          margin: 1em 0 0.35em;
+        }
+        .mammoth-docx-output h3 {
+          font-size: 1.05em;
+          font-weight: 700;
+          color: #1e40af;
+          margin: 0.85em 0 0.3em;
+        }
+        .mammoth-docx-output h4,
+        .mammoth-docx-output h5,
+        .mammoth-docx-output h6 {
+          font-size: 1em;
+          font-weight: 700;
+          color: #334155;
+          margin: 0.7em 0 0.25em;
+        }
+
+        /* Tables — Word-accurate */
+        .mammoth-docx-output table {
+          border-collapse: collapse;
+          width: 100%;
+          margin: 0.9em 0;
+          font-size: 0.9em;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .mammoth-docx-output table tr:first-child th,
+        .mammoth-docx-output table tr:first-child td {
+          background: #eff6ff;
+          font-weight: 700;
+          color: #1e3a8a;
+        }
+        .mammoth-docx-output th,
+        .mammoth-docx-output td {
+          border: 1px solid #cbd5e1;
+          padding: 8px 12px;
+          text-align: left;
+          vertical-align: top;
+        }
+        .mammoth-docx-output tr:nth-child(even) td {
+          background: #f8fafc;
+        }
+        .mammoth-docx-output tr:hover td {
+          background: #f0f9ff;
+        }
+
+        /* Lists */
+        .mammoth-docx-output ul {
+          list-style: disc;
+          margin: 0.5em 0 0.5em 1.5em;
+          padding: 0;
+        }
+        .mammoth-docx-output ol {
+          list-style: decimal;
+          margin: 0.5em 0 0.5em 1.5em;
+          padding: 0;
+        }
+        .mammoth-docx-output li {
+          margin: 0.25em 0;
+          color: #1e293b;
+        }
+
+        /* Inline formatting */
+        .mammoth-docx-output strong,
+        .mammoth-docx-output b {
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .mammoth-docx-output em,
+        .mammoth-docx-output i {
+          font-style: italic;
+          color: #334155;
+        }
+        .mammoth-docx-output u {
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        /* Code/monospace inside docx */
+        .mammoth-docx-output code,
+        .mammoth-docx-output pre {
+          font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 5px;
+          padding: 2px 6px;
+          font-size: 0.88em;
+          color: #0f172a;
+        }
+        .mammoth-docx-output pre {
+          padding: 10px 14px;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+
+        /* Hyperlinks */
+        .mammoth-docx-output a {
+          color: #2563eb;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+
+        /* Images */
+        .mammoth-docx-output img {
+          max-width: 100%;
+          border-radius: 6px;
+          margin: 0.5em 0;
+          box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Horizontal rules */
+        .mammoth-docx-output hr {
+          border: none;
+          border-top: 2px solid #e2e8f0;
+          margin: 1.2em 0;
+        }
+
+        /* Word bookmark/anchor targets */
+        .mammoth-docx-output [id] {
+          scroll-margin-top: 8px;
+        }
+      `}</style>
     </div>
   );
 }
-
