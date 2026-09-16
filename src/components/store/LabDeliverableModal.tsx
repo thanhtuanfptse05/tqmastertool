@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { LabExerciseItem } from "@/types";
 import { getAllLabExercises, LAB211_RULE_MD } from "@/lib/lab-data";
+import { getLabAnalysis, LabFaqItem } from "@/lib/lab-analysis";
 import LabDocViewer from "./LabDocViewer";
 import LabCodeViewer from "./LabCodeViewer";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
@@ -17,6 +18,16 @@ import {
   FileText,
   Search,
   ExternalLink,
+  Brain,
+  Lightbulb,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Zap,
+  Target,
+  GraduationCap,
+  Wrench,
 } from "lucide-react";
 
 interface LabDeliverableModalProps {
@@ -25,6 +36,95 @@ interface LabDeliverableModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultLabCode?: string;
+}
+
+/** Render danh sách mindset steps với bold support */
+function MindsetStep({ text }: { text: string }) {
+  // bold **text** inside
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  return (
+    <div className="flex gap-3 items-start">
+      <div className="mt-0.5 w-5 h-5 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center shrink-0">
+        <CheckCircle2 className="w-3 h-3 text-indigo-400" />
+      </div>
+      <p className="text-sm text-slate-300 leading-relaxed">
+        {parts.map((part, i) =>
+          i % 2 === 1 ? (
+            <strong key={i} className="text-indigo-300 font-bold">
+              {part}
+            </strong>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </p>
+    </div>
+  );
+}
+
+/** FAQ accordion item */
+function FaqAccordionItem({
+  item,
+  index,
+}: {
+  item: LabFaqItem;
+  index: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const isTheory = item.type === "theory";
+
+  return (
+    <div
+      className={`rounded-xl border overflow-hidden transition-all ${
+        isTheory
+          ? "border-violet-500/30 bg-violet-950/20"
+          : "border-cyan-500/30 bg-cyan-950/20"
+      }`}
+    >
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-start gap-3 px-4 py-3.5 text-left hover:bg-white/5 transition-colors"
+      >
+        <div
+          className={`mt-0.5 shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-black text-[11px] ${
+            isTheory
+              ? "bg-violet-500/25 text-violet-300 border border-violet-500/40"
+              : "bg-cyan-500/25 text-cyan-300 border border-cyan-500/40"
+          }`}
+        >
+          {index + 1}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full tracking-wider ${
+                isTheory
+                  ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
+                  : "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
+              }`}
+            >
+              {isTheory ? "Lý Thuyết" : "Thực Hành"}
+            </span>
+          </div>
+          <p className="text-sm font-semibold text-slate-200 leading-snug">
+            {item.question}
+          </p>
+        </div>
+        <div className="shrink-0 text-slate-500 mt-0.5">
+          {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-0 border-t border-white/5">
+          <div className="pl-9">
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {item.answer}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function LabDeliverableModal({
@@ -54,6 +154,8 @@ export default function LabDeliverableModal({
       l.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       l.folderName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const analysis = getLabAnalysis(currentLab.code);
 
   const handleDownloadFullArchive = () => {
     setIsDownloadingFull(true);
@@ -91,7 +193,7 @@ export default function LabDeliverableModal({
                 </span>
               </div>
               <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2 mt-0.5">
-                <span>Kho Bàn Giao Mã Nguồn & Đề Bài LAB211</span>
+                <span>Kho Bàn Giao Mã Nguồn &amp; Đề Bài LAB211</span>
                 <Sparkles className="w-4 h-4 text-amber-400" />
               </h2>
             </div>
@@ -125,14 +227,14 @@ export default function LabDeliverableModal({
           </div>
         </div>
 
-        {/* VIP Gift Banner: OOP Theory Web & Deliverables Outputs */}
+        {/* VIP Gift Banner */}
         <div className="px-6 py-2.5 bg-gradient-to-r from-amber-500/15 via-indigo-500/10 to-blue-500/15 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-extrabold text-[10px] tracking-wider uppercase border border-amber-500/30">
               🎁 Quà Tặng Kèm
             </span>
             <span className="text-xs text-slate-300 font-medium">
-              Web Full Lý Thuyết OOP & Nền Tảng PRO192/LAB211 (Bảo vệ điểm 10):
+              Web Full Lý Thuyết OOP &amp; Nền Tảng PRO192/LAB211 (Bảo vệ điểm 10):
             </span>
           </div>
           <a
@@ -147,7 +249,7 @@ export default function LabDeliverableModal({
           </a>
         </div>
 
-        {/* Lab Exercise Selector Bar */}
+        {/* Lab Exercise Selector Bar — hiện TẤT CẢ labs, không limit */}
         <div className="px-6 py-3 bg-[#0d1117] border-b border-slate-800/90 flex flex-col md:flex-row items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-xs font-bold text-slate-400 whitespace-nowrap">
@@ -165,14 +267,15 @@ export default function LabDeliverableModal({
             </div>
           </div>
 
-          {/* Quick Tabs Slider */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-thin">
-            {filteredLabs.slice(0, 8).map((lab) => {
+          {/* Quick Tabs — KHÔNG slice, hiện TẤT CẢ filteredLabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+            {filteredLabs.map((lab) => {
               const isSelected = lab.id === currentLab.id;
               return (
                 <button
                   key={lab.id}
                   onClick={() => setSelectedLabId(lab.id)}
+                  title={lab.title}
                   className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all ${
                     isSelected
                       ? "bg-blue-600 text-white shadow-md shadow-blue-900/40"
@@ -188,12 +291,13 @@ export default function LabDeliverableModal({
 
         {/* Modal Scrollable Body */}
         <div className="p-3 sm:p-5 lg:p-6 overflow-y-auto space-y-6 flex-1 bg-slate-950">
-          {/* SECTION 1: WORD DOCUMENT PREVIEW */}
+
+          {/* SECTION 1: ĐỀ BÀI – WORD DOCUMENT PREVIEW */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-xs font-extrabold text-blue-400 uppercase tracking-wider">
                 <FileText className="w-4 h-4" />
-                <span>1. Đề Bài & Đặc Tả Yêu Cầu (File Word Gốc)</span>
+                <span>1. Đề Bài &amp; Đặc Tả Yêu Cầu (File Word Gốc)</span>
               </div>
               <span className="text-[11px] text-slate-400">
                 File tải về: <b className="text-slate-200">{currentLab.docxFileName}</b>
@@ -202,12 +306,92 @@ export default function LabDeliverableModal({
             <LabDocViewer lab={currentLab} orderId={orderId} />
           </div>
 
-          {/* SECTION 2: INTERACTIVE SOURCE CODE VIEWER */}
+          {/* SECTION 2: PHÂN TÍCH ĐỀ & HƯỚNG DẪN TƯ DUY */}
+          <div className="rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-950/50 via-slate-900/80 to-violet-950/40 overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-indigo-500/20 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-900/40 shrink-0">
+                <Brain className="w-4.5 h-4.5 text-white" style={{width: '1.1rem', height: '1.1rem'}} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                  2. Phân Tích Đề &amp; Hướng Dẫn Tư Duy
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                </h3>
+                <p className="text-[10px] text-indigo-400 font-mono mt-0.5">
+                  Đọc kỹ trước khi code — Bộ Tư Duy AI CodeVault
+                </p>
+              </div>
+            </div>
+
+            {analysis ? (
+              <div className="p-5 space-y-5">
+                {/* Tóm tắt bài */}
+                <div className="rounded-xl bg-indigo-900/20 border border-indigo-500/20 p-4">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Target className="w-4 h-4 text-indigo-400" />
+                    <span className="text-xs font-extrabold text-indigo-300 uppercase tracking-wider">Tóm Tắt Yêu Cầu</span>
+                  </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">{analysis.summary}</p>
+                </div>
+
+                {/* Hướng dẫn từng bước */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Lightbulb className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-extrabold text-amber-300 uppercase tracking-wider">Hướng Dẫn Từng Bước</span>
+                  </div>
+                  <div className="space-y-3">
+                    {analysis.mindset.map((step, idx) => (
+                      <MindsetStep key={idx} text={step} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* OOP Concepts */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-extrabold text-emerald-300 uppercase tracking-wider">Khái Niệm OOP Áp Dụng</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {analysis.oopConcepts.map((concept, idx) => {
+                      const parts = concept.split(/\*\*(.*?)\*\*/g);
+                      return (
+                        <div
+                          key={idx}
+                          className="flex gap-2.5 items-start px-3.5 py-2.5 rounded-xl bg-emerald-950/30 border border-emerald-700/25"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 shrink-0" />
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {parts.map((part, i) =>
+                              i % 2 === 1 ? (
+                                <strong key={i} className="text-emerald-300 font-bold">{part}</strong>
+                              ) : (
+                                <span key={i}>{part}</span>
+                              )
+                            )}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 text-center text-slate-500 text-sm">
+                <Brain className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p>Dữ liệu phân tích cho bài này đang được cập nhật...</p>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3: MÃ NGUỒN JAVA */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
                 <Code2 className="w-4 h-4" />
-                <span>2. Mã Nguồn Java Chi Tiết (Chuẩn Mô Hình MVC & OOP)</span>
+                <span>3. Mã Nguồn Java Chi Tiết (Chuẩn Mô Hình MVC &amp; OOP)</span>
               </div>
               <span className="text-[11px] text-slate-400">
                 NetBeans Project: <b className="text-slate-200">{currentLab.zipFileName}</b>
@@ -215,6 +399,60 @@ export default function LabDeliverableModal({
             </div>
             <LabCodeViewer lab={currentLab} orderId={orderId} />
           </div>
+
+          {/* SECTION 4: CÂU HỎI THƯỜNG GẶP & ÔN TẬP */}
+          <div className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-950/40 via-slate-900/80 to-cyan-950/30 overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-violet-500/20 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-900/40 shrink-0">
+                <GraduationCap className="w-4.5 h-4.5 text-white" style={{width: '1.1rem', height: '1.1rem'}} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-2">
+                  4. Câu Hỏi Thường Gặp &amp; Ôn Tập
+                  <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30 font-bold">5 câu hỏi</span>
+                </h3>
+                <p className="text-[10px] text-violet-400 font-mono mt-0.5">
+                  3 lý thuyết + 2 thực hành · Chuẩn bị tốt cho giảng viên hỏi
+                </p>
+              </div>
+            </div>
+
+            {analysis ? (
+              <div className="p-5">
+                {/* Legend */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-500 inline-block" />
+                    <span className="text-[11px] text-slate-400">Câu hỏi lý thuyết (Giảng viên hay hỏi)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 inline-block" />
+                    <span className="text-[11px] text-slate-400">Câu hỏi sửa / thêm tính năng</span>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {analysis.faq.map((item, idx) => (
+                    <FaqAccordionItem key={idx} item={item} index={idx} />
+                  ))}
+                </div>
+
+                {/* Pro tip */}
+                <div className="mt-4 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                  <Wrench className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-200/80 leading-relaxed">
+                    <strong className="text-amber-300">Pro tip:</strong> Giảng viên thường hỏi các câu lý thuyết khi báo cáo. Hãy đọc và hiểu đáp án — không cần thuộc lòng từng chữ, chỉ cần nắm ý chính và trả lời bằng ngôn ngữ của mình.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-5 text-center text-slate-500 text-sm">
+                <HelpCircle className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p>Dữ liệu FAQ cho bài này đang được cập nhật...</p>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Rule Modal — Markdown Rendered */}

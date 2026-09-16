@@ -145,6 +145,10 @@
 - **FR-007 (Demo Simulation & IP Protection)**: THE system SHALL provide an interactive NetBeans 17 console run simulator in the product demo tab WITHOUT exposing internal Java code implementations.
 - **FR-008 (Fluid Layout)**: THE system SHALL render the deliverable modal in a 100% fluid maximum width layout (`max-w-[99vw]`) adapting seamlessly across desktop and ultra-wide viewports.
 - **FR-009 (Enhanced Word Typography & Light Harmonious Highlight Styling)**: THE system SHALL render Word document assignments with generous vertical view height (750-800px / 75vh), clean typography with distinctive section accent cards, polished responsive tables, and elegant light-themed highlight blocks (soft slate/indigo background with crisp dark text and left accent border, avoiding dark black/green terminal contrast on white paper), while maintaining 100% original text fidelity.
+- **FR-010 (Full Lab List Selector)**: THE lab selector bar SHALL display ALL available labs (not limited to 8), scrollable horizontally with smooth scrollbar, so users can see and access every lab exercise without truncation.
+- **FR-011 (Default Expanded View)**: THE deliverable viewer SHALL default to an expanded/spacious reading view with the Word document rendered at generous height and full width. Users may toggle between compact and expanded modes.
+- **FR-012 (Lab Explanation & Coding Mindset Section)**: BETWEEN the Word assignment viewer and the Java source code viewer, THE system SHALL display a dedicated "Phân Tích Đề & Hướng Dẫn Tư Duy" panel providing: (1) a brief plain-Vietnamese summary of what the lab requires, (2) step-by-step coding mindset guidance (how to approach and structure the solution), and (3) key OOP concepts applied in the lab.
+- **FR-013 (FAQ Section)**: BELOW the source code viewer, THE system SHALL display a "Câu Hỏi Thường Gặp & Ôn Tập" panel containing: 3 theory questions about OOP/Java concepts relevant to the lab, 2 applied questions about extending or modifying the program features (testing adaptability), all displayed in an expandable/collapsible accordion format.
 
 ---
 
