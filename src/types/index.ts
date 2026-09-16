@@ -12,9 +12,10 @@ export type ProductStatus = "draft" | "published" | "archived";
 export type OrderStatus =
   | "pending_payment"   // Khách vừa tạo đơn, chưa thanh toán
   | "pending_approval"  // Khách đã chuyển khoản/up bill, chờ Admin duyệt
-  | "completed"         // Admin ĐÃ DUYỆT -> Khách xem được nội dung số
+  | "completed"         // ĐÃ DUYỆT (SePay tự động hoặc Admin duyệt) -> Khách xem được nội dung số
   | "rejected"          // Admin từ chối (chưa nhận được tiền / sai cú pháp)
-  | "cancelled";        // Khách tự hủy
+  | "cancelled"         // Khách tự hủy
+  | "blocked";          // ADMIN CHẶN / THU HỒI QUYỀN TRUY CẬP (chống hack, gian lận, chuyển thiếu tiền)
 
 export type UserRole = "customer" | "admin";
 

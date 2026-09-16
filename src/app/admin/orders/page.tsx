@@ -19,17 +19,34 @@ import {
   FileText,
   User,
   CreditCard,
+  Edit3,
+  Trash2,
+  ShieldAlert,
+  ShieldCheck,
+  RefreshCw,
+  Ban,
+  Filter,
 } from "lucide-react";
+import AdminOrderEditModal from "@/components/store/AdminOrderEditModal";
 
 export default function AdminOrdersPage() {
-  const { orders, adminReviewOrder } = useStore();
+  const {
+    orders,
+    adminReviewOrder,
+    adminBlockOrder,
+    adminUpdateOrderStatus,
+    deleteOrder,
+    refreshOrders,
+  } = useStore();
 
-  const [selectedFilter, setSelectedFilter] = useState<OrderStatus | "all">("pending_approval");
+  const [selectedFilter, setSelectedFilter] = useState<OrderStatus | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeReviewOrder, setActiveReviewOrder] = useState<Order | null>(null);
+  const [activeEditOrder, setActiveEditOrder] = useState<Order | null>(null);
   const [isZoomImageOpen, setIsZoomImageOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filtered orders
   const filteredOrders = orders.filter((order) => {
@@ -65,28 +82,55 @@ export default function AdminOrdersPage() {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-600 uppercase tracking-wider mb-1">
             <ShoppingBag className="w-4 h-4" />
-            <span>Phê Duyệt Thanh Toán</span>
+            <span>Phê Duyệt &amp; Quản Trị Đơn Hàng</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Quản Lý &amp; Duyệt Đơn Hàng (VietQR)
+            Quản Lý &amp; Kiểm Soát Đơn Hàng (VietQR / SePay)
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Kiểm tra ảnh biên lai khách chuyển khoản và mở khóa quyền tải mã nguồn.
+            Toàn quyền Xem, Sửa, Duyệt, Từ chối, Chặn quyền tải và Xóa đơn hàng phòng chống hack.
           </p>
         </div>
 
-        {pendingCount > 0 && (
-          <div className="px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-2 self-start sm:self-auto">
-            <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
-            <span>Cần duyệt: <b>{pendingCount}</b> đơn</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refreshOrders();
+              setTimeout(() => setIsRefreshing(false), 600);
+            }}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold shadow-sm transition-all"
+            title="Đồng bộ lại dữ liệu từ Supabase"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-600 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span>{isRefreshing ? "Đang tải..." : "Làm mới"}</span>
+          </button>
+
+          {pendingCount > 0 && (
+            <div className="px-3.5 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+              <span>Cần duyệt: <b>{pendingCount}</b></span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filter Tabs & Search Bar */}
       <div className="bg-white rounded-card p-4 border border-slate-200/90 shadow-card flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+          <button
+            onClick={() => setSelectedFilter("all")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedFilter === "all"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Tất cả ({orders.length})
+          </button>
+
           <button
             onClick={() => setSelectedFilter("pending_approval")}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
@@ -98,35 +142,62 @@ export default function AdminOrdersPage() {
             <Clock className="w-3.5 h-3.5" />
             Chờ duyệt ({orders.filter((o) => o.status === "pending_approval").length})
           </button>
-          <button
-            onClick={() => setSelectedFilter("all")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              selectedFilter === "all"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            Tất cả ({orders.length})
-          </button>
+
           <button
             onClick={() => setSelectedFilter("completed")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               selectedFilter === "completed"
                 ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/25"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
+            <CheckCircle2 className="w-3.5 h-3.5" />
             Đã duyệt ({orders.filter((o) => o.status === "completed").length})
           </button>
+
+          <button
+            onClick={() => setSelectedFilter("blocked")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedFilter === "blocked"
+                ? "bg-rose-700 text-white shadow-md shadow-rose-700/25"
+                : "text-rose-600 hover:bg-rose-50 border border-rose-200"
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            🚨 Bị chặn ({orders.filter((o) => o.status === "blocked").length})
+          </button>
+
+          <button
+            onClick={() => setSelectedFilter("pending_payment")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedFilter === "pending_payment"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Chờ chuyển khoản ({orders.filter((o) => o.status === "pending_payment").length})
+          </button>
+
           <button
             onClick={() => setSelectedFilter("rejected")}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               selectedFilter === "rejected"
                 ? "bg-rose-600 text-white shadow-md shadow-rose-500/25"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
             Từ chối ({orders.filter((o) => o.status === "rejected").length})
+          </button>
+
+          <button
+            onClick={() => setSelectedFilter("cancelled")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+              selectedFilter === "cancelled"
+                ? "bg-slate-600 text-white shadow-md shadow-slate-500/25"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            Đã hủy ({orders.filter((o) => o.status === "cancelled").length})
           </button>
         </div>
 
@@ -217,18 +288,26 @@ export default function AdminOrdersPage() {
                             ? "bg-[#dcfce7] text-[#15803d] border-[#bbf7d0]"
                             : order.status === "pending_approval"
                             ? "bg-[#fef3c7] text-[#b45309] border-[#fde68a] animate-pulse"
+                            : order.status === "blocked"
+                            ? "bg-rose-100 text-rose-800 border-rose-300 font-black"
                             : order.status === "rejected"
                             ? "bg-[#ffe4e6] text-[#e11d48] border-[#fecdd3]"
-                            : "bg-slate-100 text-slate-600 border-slate-200"
+                            : order.status === "cancelled"
+                            ? "bg-slate-100 text-slate-500 border-slate-200"
+                            : "bg-blue-50 text-blue-700 border-blue-200"
                         }`}
                       >
                         {order.status === "completed"
                           ? "Đã duyệt"
                           : order.status === "pending_approval"
                           ? "Chờ duyệt"
+                          : order.status === "blocked"
+                          ? "🚨 Bị Chặn"
                           : order.status === "rejected"
                           ? "Đã từ chối"
-                          : "Chờ thanh toán"}
+                          : order.status === "cancelled"
+                          ? "Đã hủy"
+                          : "Chờ chuyển khoản"}
                       </span>
                     </td>
 
@@ -236,15 +315,78 @@ export default function AdminOrdersPage() {
                       {formatDateVN(order.created_at)}
                     </td>
 
-                    {/* Action buttons */}
+                    {/* Action buttons (Full Admin CRUD & Anti-Hack Block) */}
                     <td className="py-4 px-4 text-right">
-                      <button
-                        onClick={() => setActiveReviewOrder(order)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200 transition-colors inline-flex items-center gap-1.5"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Xem &amp; Duyệt</span>
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setActiveReviewOrder(order)}
+                          className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200 transition-colors inline-flex items-center gap-1"
+                          title="Xem chi tiết & đối soát bill"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Chi tiết</span>
+                        </button>
+
+                        <button
+                          onClick={() => setActiveEditOrder(order)}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 transition-colors inline-flex items-center gap-1"
+                          title="Sửa đơn hàng (CRUD: trạng thái, số tiền, ghi chú, mã GD)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Sửa</span>
+                        </button>
+
+                        {order.status !== "completed" && order.status !== "blocked" && (
+                          <button
+                            onClick={() => handleApprove(order.id)}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors inline-flex items-center gap-1"
+                            title="Duyệt đơn & mở quyền tải"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Duyệt</span>
+                          </button>
+                        )}
+
+                        {order.status !== "blocked" ? (
+                          <button
+                            onClick={() => {
+                              if (confirm(`CHẶN QUYỀN TRUY CẬP: Bạn có chắc muốn chặn đơn ${order.order_code}? Khách sẽ ngay lập tức bị khóa tải file và xem nội dung!`)) {
+                                adminBlockOrder(order.id, "Admin chủ động chặn quyền để chống hack / gian lận biên lai");
+                              }
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors inline-flex items-center gap-1"
+                            title="Chặn quyền xem và tải tài nguyên của đơn này"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <span>Chặn</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Mở khóa cho đơn ${order.order_code}?`)) {
+                                adminUpdateOrderStatus(order.id, "pending_approval", "Admin mở lại khóa chặn");
+                              }
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs border border-amber-200 transition-colors inline-flex items-center gap-1"
+                            title="Gỡ chặn đơn hàng"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Gỡ chặn</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            if (confirm(`XÓA ĐƠN: Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${order.order_code}? Thao tác này không thể hoàn tác!`)) {
+                              deleteOrder(order.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Xóa vĩnh viễn đơn hàng"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -360,36 +502,92 @@ export default function AdminOrdersPage() {
             </div>
 
             {/* Modal Actions */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
-              <button
-                onClick={() => setActiveReviewOrder(null)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Đóng
-              </button>
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveReviewOrder(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Đóng
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveEditOrder(activeReviewOrder);
+                    setActiveReviewOrder(null);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Sửa Đơn (CRUD)</span>
+                </button>
+                {activeReviewOrder.status !== "blocked" ? (
+                  <button
+                    onClick={() => {
+                      if (confirm(`CHẶN QUYỀN: Bạn có chắc muốn chặn đơn ${activeReviewOrder.order_code}? Khách sẽ bị khóa tải mã nguồn ngay lập tức!`)) {
+                        adminBlockOrder(activeReviewOrder.id, "Admin chặn quyền để chống hack và đối soát biên lai");
+                        setActiveReviewOrder(null);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors flex items-center gap-1.5"
+                  >
+                    <ShieldAlert className="w-3.5 h-3.5" />
+                    <span>Chặn Quyền</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Mở khóa cho đơn ${activeReviewOrder.order_code}?`)) {
+                        adminUpdateOrderStatus(activeReviewOrder.id, "pending_approval", "Admin mở lại khóa chặn");
+                        setActiveReviewOrder(null);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Gỡ Chặn</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (confirm(`XÓA ĐƠN: Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${activeReviewOrder.order_code}?`)) {
+                      deleteOrder(activeReviewOrder.id);
+                      setActiveReviewOrder(null);
+                    }
+                  }}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="Xóa đơn hàng vĩnh viễn"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
 
               <div className="flex items-center gap-2">
-                {activeReviewOrder.status === "pending_approval" && (
+                {activeReviewOrder.status !== "completed" && activeReviewOrder.status !== "blocked" && (
                   <>
                     <button
                       onClick={() => setIsRejectModalOpen(true)}
-                      className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1.5"
                     >
                       <XCircle className="w-4 h-4" />
                       Từ Chối Đơn
                     </button>
                     <button
                       onClick={() => handleApprove(activeReviewOrder.id)}
-                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all flex items-center gap-1.5 active:scale-95"
+                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all flex items-center gap-1.5 active:scale-95"
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Duyệt Đơn &amp; Mở Kho Tải
+                      Duyệt Đơn &amp; Mở Kho
                     </button>
                   </>
                 )}
                 {activeReviewOrder.status === "completed" && (
                   <span className="text-emerald-700 font-bold text-xs flex items-center gap-1.5">
-                    <Check className="w-4 h-4" /> Đơn hàng này đã được duyệt
+                    <Check className="w-4 h-4" /> Đơn hàng này đã hoàn thành
+                  </span>
+                )}
+                {activeReviewOrder.status === "blocked" && (
+                  <span className="text-rose-700 font-bold text-xs flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4" /> Đơn hàng này đang bị CHẶN QUYỀN
                   </span>
                 )}
               </div>
@@ -453,6 +651,15 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ADMIN ORDER EDIT MODAL (Full CRUD & Security Override) */}
+      {activeEditOrder && (
+        <AdminOrderEditModal
+          order={activeEditOrder}
+          isOpen={Boolean(activeEditOrder)}
+          onClose={() => setActiveEditOrder(null)}
+        />
       )}
     </div>
   );

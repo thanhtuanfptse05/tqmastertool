@@ -17,18 +17,30 @@ import {
   AlertCircle,
   FileText,
   BookOpen,
+  Eye,
+  Trash2,
+  ShieldAlert,
+  RefreshCw,
 } from "lucide-react";
 import LabDeliverableModal from "@/components/store/LabDeliverableModal";
+import OrderDetailModal from "@/components/store/OrderDetailModal";
 
 export default function CustomerOrdersPage() {
-  const { currentUser, orders, openCheckout, products, openAuthModal } = useStore();
+  const { currentUser, orders, openCheckout, products, cancelOrder, deleteOrder, refreshOrders } = useStore();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "all">("all");
   const [activeLabModal, setActiveLabModal] = useState<{
     isOpen: boolean;
     orderId: string;
     orderCode: string;
   } | null>(null);
+  const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshOrders();
+    setTimeout(() => setIsRefreshing(false), 800);
+  };
 
   // Get orders for current user
   const userOrders = currentUser
@@ -55,9 +67,15 @@ export default function CustomerOrdersPage() {
         };
       case "pending_payment":
         return {
-          label: "Chờ chuyển khoản",
+          label: "Chờ chuyển khoản (VietQR)",
           className: "bg-blue-50 text-blue-700 border-blue-200",
           icon: QrCode,
+        };
+      case "blocked":
+        return {
+          label: "🚨 Bị Chặn Quyền",
+          className: "bg-rose-100 text-rose-800 border-rose-300 font-black",
+          icon: ShieldAlert,
         };
       case "rejected":
         return {
@@ -178,28 +196,52 @@ export default function CustomerOrdersPage() {
 
                 {/* Items List */}
                 <div className="space-y-3">
-                  {order.items?.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3.5">
-                      {item.product_thumbnail && (
-                        <img
-                          src={item.product_thumbnail}
-                          alt={item.product_title}
-                          className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0"
-                        />
-                      )}
+                  {order.items && order.items.length > 0 ? (
+                    order.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3.5">
+                        {item.product_thumbnail ? (
+                          <img
+                            src={item.product_thumbnail}
+                            alt={item.product_title}
+                            className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-xl bg-blue-50 text-blue-600 font-black text-xs flex items-center justify-center border border-blue-100 shrink-0">
+                            CODE
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
+                            {item.product_title}
+                          </h4>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                            Danh mục: {item.product_category}
+                          </span>
+                        </div>
+                        <span className="text-xs font-extrabold text-slate-800">
+                          {formatVND(item.unit_price || order.total_amount)}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    /* Smart Fallback so card is NEVER blank! */
+                    <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-blue-50/50 border border-blue-100">
+                      <div className="w-12 h-12 rounded-xl bg-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm">
+                        LAB211
+                      </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
-                          {item.product_title}
+                          Trọn Bộ Mã Nguồn &amp; Đề Bài LAB211 Chuẩn Giảng Viên FPT
                         </h4>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                          Danh mục: {item.product_category}
+                        <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">
+                          Gói bản quyền môn học Java Core &amp; OOP
                         </span>
                       </div>
                       <span className="text-xs font-extrabold text-slate-800">
-                        {formatVND(item.unit_price)}
+                        {formatVND(order.total_amount)}
                       </span>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Status Notice & Actions */}
@@ -217,57 +259,89 @@ export default function CustomerOrdersPage() {
                         Admin đang đối chiếu biên lai. Dự kiến mở kho sau 3-10 phút.
                       </span>
                     )}
+                    {order.status === "blocked" && (
+                      <span className="text-rose-700 font-bold flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4 text-rose-600" />
+                        🚨 Quyền truy cập bị khóa: {order.admin_notes || "Vi phạm quy chế hoặc gian lận."}
+                      </span>
+                    )}
                     {order.status === "rejected" && (
                       <span className="text-rose-700 font-semibold flex items-center gap-1.5">
                         <AlertCircle className="w-4 h-4 text-rose-600" />
                         Lý do từ chối: {order.admin_notes || "Chưa nhận được chuyển khoản."}
                       </span>
                     )}
+                    {order.status === "cancelled" && (
+                      <span className="text-slate-500 font-medium">
+                        Đơn hàng đã được hủy.
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
-                    {order.status === "completed" ? (
+                    {/* View Details Modal button */}
+                    <button
+                      onClick={() => setSelectedDetailOrder(order)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold shadow-sm transition-all"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Xem Chi Tiết &amp; QR</span>
+                    </button>
+
+                    {order.status === "completed" && (
                       <>
-                        {order.items?.some(
-                          (i) =>
-                            i.product_category === "lab211" ||
-                            i.product_title.toLowerCase().includes("lab211")
-                        ) && (
-                          <button
-                            onClick={() =>
-                              setActiveLabModal({
-                                isOpen: true,
-                                orderId: order.id,
-                                orderCode: order.order_code,
-                              })
-                            }
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
-                          >
-                            <BookOpen className="w-3.5 h-3.5" />
-                            <span>Xem Đề Bài Word & Code</span>
-                          </button>
-                        )}
+                        <button
+                          onClick={() =>
+                            setActiveLabModal({
+                              isOpen: true,
+                              orderId: order.id,
+                              orderCode: order.order_code,
+                            })
+                          }
+                          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+                        >
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>Xem Đề Bài Word &amp; Code</span>
+                        </button>
                         <a
                           href="/customer/vault"
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
                         >
                           <Package className="w-3.5 h-3.5" />
-                          Tải mã nguồn tại Vault
+                          Vào Vault
                         </a>
                       </>
-                    ) : order.status === "pending_payment" ? (
+                    )}
 
+                    {order.status === "pending_payment" && (
+                      <>
+                        <button
+                          onClick={() => cancelOrder(order.id)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Hủy đơn</span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedDetailOrder(order)}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          <span>Tiếp tục thanh toán</span>
+                        </button>
+                      </>
+                    )}
+
+                    {(order.status === "cancelled" || order.status === "rejected") && (
                       <button
-                        onClick={() => {
-                          const prod = products.find((p) => p.id === order.items?.[0]?.product_id);
-                          if (prod) openCheckout(prod);
-                        }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+                        onClick={() => deleteOrder(order.id)}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs font-bold transition-all"
+                        title="Xóa đơn khỏi lịch sử"
                       >
-                        <QrCode className="w-3.5 h-3.5" />
-                        Tiếp tục thanh toán
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Xóa</span>
                       </button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </div>
@@ -294,6 +368,18 @@ export default function CustomerOrdersPage() {
             <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
+      )}
+
+      {/* Customer Order Detail & Payment Modal */}
+      {selectedDetailOrder && (
+        <OrderDetailModal
+          order={selectedDetailOrder}
+          isOpen={Boolean(selectedDetailOrder)}
+          onClose={() => setSelectedDetailOrder(null)}
+          onOpenDeliverable={(orderId, orderCode) =>
+            setActiveLabModal({ isOpen: true, orderId, orderCode })
+          }
+        />
       )}
 
       {/* Master Lab Deliverable Modal */}

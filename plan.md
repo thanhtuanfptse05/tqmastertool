@@ -111,3 +111,22 @@
 - [x] Endpoint Admin Upload ZIP `/api/admin/upload/lab-package` tự động nhận diện bài lab và bóc tách dữ liệu.
 - [x] Cập nhật giao diện Deliverable Vault (`/customer/vault`) và Đơn hàng (`/customer/orders`).
 
+### [x] Giai Đoạn 9: Quản Lý Đơn Hàng Toàn Diện (Full CRUD User & Admin), Webhook SePay & Phòng Thủ Chống Hack (Spec 011) — ĐÃ HOÀN THÀNH
+- [x] **Customer Orders CRUD (`/customer/orders`):**
+  - Khắc phục lỗi card trống bằng smart fallback và sửa data mapping `unit_price`, `product_thumbnail`.
+  - Popup chi tiết đơn hàng (`OrderDetailModal`): mã QR VietQR động kèm memo chuyển tiền, sao chép thông tin tài khoản, hủy đơn, xóa đơn.
+- [x] **Admin Orders Full CRUD (`/admin/orders`):**
+  - Đầy đủ 7 tab lọc trạng thái (Tất cả, Chờ duyệt, Chờ chuyển khoản, Đã duyệt, 🚨 Bị chặn quyền, Từ chối, Đã hủy).
+  - Modal chỉnh sửa quản trị (`AdminOrderEditModal`): sửa trạng thái bất kỳ, cập nhật số tiền, mã giao dịch, ghi chú admin, xóa đơn.
+  - Phê duyệt nhanh, Từ chối kèm lý do, và Chặn quyền truy cập (`blocked`) ngay trên danh sách hoặc drawer.
+- [x] **Tích Hợp Webhook SePay Tự Động (`/api/webhooks/sepay`):**
+  - Xác thực bảo mật `Authorization: Apikey <TOKEN>`.
+  - Tự động đối soát số tiền và mã nội dung chuyển khoản `CV2026xxxx`.
+  - Tự động kích hoạt trạng thái đơn `completed` và mở kho tải khi nhận đúng tiền.
+- [x] **Ma Trận Bảo Mật Phòng Chống Hack:**
+  - *Chống Webhook Fake*: Từ chối 401 Unauthorized nếu không có API key hoặc key không khớp.
+  - *Chống Gian Lận Chuyển Thiếu Tiền (Underpayment)*: Nếu chuyển < số tiền đơn hàng (ví dụ chuyển 1.000đ cho đơn 80.000đ), hệ thống KHÔNG hoàn thành đơn, chuyển trạng thái `pending_approval` và gắn cờ cảnh báo đỏ cho Admin.
+  - *Chống Bypass Khi Đã Bị Chặn (Admin Block Authority)*: Nếu Admin đã đặt đơn ở trạng thái `blocked`, Webhook SePay tuyệt đối không tự ý mở khóa đơn đó.
+  - *Bảo Vệ API Tài Nguyên Số*: `/api/deliverables/lab/view` và `/download` lập tức trả về 403 Forbidden nếu đơn hàng bị `blocked`, chưa duyệt hoặc không tồn tại.
+
+

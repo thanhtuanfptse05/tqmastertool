@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import {
   Product,
   Order,
+  OrderStatus,
   UserProfile,
   UserRole,
   CartItem,
@@ -42,8 +43,14 @@ interface StoreContextType {
   createOrder: (product: Product) => Order;
   submitPaymentProof: (orderId: string, proofUrl: string, transactionRef?: string) => void;
 
-  // Admin Order Review
+  // Admin Order Review & CRUD
   adminReviewOrder: (orderId: string, action: "approve" | "reject", adminNotes?: string) => void;
+  adminUpdateOrderStatus: (orderId: string, status: OrderStatus, notes?: string) => Promise<boolean>;
+  adminBlockOrder: (orderId: string, reason?: string) => Promise<boolean>;
+  adminUpdateOrder: (orderId: string, data: Partial<Order>) => Promise<boolean>;
+  cancelOrder: (orderId: string) => Promise<boolean>;
+  deleteOrder: (orderId: string) => Promise<boolean>;
+  refreshOrders: () => Promise<void>;
 
   // Deliverables Vault
   getCustomerOrders: (userId?: string) => Order[];
@@ -189,14 +196,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           order_code: o.order_code,
           user_id: o.user_id,
           user_email: o.user_email || "",
+          user_name: o.user_name || "",
           items: (o.order_items || []).map((item: any) => ({
+            id: item.id || `item-${item.product_id}`,
+            order_id: o.id,
             product_id: item.product_id,
-            product_title: item.product_title,
-            product_category: item.product_category,
-            price: Number(item.unit_price),
+            product_title: item.product_title || "Sản phẩm CodeVault",
+            product_category: item.product_category || "lab211",
+            product_thumbnail: item.product_thumbnail || "",
+            unit_price: Number(item.unit_price) || 0,
+            created_at: item.created_at || o.created_at,
           })),
           total_amount: Number(o.total_amount),
-          status: o.status,
+          status: (o.status === "blocked" || (o.admin_notes && o.admin_notes.includes("[BLOCKED]"))) ? "blocked" : o.status,
           payment_method: o.payment_method,
           vietqr_content: o.vietqr_content,
           payment_proof_image: o.payment_proof_image,
@@ -706,6 +718,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             unit_price: product.price,
             product_title: product.title,
             product_category: product.category,
+            product_thumbnail: product.thumbnail_url,
           });
         }
       });
@@ -771,6 +784,110 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         updated_at: new Date().toISOString(),
       }).eq("id", orderId);
     }
+  };
+
+  const adminUpdateOrderStatus = async (orderId: string, status: OrderStatus, notes?: string): Promise<boolean> => {
+    const updated = orders.map((o) => {
+      if (o.id !== orderId) return o;
+      return {
+        ...o,
+        status,
+        reviewed_by_admin_id: currentUser?.id || "admin-lead",
+        reviewed_at: new Date().toISOString(),
+        admin_notes: notes !== undefined ? notes : o.admin_notes,
+        updated_at: new Date().toISOString(),
+      };
+    });
+    setOrders(updated);
+    persist(STORAGE_KEYS.ORDERS, updated);
+
+    if (isSupabaseConfigured) {
+      const payload: any = {
+        status,
+        reviewed_by_admin_id: currentUser?.id,
+        reviewed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      if (notes !== undefined) {
+        payload.admin_notes = status === "blocked" && !notes.includes("[BLOCKED]") ? `[BLOCKED] ${notes}` : notes;
+      } else if (status === "blocked") {
+        payload.admin_notes = "[BLOCKED] Đơn hàng đã bị Quản Trị Viên thu hồi và chặn quyền truy cập do vi phạm quy định hoặc nghi vấn gian lận.";
+      }
+
+      const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
+      if (error && error.code === "23514" && status === "blocked") {
+        // Fallback for DB check constraint
+        payload.status = "rejected";
+        await supabase.from("orders").update(payload).eq("id", orderId);
+      }
+    }
+    return true;
+  };
+
+  const adminBlockOrder = async (orderId: string, reason?: string): Promise<boolean> => {
+    const blockReason = reason || "🚨 Đơn hàng đã bị Quản Trị Viên thu hồi và chặn quyền truy cập do vi phạm quy định hoặc nghi vấn gian lận.";
+    return adminUpdateOrderStatus(orderId, "blocked", blockReason);
+  };
+
+  const adminUpdateOrder = async (orderId: string, data: Partial<Order>): Promise<boolean> => {
+    const updated = orders.map((o) => {
+      if (o.id !== orderId) return o;
+      return {
+        ...o,
+        ...data,
+        updated_at: new Date().toISOString(),
+      };
+    });
+    setOrders(updated);
+    persist(STORAGE_KEYS.ORDERS, updated);
+
+    if (isSupabaseConfigured) {
+      const dbPayload: any = { ...data, updated_at: new Date().toISOString() };
+      delete dbPayload.items;
+      if (dbPayload.status === "blocked") {
+        if (!dbPayload.admin_notes?.includes("[BLOCKED]")) {
+          dbPayload.admin_notes = `[BLOCKED] ${dbPayload.admin_notes || "Chặn quyền"}`;
+        }
+      }
+      const { error } = await supabase.from("orders").update(dbPayload).eq("id", orderId);
+      if (error && error.code === "23514" && dbPayload.status === "blocked") {
+        dbPayload.status = "rejected";
+        await supabase.from("orders").update(dbPayload).eq("id", orderId);
+      }
+    }
+    return true;
+  };
+
+  const cancelOrder = async (orderId: string): Promise<boolean> => {
+    const target = orders.find((o) => o.id === orderId);
+    if (!target) return false;
+
+    const updated = orders.map((o) =>
+      o.id === orderId ? { ...o, status: "cancelled" as const, updated_at: new Date().toISOString() } : o
+    );
+    setOrders(updated);
+    persist(STORAGE_KEYS.ORDERS, updated);
+
+    if (isSupabaseConfigured) {
+      await supabase.from("orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("id", orderId);
+    }
+    return true;
+  };
+
+  const deleteOrder = async (orderId: string): Promise<boolean> => {
+    const updated = orders.filter((o) => o.id !== orderId);
+    setOrders(updated);
+    persist(STORAGE_KEYS.ORDERS, updated);
+
+    if (isSupabaseConfigured) {
+      await supabase.from("order_items").delete().eq("order_id", orderId);
+      await supabase.from("orders").delete().eq("id", orderId);
+    }
+    return true;
+  };
+
+  const refreshOrders = async () => {
+    await fetchOrdersFromDB();
   };
 
   // Deliverables Vault
@@ -855,6 +972,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         createOrder,
         submitPaymentProof,
         adminReviewOrder,
+        adminUpdateOrderStatus,
+        adminBlockOrder,
+        adminUpdateOrder,
+        cancelOrder,
+        deleteOrder,
+        refreshOrders,
         getCustomerOrders,
         getUnlockedDeliverables,
         isAuthModalOpen,
