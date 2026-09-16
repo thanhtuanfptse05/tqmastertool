@@ -55,21 +55,28 @@ function cleanAndFormatDocxHtml(rawHtml: string, lab: LabExerciseItem): string {
     cleaned = cleaned.replace(pattern, "");
   }
 
-  // 2. Format console and terminal simulation lines
+  // 2. Format console and sample simulation lines (light harmonious cards)
   cleaned = cleaned.replace(/<p[^>]*>(.*?)<\/p>/gi, (match, text) => {
     const trimmed = text.trim();
-    const isTerminalLine =
+    const isHeaderLine =
       trimmed.startsWith("| ++") ||
       trimmed.startsWith("Product | Quantity") ||
+      trimmed === "FRUIT SHOP SYSTEM" ||
+      trimmed === "List of Fruit:";
+
+    const isSampleLine =
       trimmed.startsWith("Customer:") ||
       trimmed.startsWith("Total:") ||
       trimmed.startsWith("Step ") ||
       /^\d+\s+(Coconut|Orange|Apple|Grape|Mango)/i.test(trimmed) ||
-      trimmed === "FRUIT SHOP SYSTEM" ||
-      trimmed === "List of Fruit:";
+      trimmed.startsWith("You selected:") ||
+      trimmed.startsWith("Please input quantity:");
 
-    if (isTerminalLine) {
-      return `<div class="word-doc-terminal-line">${text}</div>`;
+    if (isHeaderLine) {
+      return `<div class="word-doc-sample-header">${text}</div>`;
+    }
+    if (isSampleLine) {
+      return `<div class="word-doc-sample-block">${text}</div>`;
     }
     return match;
   });

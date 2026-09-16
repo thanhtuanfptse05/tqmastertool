@@ -130,8 +130,7 @@
     - Loại bỏ các dòng text rác trùng lặp từ quá trình extract (như các dòng lặp lại code bài, LOC, slot ngay dưới bảng tóm tắt).
     - Giữ nguyên 100% nội dung gốc của đề bài.
     - Phân khu rõ ràng: Bảng thông tin đề thi, Background Context, Program Specifications, Function details, Expectation of UI, Guidelines / Test Cases.
-    - Bảng biểu (Tables) được bo góc, có màu nền tiêu đề, vạch kẻ sắc nét và chống tràn ngang.
-    - Khối màn hình mẫu / console / menu được định dạng font monospace dạng Terminal block dễ đọc.
+    - Khối màn hình mẫu / console / menu / test case được định dạng tông màu sáng trang nhã đồng bộ với nền giấy Word (nền slate-50/100 sáng dịu, viền border-slate-200/border-indigo-100, chữ đậm nét font monospace dễ đọc), tuyệt đối không dùng nền đen chữ xanh gây chói và đứt gãy thị giác trên nền tài liệu trắng.
 
 ---
 
@@ -145,7 +144,7 @@
 - **FR-006 (Rich Formatting)**: THE system SHALL parse product markdown descriptions into structured UI components including headers, list items, badges, and gift cards.
 - **FR-007 (Demo Simulation & IP Protection)**: THE system SHALL provide an interactive NetBeans 17 console run simulator in the product demo tab WITHOUT exposing internal Java code implementations.
 - **FR-008 (Fluid Layout)**: THE system SHALL render the deliverable modal in a 100% fluid maximum width layout (`max-w-[99vw]`) adapting seamlessly across desktop and ultra-wide viewports.
-- **FR-009 (Enhanced Word Typography & Height)**: THE system SHALL render Word document assignments with generous vertical view height (750-800px / 75vh), clean typography with distinctive section accent cards, polished responsive tables, and terminal monospace formatting for console mockups, while maintaining 100% original text fidelity.
+- **FR-009 (Enhanced Word Typography & Light Harmonious Highlight Styling)**: THE system SHALL render Word document assignments with generous vertical view height (750-800px / 75vh), clean typography with distinctive section accent cards, polished responsive tables, and elegant light-themed highlight blocks (soft slate/indigo background with crisp dark text and left accent border, avoiding dark black/green terminal contrast on white paper), while maintaining 100% original text fidelity.
 
 ---
 
