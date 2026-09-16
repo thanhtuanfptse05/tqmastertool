@@ -28,15 +28,15 @@ export default function DeliverableVaultPage() {
   // when orders or currentUser changes (fixes stale closure issue)
   const deliverables = React.useMemo(() => {
     if (!currentUser) return [];
-    const userEmail = currentUser.email?.toLowerCase();
+    // Exact same filter logic as orders page
     const completed = orders.filter(
       (o) =>
         o.status === "completed" &&
-        (o.user_id === currentUser.id ||
-          (userEmail && o.user_email?.toLowerCase() === userEmail))
+        (o.user_id === currentUser.id || o.user_email === currentUser.email)
     );
     const result: Array<{
       order_id: string;
+      order_code?: string;
       product_id: string;
       product_title: string;
       product_category: string;
@@ -45,24 +45,44 @@ export default function DeliverableVaultPage() {
       git_repo_url?: string;
       license_key?: string;
     }> = [];
+
     completed.forEach((order) => {
-      order.items?.forEach((item) => {
-        const product = products.find((p) => p.id === item.product_id);
+      const hasItems = order.items && order.items.length > 0;
+
+      if (hasItems) {
+        // Normal path: iterate over items
+        order.items!.forEach((item) => {
+          const product = products.find((p) => p.id === item.product_id);
+          result.push({
+            order_id: order.id,
+            order_code: order.order_code,
+            product_id: item.product_id,
+            product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
+            product_category: product?.category || item.product_category || "lab211",
+            instructions:
+              product?.access_instructions ||
+              "Bấm nút 'Xem Đề & Code' hoặc 'Vào Vault' bên dưới để truy cập mã nguồn.",
+            signed_download_url: product?.storage_file_path
+              ? `/api/deliverables/download?orderId=${order.id}&path=${product.storage_file_path}`
+              : undefined,
+            git_repo_url: product?.git_repo_url,
+          });
+        });
+      } else {
+        // Fallback: order_items join failed (Supabase RLS) — create virtual deliverable
+        // from order metadata. This ensures completed orders always unlock the vault.
         result.push({
           order_id: order.id,
-          product_id: item.product_id,
-          product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
-          product_category: product?.category || item.product_category || "lab211",
+          order_code: order.order_code,
+          product_id: `order-${order.id}`,
+          product_title: "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
+          product_category: "lab211",
           instructions:
-            product?.access_instructions ||
-            "Bấm nút 'Xem Đề & Code' hoặc 'Vào Vault' bên dưới để truy cập mã nguồn.",
-          signed_download_url: product?.storage_file_path
-            ? `/api/deliverables/download?orderId=${order.id}&path=${product.storage_file_path}`
-            : undefined,
-          git_repo_url: product?.git_repo_url,
+            "Bấm nút 'Vào Vault' để xem đề bài và mã nguồn đầy đủ của tất cả bài LAB211.",
         });
-      });
+      }
     });
+
     return result;
   }, [currentUser, orders, products]);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -138,6 +158,17 @@ export default function DeliverableVaultPage() {
       </div>
 
       {/* Deliverables List */}
+      {/* ── DEBUG PANEL (remove after fix confirmed) ── */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mb-4 p-3 rounded-xl bg-yellow-50 border border-yellow-300 text-[11px] font-mono text-yellow-900 space-y-0.5">
+          <p><b>DEBUG</b> — orders total: {orders.length} | completed matching: {orders.filter(o => o.status === "completed" && (o.user_id === currentUser?.id || o.user_email === currentUser?.email)).length}</p>
+          <p>currentUser.id: <b>{currentUser?.id}</b></p>
+          <p>currentUser.email: <b>{currentUser?.email}</b></p>
+          {orders.filter(o => o.status === "completed").slice(0, 3).map((o, i) => (
+            <p key={i}>order[{i}]: user_id=<b>{o.user_id || "null"}</b> | user_email=<b>{o.user_email}</b> | status=<b>{o.status}</b></p>
+          ))}
+        </div>
+      )}
       {deliverables.length > 0 ? (
         <div className="grid grid-cols-1 gap-6">
           {deliverables.map((item, idx) => {

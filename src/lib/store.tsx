@@ -177,10 +177,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase
         .from("orders")
-        .select(`
-          *,
-          order_items (*)
-        `)
+        .select(`*, order_items (*)`)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -189,34 +186,60 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        const mappedOrders: Order[] = data.map((o: any) => ({
-          id: o.id,
-          order_code: o.order_code,
-          user_id: o.user_id,
-          user_email: o.user_email || "",
-          user_name: o.user_name || "",
-          items: (o.order_items || []).map((item: any) => ({
-            id: item.id || `item-${item.product_id}`,
-            order_id: o.id,
-            product_id: item.product_id,
-            product_title: item.product_title || "Sản phẩm CodeVault",
-            product_category: item.product_category || "lab211",
-            product_thumbnail: item.product_thumbnail || "",
-            unit_price: Number(item.unit_price) || 0,
-            created_at: item.created_at || o.created_at,
-          })),
-          total_amount: Number(o.total_amount),
-          status: (o.status === "blocked" || (o.admin_notes && o.admin_notes.includes("[BLOCKED]"))) ? "blocked" : o.status,
-          payment_method: o.payment_method,
-          vietqr_content: o.vietqr_content,
-          payment_proof_image: o.payment_proof_image,
-          transaction_ref: o.transaction_ref,
-          reviewed_by_admin_id: o.reviewed_by_admin_id,
-          reviewed_at: o.reviewed_at,
-          admin_notes: o.admin_notes,
-          created_at: o.created_at,
-          updated_at: o.updated_at,
-        }));
+        let ordersData = data;
+
+        // If any order has empty items array, try fetching order_items separately
+        // (Supabase join RLS can block nested selects even when parent is accessible)
+        const orderIdsWithNoItems = data
+          .filter((o: any) => !o.order_items || o.order_items.length === 0)
+          .map((o: any) => o.id);
+
+        let standaloneItems: any[] = [];
+        if (orderIdsWithNoItems.length > 0) {
+          const { data: itemsData } = await supabase
+            .from("order_items")
+            .select("*")
+            .in("order_id", orderIdsWithNoItems);
+          standaloneItems = itemsData || [];
+        }
+
+        const mappedOrders: Order[] = ordersData.map((o: any) => {
+          // Use joined items if present, else fall back to standalone fetch
+          const rawItems =
+            o.order_items && o.order_items.length > 0
+              ? o.order_items
+              : standaloneItems.filter((i: any) => i.order_id === o.id);
+
+          return {
+            id: o.id,
+            order_code: o.order_code,
+            user_id: o.user_id,
+            user_email: o.user_email || "",
+            user_name: o.user_name || "",
+            items: rawItems.map((item: any) => ({
+              id: item.id || `item-${item.product_id}`,
+              order_id: o.id,
+              product_id: item.product_id,
+              product_title: item.product_title || "Sản phẩm CodeVault",
+              product_category: item.product_category || "lab211",
+              product_thumbnail: item.product_thumbnail || "",
+              unit_price: Number(item.unit_price) || 0,
+              created_at: item.created_at || o.created_at,
+            })),
+            total_amount: Number(o.total_amount),
+            status: (o.status === "blocked" || (o.admin_notes && o.admin_notes.includes("[BLOCKED]"))) ? "blocked" : o.status,
+            payment_method: o.payment_method,
+            vietqr_content: o.vietqr_content,
+            payment_proof_image: o.payment_proof_image,
+            transaction_ref: o.transaction_ref,
+            reviewed_by_admin_id: o.reviewed_by_admin_id,
+            reviewed_at: o.reviewed_at,
+            admin_notes: o.admin_notes,
+            created_at: o.created_at,
+            updated_at: o.updated_at,
+          };
+        });
+
         setOrders(mappedOrders);
         persist(STORAGE_KEYS.ORDERS, mappedOrders);
       }
