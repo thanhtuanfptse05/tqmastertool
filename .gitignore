@@ -52,3 +52,5 @@ coverage/
 .codegraph/
 graphify-out/cache/
 graphify-out/cost.json
+graphify-out/20*
+

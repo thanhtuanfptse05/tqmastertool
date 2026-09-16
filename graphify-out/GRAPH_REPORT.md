@@ -1,17 +1,17 @@
 # Graph Report - WEB mới  (2026-09-16)
 
 ## Corpus Check
-- 106 files · ~344,741 words
+- 107 files · ~345,701 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 8 file(s) not represented in the graph (top: (none) 3, .css 3, .mdc 1)
+- Unclassified: 9 file(s) not represented in the graph (top: (none) 3, .css 3, .mdc 2)
 
 ## Summary
-- 3206 nodes · 5664 edges · 168 communities (104 shown, 64 thin omitted)
+- 3214 nodes · 5671 edges · 170 communities (109 shown, 61 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 210 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `fe35a8b8`
+- Built from commit: `07ef9be0`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,48 +26,48 @@
 - ie
 - oe
 - Zt
-- applyMatrix4
+- .distanceTo
 - Dt
 - li
 - .multiplyScalar
 - Mi
-- constructor
+- .constructor
 - Ue
 - $c
 - package.json
 - kn
 - n
 - store.tsx
-- copy
+- ic
 - an
 - hh
-- ur
-- nh
+- updateMatrixWorld
+- i
+- _deactivateAction
 - useStore
-- ae
+- .constructor
 - Ce
-- Eo
-- clone
+- ao
+- .updateProjectionMatrix
 - ze
-- ._onChangeCallback
+- ae
 - compilerOptions
 - equals
 - mn
 - Ti
 - .setAttribute
 - setValue
-- dl
+- wo
 - kl
 - formatVND
 - common.ps1
-- toJSON
-- update
-- parseObject
+- fc
+- constructor
+- .fromJSON
 - **<mark>Các Tiêu Chuẩn Mở</mark>**
 - dependencies
 - **<mark>Executable Specification</mark>**
-- .getX
-- ao
+- copy
 - co
 - ee
 - **<mark>Specification Patterns Nâng Cao</mark>**
@@ -78,15 +78,16 @@
 - devDependencies
 - zi
 - **<mark>SDD Workflow</mark>**
-- wo
-- ec
+- .dot
+- nh
+- clone
 - **Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**
 - Da
-- _deactivateAction
-- N
-- rn
+- .dispatchEvent
+- Rt
+- Ji
 - **<mark>AI Agent Thực Sự Là Gì?</mark>**
-- .constructor
+- add
 - **<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**
 - **<mark>Phân Tích Phê Bình về SDD</mark>**
 - na
@@ -95,17 +96,17 @@
 - nl
 - **<mark>Multi-Agent & Orchestration</mark>**
 - **<mark>Hybrid Framework</mark>**
-- oo
+- ws
 - .setXYZ
 - supabase-server.ts
 - bo
-- To
+- qn
 - **<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**
 - .getPoints
-- qc
+- ne
 - create-new-feature.ps1
-- Io
-- .toArray
+- Do
+- pl
 - **<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**
 - **<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**
 - gh
@@ -113,10 +114,9 @@
 - _l
 - Tasks: [FEATURE NAME]
 - Key Design Improvements
-- qr
 - speckit-analyze/SKILL.md
 - Prompt: Complete UI Redesign for EduHub - Professional & Modern
-- ._update
+- xl
 - Level: Standard (hoặc Full / Light tùy độ phức tạp)
 - Execution Steps
 - .sdd/constraints/business.md — Business & Domain Constraints
@@ -148,7 +148,7 @@
 - AGENTS.md — AI Agent Operating Constitution & Project Rules
 - speckit-checklist/SKILL.md
 - plan.md
-- ka
+- .fromArray
 - .crossFadeFrom
 - CodeVault Studio
 - **LỜI MỞ ĐẦU**
@@ -157,16 +157,18 @@
 - speckit-implement/SKILL.md
 - .sdd/constraints/safety.md — Safety Constraints & Agent Guardrails
 - speckit-constitution/SKILL.md
+- sn
 - speckit-taskstoissues/SKILL.md
 - [CHECKLIST TYPE] Checklist: [FEATURE NAME]
 - _s
-- zc
+- toJSON
 - .sdd/reviews/ — AI & Human Review Reports
-- AGENTS.md
+- AGENTS.md — Root Level Agent Context
 - rules/graphify.md
 - workflows/graphify.md
 - CLAUDE.md
-- Vc
+- .constructor
+- Rule: Spec-First Mandatory Workflow & Git Auto-Push
 
 ## God Nodes (most connected - your core abstractions)
 1. `copy()` - 132 edges
@@ -195,115 +197,107 @@
 ## Import Cycles
 - None detected.
 
-## Communities (168 total, 64 thin omitted)
+## Communities (170 total, 61 thin omitted)
 
 ### Community 0 - "three.min.js"
 Cohesion: 0.03
-Nodes (18): containsPoint(), Ct(), getAverageFrequency(), getFrequencyData(), _initMemoryManager(), yt(), zt(), ph (+10 more)
+Nodes (15): Et(), getAverageFrequency(), getFrequencyData(), _initMemoryManager(), i(), yt(), zt(), Ql (+7 more)
 
 ### Community 2 - "ks"
-Cohesion: 0.10
-Nodes (33): fs(), j(), V(), X(), Y(), s(), B(), F() (+25 more)
-
-### Community 3 - "bs"
-Cohesion: 0.10
-Nodes (6): bs, Cc, G(), ws(), yc, Ye
+Cohesion: 0.13
+Nodes (29): Ct(), fs(), j(), V(), X(), Y(), B(), F() (+21 more)
 
 ### Community 4 - "he"
 Cohesion: 0.06
-Nodes (9): expandByPoint(), expandByScalar(), getCenter(), getSize(), he, isEmpty(), makeEmpty(), setFromPoints() (+1 more)
+Nodes (8): clampPoint(), expandByPoint(), expandByScalar(), he, isEmpty(), makeEmpty(), setFromPoints(), setLength()
 
 ### Community 6 - "pageTypography.ts"
 Cohesion: 0.07
 Nodes (35): LandingPageFrame(), LandingPageFrameProps, LandingPageProps, TypographyPage(), BESTSELLERS_TYPOGRAPHY, COMPLETE_SHELF_TYPOGRAPHY, KAGE_TYPOGRAPHY, n() (+27 more)
 
 ### Community 9 - "Zt"
-Cohesion: 0.08
-Nodes (6): St(), Tt(), wt(), Xt(), Yt(), Zt
-
-### Community 10 - "applyMatrix4"
-Cohesion: 0.10
-Nodes (7): applyMatrix4(), ba, Dt(), Ki(), ro(), setFromCamera(), vn
-
-### Community 12 - "li"
-Cohesion: 0.06
-Nodes (4): hs(), li, remove(), ta
+Cohesion: 0.07
+Nodes (7): Ft(), Tt(), wt(), kt(), Xt(), Yt(), Zt
 
 ### Community 13 - ".multiplyScalar"
-Cohesion: 0.10
-Nodes (8): add(), At(), closestPointToPoint(), closestPointToPointParameter(), delta(), E(), setFromCenterAndSize(), w()
+Cohesion: 0.11
+Nodes (7): getCenter(), getSize(), s(), E(), R(), U(), z()
 
 ### Community 14 - "Mi"
 Cohesion: 0.07
-Nodes (9): bi, bl, fl(), Ga, Mi, ol(), ra, us() (+1 more)
+Nodes (8): bi, fl(), Ga, Mi, ol(), ra, us(), zl
 
-### Community 15 - "constructor"
-Cohesion: 0.11
-Nodes (28): m(), d(), p(), u(), constructor(), a(), jo(), j() (+20 more)
+### Community 15 - ".constructor"
+Cohesion: 0.26
+Nodes (13): m(), a(), jo(), o(), c(), l(), o(), s() (+5 more)
 
-### Community 16 - "Ue"
-Cohesion: 0.05
-Nodes (7): Ca, ds(), ln, c(), Ue, updateMatrixWorld(), B()
+### Community 17 - "$c"
+Cohesion: 0.07
+Nodes (9): $c, disconnect(), getInput(), getOutput(), qc, Xc(), D(), N() (+1 more)
 
 ### Community 18 - "package.json"
 Cohesion: 0.06
 Nodes (29): name, private, scripts, build, dev, lint, start, version (+21 more)
 
 ### Community 19 - "kn"
-Cohesion: 0.14
-Nodes (7): dispose(), Ji, jn(), kn, qn(), setSize(), Wn()
+Cohesion: 0.22
+Nodes (3): jn(), kn, Wn()
 
 ### Community 20 - "n"
-Cohesion: 0.10
-Nodes (14): hc, load(), c(), loadAsync(), ls(), Oc, i(), pc (+6 more)
+Cohesion: 0.13
+Nodes (9): hc, load(), c(), loadAsync(), Oc, pc, e(), Uc (+1 more)
 
 ### Community 21 - "store.tsx"
 Cohesion: 0.14
 Nodes (21): @supabase/supabase-js, AdminUsersPage(), INITIAL_ORDERS, INITIAL_PRODUCTS, INITIAL_USERS, checkIsAdminEmail(), STORAGE_KEYS, StoreContext (+13 more)
 
-### Community 22 - "copy"
-Cohesion: 0.06
-Nodes (5): _a(), clampPoint(), copy(), ic, sn
-
 ### Community 23 - "an"
-Cohesion: 0.13
-Nodes (3): an, Pn, vs()
+Cohesion: 0.11
+Nodes (11): an, d(), f(), g(), p(), u(), x(), containsPoint() (+3 more)
 
-### Community 26 - "ur"
-Cohesion: 0.18
-Nodes (21): Ar(), br(), Cr(), dr(), Er(), fr(), gr(), hr() (+13 more)
+### Community 25 - "updateMatrixWorld"
+Cohesion: 0.15
+Nodes (3): Ca, updateMatrixWorld(), B()
 
-### Community 27 - "nh"
+### Community 26 - "i"
+Cohesion: 0.15
+Nodes (24): Ar(), br(), Cr(), dr(), Er(), fr(), gr(), hr() (+16 more)
+
+### Community 27 - "_deactivateAction"
 Cohesion: 0.12
-Nodes (9): _activateAction(), _addInactiveAction(), _addInactiveBinding(), _bindAction(), clipAction(), existingAction(), _lendAction(), _lendBinding() (+1 more)
+Nodes (18): _activateAction(), _addInactiveAction(), _addInactiveBinding(), _bindAction(), clipAction(), _deactivateAction(), existingAction(), _isActiveAction() (+10 more)
 
 ### Community 28 - "useStore"
 Cohesion: 0.18
 Nodes (17): lucide-react, react, AdminLayout(), AdminProductsPage(), CheckoutPageRoute(), DeliverableVaultPage(), HomePage(), AuthModal() (+9 more)
 
-### Community 32 - "clone"
-Cohesion: 0.08
-Nodes (11): ac(), bc, clone(), jl(), lc, mc, a(), parseImages() (+3 more)
+### Community 31 - "ao"
+Cohesion: 0.09
+Nodes (3): ao, Eo, Mo
 
 ### Community 35 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, downlevelIteration, esModuleInterop, incremental, isolatedModules, jsx, lib (+11 more)
 
+### Community 36 - "equals"
+Cohesion: 0.13
+Nodes (4): equals(), ml(), zs, l()
+
 ### Community 38 - "Ti"
-Cohesion: 0.09
-Nodes (4): Ai, Ei, Rt(), Ti
+Cohesion: 0.10
+Nodes (4): Ai, Ei, Lt(), Ti
 
 ### Community 39 - ".setAttribute"
-Cohesion: 0.19
-Nodes (3): Ci, p(), v()
+Cohesion: 0.17
+Nodes (5): Ci, p(), v(), v(), xa
 
 ### Community 40 - "setValue"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (7): bind(), getValue(), is(), ns(), rs, setValue(), ts
 
-### Community 41 - "dl"
-Cohesion: 0.20
-Nodes (5): cl(), dl(), hl(), Ho(), Zo()
+### Community 41 - "wo"
+Cohesion: 0.11
+Nodes (6): dl(), hl(), Ho(), rl(), ul(), wo
 
 ### Community 43 - "formatVND"
 Cohesion: 0.26
@@ -313,17 +307,17 @@ Nodes (11): AdminOrdersPage(), AdminDashboardPage(), CustomerOrdersPage(), Produ
 Cohesion: 0.23
 Nodes (13): Find-SpecifyRoot(), Format-SpecKitCommand(), Get-CurrentBranch(), Get-FeaturePathsEnv(), Get-InvokeSeparator(), Get-NormalizedPriority(), Get-Python3Command(), Get-RepoRoot() (+5 more)
 
-### Community 45 - "toJSON"
-Cohesion: 0.07
-Nodes (8): dc, fc, gc, gl, r(), rc, so, toJSON()
+### Community 45 - "fc"
+Cohesion: 0.10
+Nodes (5): bc, dc, fc, gc, rc
 
-### Community 46 - "update"
-Cohesion: 0.18
-Nodes (12): f(), g(), x(), y(), cs(), en(), os(), tn() (+4 more)
+### Community 46 - "constructor"
+Cohesion: 0.11
+Nodes (15): bl, y(), constructor(), cs(), Dh(), en(), Io, U() (+7 more)
 
-### Community 47 - "parseObject"
-Cohesion: 0.26
-Nodes (11): bindSkeletons(), Ja, parse(), parseAnimations(), parseAsync(), parseGeometries(), parseMaterials(), parseObject() (+3 more)
+### Community 47 - ".fromJSON"
+Cohesion: 0.17
+Nodes (13): al(), bindSkeletons(), mc, parse(), parseAnimations(), parseAsync(), parseGeometries(), parseImages() (+5 more)
 
 ### Community 48 - "**<mark>Các Tiêu Chuẩn Mở</mark>**"
 Cohesion: 0.02
@@ -337,13 +331,17 @@ Nodes (14): dependencies, canvas-confetti, clsx, framer-motion, lucide-react, ne
 Cohesion: 0.03
 Nodes (77): **5.1.1 Tại sao PRD truyền thống thất bại với AI**, **5.1.2 Độ rõ ràng — Precision và vấn đề Hallucination**, **5.1.3 Spec như Interface — Tách biệt "Cái gì" và "Như thế nào"**, **5.1  Spec là "Giao diện" — Interface giữa Người và Máy**, **5.2.1 Context & Goal — Tại sao trước khi Cái gì**, **5.2.2 Actors & Roles — Ai làm gì với quyền gì**, **5.2.3–5.2.7 Functional, Non-functional, Data, Error, Acceptance**, **5.2.8 Out of Scope — Ranh giới quan trọng nhất** (+69 more)
 
+### Community 52 - "copy"
+Cohesion: 0.11
+Nodes (4): _a(), copy(), setFromCenterAndSize(), vn
+
 ### Community 53 - "co"
-Cohesion: 0.17
-Nodes (3): co(), lineTo(), moveTo()
+Cohesion: 0.11
+Nodes (4): co(), lineTo(), moveTo(), oo
 
 ### Community 54 - "ee"
-Cohesion: 0.09
-Nodes (8): ee, Gn(), ne, qs, re, se, vt, xs()
+Cohesion: 0.08
+Nodes (8): cn, ee, getParameter(), qs, re, se, so, vo()
 
 ### Community 55 - "**<mark>Specification Patterns Nâng Cao</mark>**"
 Cohesion: 0.03
@@ -357,45 +355,45 @@ Nodes (3): next, metadata, Footer()
 Cohesion: 0.03
 Nodes (71): **10.1.2 Pha 2 — Intent Communication: WHAT, không phải HOW**, **10.1.3 Pha 3 — Agentic Execution: Agent làm việc, Human gates**, **10.1.4 Pha 4 — Human Review: Duyệt Kế hoạch trước Duyệt Code**, **10.2.1 Nguyên tắc cốt lõi — WHAT, không HOW**, **10.2.2 Definition of Done (DoD) — Bắt buộc trong Agent Prompt**, **10.2.3 Templates cho 4 task types phổ biến**, **10.2.4 Good vs. Bad Prompts — Phân tích chi tiết**, **10.2  Prompt Engineering cho Agentic Coding** (+63 more)
 
+### Community 59 - "sc"
+Cohesion: 0.13
+Nodes (5): ac(), jl(), sc, tc, wh()
+
 ### Community 60 - "devDependencies"
 Cohesion: 0.17
 Nodes (12): devDependencies, autoprefixer, eslint, eslint-config-next, postcss, tailwindcss, @types/canvas-confetti, @types/node (+4 more)
 
 ### Community 61 - "zi"
-Cohesion: 0.07
-Nodes (10): al(), el(), ko, lo, ml(), Po, tl(), translate() (+2 more)
+Cohesion: 0.08
+Nodes (13): applyMatrix4(), gl, Dt(), Ki(), ln, c(), lo, Po (+5 more)
 
 ### Community 62 - "**<mark>SDD Workflow</mark>**"
 Cohesion: 0.03
 Nodes (66): **6.1.1 Pha 0 — Context Discovery**, **6.1.2 Pha 1 — Specification**, **6.1.3 Pha 2 — Planning (AI tạo Implementation Plan)**, **6.1.4 Pha 3 — Task Decomposition (Chia thành tasks nhỏ)**, **6.1.5 Pha 4 — Implementation (AI generate code theo spec)**, **6.1.6 Pha 5 — Validation (Kiểm tra code vs. Spec)**, **6.1.7 Bài tập — Mapping SDD Phases**, **6.2.1 Cài đặt và cấu hình** (+58 more)
 
-### Community 63 - "wo"
+### Community 63 - ".dot"
 Cohesion: 0.18
-Nodes (3): ul(), vo(), wo
+Nodes (6): At(), closestPointToPoint(), closestPointToPointParameter(), delta(), St(), ro()
+
+### Community 65 - "clone"
+Cohesion: 0.12
+Nodes (4): clone(), ec, lc, ta
 
 ### Community 66 - "**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**"
 Cohesion: 0.03
 Nodes (59): **2.1 Từ “Code Writer” Đến “Outcome Engineer”**, **2.2  T-Shape Developer Trong Kỷ Nguyên AI**, **2.3 Cognitive Load Và “Context As Infrastructure”**, **2.4 Debugging & Verification — Kỹ Năng Sống Còn**, **2.5 Ethical Considerations: Trách Nhiệm & Bảo Mật**, 🎯 **Bài học cốt lõi từ Case Study**, 🛠 **Bài tập: Ma Trận Tự Đánh Giá Kỹ Năng (Skill Matrix)**, **Bảng 2.1: Ma trận tự đánh giá kỹ năng cho AI-Augmented Developer** (+51 more)
 
-### Community 67 - "Da"
+### Community 70 - "Ji"
 Cohesion: 0.20
-Nodes (3): Da, Et(), La
-
-### Community 68 - "_deactivateAction"
-Cohesion: 0.25
-Nodes (10): _deactivateAction(), _isActiveAction(), _removeInactiveAction(), _removeInactiveBinding(), _removeInactiveBindingsForAction(), _takeBackAction(), _takeBackBinding(), uncacheAction() (+2 more)
-
-### Community 69 - "N"
-Cohesion: 0.40
-Nodes (5): disconnect(), getOutput(), D(), N(), O()
-
-### Community 70 - "rn"
-Cohesion: 0.12
-Nodes (10): cn, getParameter(), hn, Nt(), Ot(), Qi(), rn, n() (+2 more)
+Nodes (5): hn, Ji, Qi(), rn, tn()
 
 ### Community 71 - "**<mark>AI Agent Thực Sự Là Gì?</mark>**"
 Cohesion: 0.04
 Nodes (56): 9.1.1 Vòng lặp Plan → Execute → Observe → Adjust, **9.1.2 Inference-time Compute — Agent nghĩ như thế nào?**, 9.1.3 So sánh: Autocomplete → Chat → Agent, **9.1  Định nghĩa Agent: Perception → Reasoning → Action**, **9.2.1 Sơ đồ kiến trúc tổng quan**, **9.2.3 Extended Thinking — Agent "dừng lại và suy nghĩ"**, **9.2.4 Checkpoint System — Cơ chế rollback khi agent sai**, **9.2 Kiến trúc Agentic Coding** (+48 more)
+
+### Community 72 - "add"
+Cohesion: 0.15
+Nodes (7): add(), Ja, no, a(), parseObject(), h(), h()
 
 ### Community 73 - "**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**"
 Cohesion: 0.04
@@ -411,7 +409,7 @@ Nodes (6): bt(), ea, _n(), Qt(), setUsage(), $t
 
 ### Community 78 - "nl"
 Cohesion: 0.09
-Nodes (8): il(), ll(), nl(), _o, rl(), sl(), xo(), yo
+Nodes (11): cl(), el(), il(), ko, ll(), nl(), _o, sl() (+3 more)
 
 ### Community 79 - "**<mark>Multi-Agent & Orchestration</mark>**"
 Cohesion: 0.04
@@ -421,9 +419,21 @@ Nodes (49): **11.1.1 Context Window Limits — Giới hạn bộ nhớ làm vi�
 Cohesion: 0.05
 Nodes (42): **13.1.1 CORE — "Những thứ không được phép sai"**, **13.1.2 SHELL — "Những thứ cần xoay chuyển nhanh"**, **13.1 Nguyên tắc Hybrid — Mô hình "Core & Shell"**, **13.2.1 Ba chiều của Decision Matrix**, **13.2.2 The Decision Matrix — 9 ô × Risk overlay**, **13.2.3 Flowchart quyết định nhanh**, **13.2.4 Ví dụ áp dụng ma trận — 5 tình huống thực tế**, **13.2  Decision Matrix — Spec Depth × Agent Autonomy × Risk** (+34 more)
 
+### Community 81 - "ws"
+Cohesion: 0.28
+Nodes (3): G(), ws(), Ye
+
+### Community 85 - "qn"
+Cohesion: 0.29
+Nodes (4): dispose(), qn(), n(), setSize()
+
 ### Community 86 - "**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**"
 Cohesion: 0.05
 Nodes (37): **14.1  Giai Đoạn 1: Foundation**, **14.2  Giai Đoạn 2: Core Development**, **14.3  Giai Đoạn 3: Polish & Delivery**, **14.4  Phân Công Vai Trò — Nhóm 5 Người**, **14.5  Ceremony Calendar**, Bảng dưới cung cấp cái nhìn toàn cảnh trước khi đi vào chi tiết từng giai đoạn:, **Checklist Milestone — Điểm Kiểm Tra Quan Trọng**, 📖 **Chu Kỳ Tuần Chuẩn (áp dụng Tuần 5–10)** (+29 more)
+
+### Community 87 - ".getPoints"
+Cohesion: 0.16
+Nodes (3): go(), To, toShapes()
 
 ### Community 92 - "**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**"
 Cohesion: 0.06
@@ -474,8 +484,8 @@ Cohesion: 0.13
 Nodes (14): 1. Khung Card Chuẩn (Standard Card), 🎯 1. Triết Lý Thiết Kế (Design Philosophy), 🎨 2. Bảng Màu Chi Tiết (Color Palette), 2. Khung Trống Dạng Nét Đứt (Dashed Empty State Card), 3. Nút Nổi Bật (Primary Button Gradient), 🔤 3. Quy Chuẩn Font Chữ (Typography Rules), 4. Nút Chuyển Tab / Bộ Lọc (Filter Pill Buttons), 🧱 4. Quy Chuẩn Cấu Trúc Khung (Component Specifications) (+6 more)
 
 ### Community 113 - "PROJECT CONSTITUTION — Digital Store (Tools, Projects & LAB211)"
-Cohesion: 0.14
-Nodes (14): ARCH-01: Kiến Trúc Phân Tầng & Ranh Giới Module, ARCH-02: Three.js & Animation Performance Standards, ARCH-03: Supabase Row Level Security (RLS), ARCH-04: Đa Phương Tiện Cho Demo (Rich Multi-Media Demos), AUDIT-01: Audit Trail Cho Mọi Quyết Định Quản Trị, CODING STANDARDS, DATA-01: Soft Delete & Bảo Vệ Lịch Sử Giao Dịch, DEFINITION OF DONE (DoD) (+6 more)
+Cohesion: 0.13
+Nodes (15): ARCH-01: Kiến Trúc Phân Tầng & Ranh Giới Module, ARCH-02: Three.js & Animation Performance Standards, ARCH-03: Supabase Row Level Security (RLS), ARCH-04: Đa Phương Tiện Cho Demo (Rich Multi-Media Demos), AUDIT-01: Audit Trail Cho Mọi Quyết Định Quản Trị, CODING STANDARDS, DATA-01: Soft Delete & Bảo Vệ Lịch Sử Giao Dịch, DEFINITION OF DONE (DoD) (+7 more)
 
 ### Community 114 - "Feature Specification: Admin Product CRUD — Quản Lý Sản Phẩm & Cấu Hình Demo (Spec 008)"
 Cohesion: 0.14
@@ -498,8 +508,8 @@ Cohesion: 0.17
 Nodes (11): 1. MANUAL MEMORY (Human & Lead Architect Maintained), 2. PATTERNS TO FOLLOW, 3. AUTO MEMORY (Claude Code & AI Agents append session insights here), [AI Agents will automatically record new learnings and patterns during execution], Architecture Decisions (ADR), CLAUDE.md — Project Memory & Technical Guidance, Important Business Rules, Lessons Learned & Performance Notes (+3 more)
 
 ### Community 119 - "Ut"
-Cohesion: 0.17
-Nodes (6): At(), Ft(), i(), Ut(), B(), kt()
+Cohesion: 0.14
+Nodes (13): At(), Ot(), Ut(), B(), n(), P(), tr(), s() (+5 more)
 
 ### Community 120 - "Feature Specification: Product Catalog — Duyệt & Tìm Kiếm Sản Phẩm (Spec 002)"
 Cohesion: 0.17
@@ -566,8 +576,8 @@ Cohesion: 0.22
 Nodes (8): Complexity Tracking, Constitution Check, Documentation (this feature), Implementation Plan: [FEATURE], Project Structure, Source Code (repository root), Summary, Technical Context
 
 ### Community 136 - "AGENTS.md — AI Agent Operating Constitution & Project Rules"
-Cohesion: 0.25
-Nodes (8): 1. PROJECT OVERVIEW, 2. AGENT PERSONA & ROLE, 3. PHẠM VI HOẠT ĐỘNG (SCOPE OF ACTION), 4. DEFINITION OF DONE (DoD CHO TỪNG TASK), 5. GIT & BRANCHING CONVENTIONS, AGENTS.md — AI Agent Operating Constitution & Project Rules, CẤM TUYỆT ĐỐI (STRICTLY FORBIDDEN):, ĐƯỢC PHÉP:
+Cohesion: 0.22
+Nodes (9): 1. PROJECT OVERVIEW, 2. AGENT PERSONA & ROLE, 3. PHẠM VI HOẠT ĐỘNG (SCOPE OF ACTION), 4. DEFINITION OF DONE (DoD CHO TỪNG TASK), 5. GIT & BRANCHING CONVENTIONS, AGENTS.md — AI Agent Operating Constitution & Project Rules, CẤM TUYỆT ĐỐI (STRICTLY FORBIDDEN):, QUY TRÌNH BẮT BUỘC KHI LÀM TÍNH NĂNG MỚI HOẶC SỬA CODE (SPEC-FIRST PROTOCOL): (+1 more)
 
 ### Community 137 - "speckit-checklist/SKILL.md"
 Cohesion: 0.25
@@ -613,25 +623,37 @@ Nodes (4): Outline, Post-Execution Checks, Pre-Execution Checks, User Input
 Cohesion: 0.40
 Nodes (4): [Category 1], [Category 2], [CHECKLIST TYPE] Checklist: [FEATURE NAME], Notes
 
+### Community 152 - "toJSON"
+Cohesion: 0.19
+Nodes (3): r(), toJSON(), zc
+
+### Community 154 - "AGENTS.md — Root Level Agent Context"
+Cohesion: 0.50
+Nodes (3): AGENTS.md — Root Level Agent Context, 🚨 NGUYÊN TẮC BẮT BUỘC TỐI THƯỢNG (ABSOLUTE MANDATORY RULE), ⚡ SPEC-FIRST WORKFLOW (BẮT BUỘC: SỬA SPEC TRƯỚC — CODE SAU)
+
+### Community 168 - "Rule: Spec-First Mandatory Workflow & Git Auto-Push"
+Cohesion: 0.50
+Nodes (3): QUY TRÌNH BẮT BUỘC (TUÂN THỦ THEO ĐÚNG THỨ TỰ):, Rule: Spec-First Mandatory Workflow & Git Auto-Push, ĐIỀU CẤM KỴ TUYỆT ĐỐI:
+
 ## Knowledge Gaps
-- **1262 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+1257 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1807 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **64 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1266 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+1261 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1812 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **61 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`, `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>SDD Workflow</mark>**`?**
-  _High betweenness centrality (0.066) - this node is a cross-community bridge._
-- **Why does `oe` connect `oe` to `three.min.js`, `ks`, `he`, `applyMatrix4`, `.multiplyScalar`, `Mi`, `constructor`, `Ue`, `kn`, `n`, `.fromArray`, `copy`, `Ce`, `clone`, `.setAttribute`, `setValue`, `zi`, `.constructor`, `.constructor`, `.parse`, `.setXYZ`, `.toArray`?**
+  _High betweenness centrality (0.065) - this node is a cross-community bridge._
+- **Why does `oe` connect `oe` to `three.min.js`, `he`, `.distanceTo`, `Dt`, `.multiplyScalar`, `Mi`, `.constructor`, `Ue`, `kn`, `ic`, `an`, `updateMatrixWorld`, `.constructor`, `.constructor`, `Ce`, `ze`, `ae`, `.setAttribute`, `setValue`, `.applyMatrix3`, `constructor`, `.fromBufferAttribute`, `copy`, `_i`, `sc`, `zi`, `.dot`, `add`, `na`, `.parse`, `.setXYZ`?**
   _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Why does `It` connect `It` to `three.min.js`, `bs`, `he`, `Zt`, `applyMatrix4`, `.multiplyScalar`, `Mi`, `constructor`, `Ue`, `kn`, `copy`, `Ce`, `clone`, `equals`, `.setAttribute`, `.getX`, `co`, `zi`, `wo`, `.constructor`, `.parse`, `bt`, `nl`, `oo`, `To`?**
+- **Why does `It` connect `It` to `three.min.js`, `bs`, `he`, `.fromArray`, `.multiplyScalar`, `Mi`, `.constructor`, `Ue`, `an`, `.constructor`, `Ce`, `ao`, `.setAttribute`, `wo`, `.fromBufferAttribute`, `copy`, `co`, `sc`, `zi`, `add`, `.parse`, `bt`, `nl`, `qn`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **What connects `nextConfig`, `name`, `version` to the rest of the system?**
-  _1262 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1266 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `three.min.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.027719298245614036 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.028878193261754906 - nodes in this community are weakly interconnected._
 - **Should `uh` be split into smaller, more focused modules?**
-  _Cohesion score 0.11857707509881422 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `ks` be split into smaller, more focused modules?**
-  _Cohesion score 0.10188261351052048 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12605042016806722 - nodes in this community are weakly interconnected._

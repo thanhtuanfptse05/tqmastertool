@@ -1,0 +1,19 @@
+---
+description: Bắt buộc sửa spec trước khi code và tự động push code lên github
+globs: *
+---
+
+# Quy Tắc Bắt Buộc: Spec-First & Auto Git Push
+
+Áp dụng cho mọi tác vụ phát triển trong dự án CodeVault Studio:
+Bất cứ khi nào nhận được yêu cầu:
+1. Lên ý tưởng hoặc làm thêm tính năng mới
+2. Sửa đổi, refactor logic, giao diện, API hiện có
+
+### QUY TRÌNH BẮT BUỘC:
+1. **BƯỚC 1 (BẮT BUỘC ĐẦU TIÊN):** Sửa hoặc tạo mới tài liệu `spec.md` trong `specs/` (hoặc tài liệu trong `.sdd/`) TRƯỚC KHI chỉnh sửa code.
+2. **BƯỚC 2:** Chỉ được phép viết code trong `src/` sau khi spec đã được cập nhật chuẩn chỉnh.
+3. **BƯỚC 3:** Kiểm tra TypeScript `tsc --noEmit`, sau đó commit và push ngay lên GitHub `origin/main`.
+
+### CẤM KỴ:
+- Tuyệt đối không được nhảy vào code ("vibe coding") mà chưa cập nhật spec trước.

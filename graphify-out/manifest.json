@@ -288,9 +288,9 @@
     "semantic_hash": "d9057824b97896a397999ac7b8352a9d"
   },
   ".agents/AGENTS.md": {
-    "mtime": 1789408507.2244506,
-    "seen": 1789552061.3267534,
-    "ast_hash": "20c2f03e07a76cc5576e9f89e594858a",
+    "mtime": 1789552401.0118256,
+    "seen": 1789552458.8736682,
+    "ast_hash": "1f1297defa4fc59002ac97c4409fdbab",
     "semantic_hash": ""
   },
   ".agents/CLAUDE.md": {
@@ -372,9 +372,9 @@
     "semantic_hash": ""
   },
   ".sdd/constitution.md": {
-    "mtime": 1789408274.8974771,
-    "seen": 1789552061.3268158,
-    "ast_hash": "29971e692abe6207b22877d87e6153c1",
+    "mtime": 1789552423.200449,
+    "seen": 1789552458.8750246,
+    "ast_hash": "550d0aaf2c05a466f366fb8216d61794",
     "semantic_hash": ""
   },
   ".sdd/constraints/business.md": {
@@ -462,9 +462,9 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1789408534.7209911,
-    "seen": 1789552061.3268754,
-    "ast_hash": "c11201c23ad03bc468ef9fddbbe837aa",
+    "mtime": 1789552379.640664,
+    "seen": 1789552458.8761458,
+    "ast_hash": "336325a5026880e5a7155810cbbf874b",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -711,6 +711,12 @@
     "mtime": 1789532904.6832101,
     "seen": 1789552061.3270226,
     "ast_hash": "b795943024149fac3a3952739389b681",
+    "semantic_hash": ""
+  },
+  ".agents/rules/spec-first.md": {
+    "mtime": 1789552430.1549118,
+    "seen": 1789552458.8739011,
+    "ast_hash": "7f990fdc7f29d8115877a7ad28c1bc46",
     "semantic_hash": ""
   }
 }

@@ -9,6 +9,13 @@ Ratified: 2026-03-15
   LAYER 1: HARD RULES — KHÔNG BAO GIỜ VI PHẠM
 ═══════════════════════════════════════════════════
 
+## SPEC-01: Quy Tắc Bắt Buộc Spec-First (Sửa Spec Trước, Code Sau)
+THE system và TẤT CẢ AI Agents SHALL TUÂN THỦ 100% nguyên tắc Spec-First:
+- Khi người dùng đưa ra bất kỳ yêu cầu nào về: (1) Lên ý tưởng mới, (2) Thêm tính năng mới, hoặc (3) Chỉnh sửa / refactor logic, giao diện, API.
+- **HÀNH ĐỘNG BẮT BUỘC ĐẦU TIÊN:** Phải tạo mới hoặc sửa đổi tài liệu đặc tả kỹ thuật `spec.md` trong `specs/` (hoặc tài liệu trong `.sdd/`) TRƯỚC KHI viết bất kỳ dòng code nào.
+- **CẤM TUYỆT ĐỐI:** Bắt đầu sửa code hoặc viết code khi chưa cập nhật spec ("vibe coding").
+- **TỰ ĐỘNG ĐẨY CODE:** Sau khi hoàn thành việc triển khai code và kiểm thử thành công, BẮT BUỘC commit đúng chuẩn và push ngay lên GitHub repository (`git push origin main`).
+
 ## SEC-01: Bảo Vệ Dữ Liệu Nhạy Cảm & Credentials
 THE system SHALL NOT lưu bất kỳ secret, API key, service_role key hoặc database credentials nào dưới dạng plaintext trong source code, git commits, public client bundles hoặc client-side logs.
 - Supabase `SUPABASE_SERVICE_ROLE_KEY` chỉ được phép dùng tại Server-Side (Next.js Server Actions / Route Handlers), TUYỆT ĐỐI KHÔNG expose ra client (`NEXT_PUBLIC_*`).
@@ -106,8 +113,9 @@ THE system SHALL thiết kế thực thể sản phẩm (Tools, Projects, LAB211
 
 ## DEFINITION OF DONE (DoD)
 Một tính năng chỉ được xem là hoàn thành khi:
-1. Đã tuân thủ đầy đủ spec hoặc RFC tương ứng trong `.sdd/`.
-2. Không còn bất kỳ lỗi linting (`npm run lint`), không có TypeScript compile errors.
+1. **BẮT BUỘC:** Đã cập nhật/tạo mới tài liệu spec hoặc RFC tương ứng trong `specs/` hoặc `.sdd/` TRƯỚC KHI tiến hành code, và code đã tuân thủ 100% spec.
+2. Không còn bất kỳ lỗi linting (`npm run lint`), không có TypeScript compile errors (`tsc --noEmit`).
 3. RLS policy trên Supabase đã được kiểm tra tính bảo mật.
 4. Giao diện đáp ứng tốt trên cả Mobile, Tablet và Desktop.
 5. Hiệu ứng Three.js và animation chạy mượt mà, không giật lag bộ nhớ (memory leak check).
+6. **BẮT BUỘC:** Đã commit và push code lên GitHub repository (`origin/main`).
