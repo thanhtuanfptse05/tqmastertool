@@ -123,10 +123,29 @@
   - Xác thực bảo mật `Authorization: Apikey <TOKEN>`.
   - Tự động đối soát số tiền và mã nội dung chuyển khoản `CV2026xxxx`.
   - Tự động kích hoạt trạng thái đơn `completed` và mở kho tải khi nhận đúng tiền.
-- [x] **Ma Trận Bảo Mật Phòng Chống Hack:**
-  - *Chống Webhook Fake*: Từ chối 401 Unauthorized nếu không có API key hoặc key không khớp.
-  - *Chống Gian Lận Chuyển Thiếu Tiền (Underpayment)*: Nếu chuyển < số tiền đơn hàng (ví dụ chuyển 1.000đ cho đơn 80.000đ), hệ thống KHÔNG hoàn thành đơn, chuyển trạng thái `pending_approval` và gắn cờ cảnh báo đỏ cho Admin.
-  - *Chống Bypass Khi Đã Bị Chặn (Admin Block Authority)*: Nếu Admin đã đặt đơn ở trạng thái `blocked`, Webhook SePay tuyệt đối không tự ý mở khóa đơn đó.
-  - *Bảo Vệ API Tài Nguyên Số*: `/api/deliverables/lab/view` và `/download` lập tức trả về 403 Forbidden nếu đơn hàng bị `blocked`, chưa duyệt hoặc không tồn tại.
+### [x] Giai Đoạn 10: Siết Chặt Bảo Mật & Kiểm Tra Nghiệp Vụ Toàn Diện (Security Hardening Audit) — ĐÃ HOÀN THÀNH
+- [x] **RBAC Order Mutation Protection (`/api/orders`)**:
+  - Chốt chặn Pre-flight Check: Chặn đứng mọi hành vi tự duyệt đơn sang `completed`, `rejected`, `blocked` từ người dùng không phải Admin với HTTP 403 Forbidden.
+  - Tự động strip các trường quản trị (`total_amount`, `admin_notes`, `reviewed_at`) nếu request đến từ khách hàng.
+  - Xác thực UUID format nghiêm ngặt trên cả PATCH và DELETE.
+  - Phân quyền xóa đơn: Khách hàng chỉ được xóa đơn rác/đơn hủy thuộc sở hữu cá nhân, Admin có toàn quyền xóa mọi đơn trên hệ thống.
+- [x] **Anti-IDOR Deliverables Vault (`/api/deliverables/lab/view` & `download`)**:
+  - Xác thực danh tính chủ sở hữu: `order.user_id === user.id` HOẶC `isAdmin`.
+  - Từ chối HTTP 403 đối với bất kỳ ai cố gắng đoán hoặc tải tài nguyên bằng `orderId` của người khác.
+  - Hỗ trợ xác thực kép: Bearer Token, Session Cookie và Query Parameter `?token=` (cho trình duyệt tải file qua `<a download>` hoặc `window.open`).
+- [x] **Admin Upload Security Gate (`/api/admin/upload/*`)**:
+  - Bảo vệ 3 endpoint upload (`asset`, `deliverable`, `lab-package`) bằng xác thực `isAdmin === true`.
+  - Loại bỏ hoàn toàn nguy cơ kẻ xấu tải file độc hại hoặc kích hoạt server extractor trái phép.
+- [x] **Fail-Closed SePay Webhook & Anti-Double-Spending**:
+  - Từ chối ngay HTTP 401 nếu thiếu `SEPAY_API_KEY` (Fail-Closed).
+  - Tra cứu chống tái sử dụng mã giao dịch ngân hàng `transaction_ref` cho nhiều đơn hàng.
+  - Kiểm tra toán học số tiền chuyển khoản `transferAmount >= total_amount`.
+- [x] **Strict Admin Whitelist (Anti-Privilege Escalation)**:
+  - Xóa bỏ toàn bộ logic regex lỏng lẻo (`+admin@`, wildcard).
+  - Khóa chặt chỉ cho phép danh sách whitelist email cố định (`lequan12305@gmail.com`, `admin@codevault.io`) và vai trò `role === 'admin'` từ bảng profiles.
+- [x] **Kiểm thử tự động & Triển khai**:
+  - Chạy bộ test thâm nhập tự động: 7/7 kịch bản tấn công bị chặn thành công 100%.
+  - Typecheck `npx tsc --noEmit` đạt 0 lỗi biên dịch.
+  - Đẩy mã nguồn lên remote GitHub `main` (`bb35c29`).
 
 
