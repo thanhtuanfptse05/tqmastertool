@@ -18,6 +18,8 @@ import {
   RotateCcw,
   SlidersHorizontal,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -30,6 +32,8 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | "all">("all");
   const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "newest">("featured");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 6;
 
   // Filtered & Sorted products
   const filteredProducts = useMemo(() => {
@@ -64,7 +68,17 @@ export default function HomePage() {
     setSearchQuery("");
     setSelectedCategory("all");
     setSortBy("featured");
+    setCurrentPage(1);
   };
+
+  // Reset to page 1 whenever filters change
+  React.useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedCategory, sortBy]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * PRODUCTS_PER_PAGE,
+    currentPage * PRODUCTS_PER_PAGE
+  );
 
   return (
     <div className="min-h-screen">
@@ -246,7 +260,11 @@ export default function HomePage() {
 
           {/* Quick Count */}
           <div className="text-xs font-bold text-slate-500 bg-white px-3.5 py-2 rounded-xl border border-slate-200 self-start md:self-auto shadow-sm">
-            Hiển thị <span className="text-blue-600 font-extrabold">{filteredProducts.length}</span> sản phẩm
+            Hiển thị{" "}
+            <span className="text-blue-600 font-extrabold">
+              {Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length)}
+            </span>
+            {" "}/ <span className="font-extrabold text-slate-700">{filteredProducts.length}</span> sản phẩm
           </div>
         </div>
 
@@ -339,15 +357,90 @@ export default function HomePage() {
 
         {/* 4. PRODUCTS GRID */}
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelectDetail={(prod) => setSelectedProduct(prod)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onSelectDetail={(prod) => setSelectedProduct(prod)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                {/* Page info */}
+                <p className="text-xs text-slate-500 font-semibold">
+                  Trang <span className="text-slate-900 font-extrabold">{currentPage}</span> / {totalPages}
+                  {" — "}
+                  <span className="text-slate-900 font-extrabold">{filteredProducts.length}</span> sản phẩm
+                </p>
+
+                {/* Buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                    title="Trang đầu"
+                  >
+                    «
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  {/* Page number pills */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                    .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && (arr[idx - 1] as number) + 1 < p) acc.push("...");
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, idx) =>
+                      p === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => setCurrentPage(p as number)}
+                          className={`w-8 h-8 rounded-xl text-xs font-extrabold transition-all ${
+                            currentPage === p
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/30 border border-blue-600"
+                              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="w-8 h-8 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center"
+                    title="Trang cuối"
+                  >
+                    »
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           /* Empty State */
           <div className="bg-white border-2 border-dashed border-slate-300 rounded-card p-12 text-center shadow-sm">
