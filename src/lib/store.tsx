@@ -280,11 +280,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (isSupabaseConfigured) {
-      fetchProductsFromDB();
-      fetchOrdersFromDB();
-
-      // Check active Supabase Auth session
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      // Chạy song song 3 request thay vì tuần tự → giảm waterfall
+      Promise.all([
+        fetchProductsFromDB(),
+        fetchOrdersFromDB(),
+        supabase.auth.getSession(),
+      ]).then(([, , { data: { session } }]) => {
         if (!active) return;
         if (session?.user) {
           supabase

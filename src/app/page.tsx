@@ -90,6 +90,9 @@ export default function HomePage() {
             src="/images/hero-banner.jpg"
             alt="CodeVault Studio 3D Developer Workspace"
             className="w-full h-full object-cover object-center lg:object-right opacity-95 transition-transform duration-1000"
+            fetchPriority="high"
+            loading="eager"
+            decoding="async"
           />
           {/* Subtle soft architectural gradient masks for maximum text legibility & seamless edge blending */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#fafbfc] via-[#fafbfc]/90 to-transparent lg:w-[58%]" />

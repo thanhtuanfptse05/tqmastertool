@@ -7,13 +7,33 @@
     --canvas-bg: #f4f7fc;
     --card-surface: #ffffff;
     --primary-blue: #2563eb;
+    /* CSS variables cho font — tự inject bởi next/font */
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Prevent layout shift during font load */
+  html {
+    font-display: swap;
   }
 
   body {
     background-color: var(--canvas-bg);
     color: #0f172a;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Improve text rendering */
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Contain layout paint for better performance */
+  img, video {
+    contain: layout paint;
+  }
+
+  /* Prevent CLS from images without dimensions */
+  img:not([width]):not([height]) {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -44,4 +64,12 @@
 
 .gradient-dark {
   background: linear-gradient(180deg, #090a10 0%, #121422 100%);
+}
+
+/* Will-change hints for animated elements — used sparingly */
+.animate-pulse {
+  will-change: opacity;
+}
+.animate-spin {
+  will-change: transform;
 }

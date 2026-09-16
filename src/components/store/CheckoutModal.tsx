@@ -7,7 +7,7 @@ import {
   DEFAULT_VIETQR_CONFIG,
   formatVND,
 } from "@/lib/vietqr";
-import confetti from "canvas-confetti";
+// Dynamic import confetti — chỉ load khi cần, không block initial bundle
 import {
   X,
   QrCode,
@@ -128,8 +128,9 @@ export default function CheckoutModal() {
 
       setStep("success");
 
-      // Celebrate with confetti
+      // Celebrate with confetti — dynamic import to not block bundle
       try {
+        const confetti = (await import("canvas-confetti")).default;
         confetti({
           particleCount: 80,
           spread: 70,
