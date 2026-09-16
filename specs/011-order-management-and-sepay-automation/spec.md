@@ -80,6 +80,13 @@
     - Nếu ĐỦ TIỀN: Cập nhật `order.status = 'completed'`, lưu log SePay, mở khóa tài nguyên.
     - Nếu THIẾU TIỀN: Chuyển sang `pending_approval`, KHÔNG mở khóa, ghi chú Admin: `"Chuyển thiếu: Nhận ${transferAmount}đ / Cần ${total_amount}đ"`.
 
+### Scenario 4 — Server-Side Order Mutation API (`/api/orders`) (RLS Bypass & Persistent Mutations)
+- **GIVEN** Client frontend (Admin hoặc User) thực hiện hành động Sửa hoặc Xóa đơn hàng
+- **WHEN** Gọi API `/api/orders`
+- **THEN**:
+  - `DELETE /api/orders?orderId=xxx`: Server sử dụng `supabaseAdmin` (Service Role Key) xóa dòng `order_items` và xóa dòng `orders` tương ứng. Đảm bảo xóa vĩnh viễn trong database, khi F5/reload không bị load lại.
+  - `PATCH /api/orders`: Server nhận `{ orderId, status, admin_notes, transaction_ref, total_amount }`, sử dụng `supabaseAdmin` cập nhật vào database. Nếu có lỗi check constraint `blocked`, fallback ghi nhận `status: 'rejected'` kèm ghi chú `[BLOCKED]`.
+
 ---
 
 ## 4. Functional Requirements (EARS)
@@ -90,6 +97,7 @@
 - **FR-004 (Master Override)**: THE system SHALL allow administrators to transition any order to `blocked`, `completed`, `rejected`, or delete the order at any time, with admin actions superseding automated webhook states.
 - **FR-005 (Access Revocation)**: WHEN an order has status `blocked`, `rejected`, `pending_payment`, or `cancelled`, THE deliverables view and download endpoints SHALL deny access with HTTP 403.
 - **FR-006 (Customer CRUD)**: THE system SHALL allow authenticated customers to view order details, cancel `pending_payment` orders, and delete inactive orders from their personal view.
+- **FR-007 (Server Mutation Persistence)**: THE system SHALL process order DELETE and status PATCH via a server-side route `/api/orders` using `supabaseAdmin`, ensuring changes persist across page reloads and cannot be silently blocked by client RLS.
 
 ---
 

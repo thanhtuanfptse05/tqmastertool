@@ -776,13 +776,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      supabase.from("orders").update({
-        status,
-        reviewed_by_admin_id: currentUser?.id,
-        reviewed_at: new Date().toISOString(),
-        admin_notes: adminNotes,
-        updated_at: new Date().toISOString(),
-      }).eq("id", orderId);
+      fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          status,
+          reviewed_by_admin_id: currentUser?.id,
+          reviewed_at: new Date().toISOString(),
+          admin_notes: adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ."),
+        }),
+      }).catch((e) => console.warn("Failed to call /api/orders in adminReviewOrder:", e));
     }
   };
 
@@ -802,23 +806,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      const payload: any = {
-        status,
-        reviewed_by_admin_id: currentUser?.id,
-        reviewed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      if (notes !== undefined) {
-        payload.admin_notes = status === "blocked" && !notes.includes("[BLOCKED]") ? `[BLOCKED] ${notes}` : notes;
-      } else if (status === "blocked") {
-        payload.admin_notes = "[BLOCKED] Đơn hàng đã bị Quản Trị Viên thu hồi và chặn quyền truy cập do vi phạm quy định hoặc nghi vấn gian lận.";
-      }
-
-      const { error } = await supabase.from("orders").update(payload).eq("id", orderId);
-      if (error && error.code === "23514" && status === "blocked") {
-        // Fallback for DB check constraint
-        payload.status = "rejected";
-        await supabase.from("orders").update(payload).eq("id", orderId);
+      try {
+        await fetch("/api/orders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            status,
+            admin_notes: notes,
+            reviewed_by_admin_id: currentUser?.id,
+            reviewed_at: new Date().toISOString(),
+          }),
+        });
+      } catch (e) {
+        console.warn("Failed to call /api/orders PATCH:", e);
       }
     }
     return true;
@@ -842,17 +843,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      const dbPayload: any = { ...data, updated_at: new Date().toISOString() };
-      delete dbPayload.items;
-      if (dbPayload.status === "blocked") {
-        if (!dbPayload.admin_notes?.includes("[BLOCKED]")) {
-          dbPayload.admin_notes = `[BLOCKED] ${dbPayload.admin_notes || "Chặn quyền"}`;
-        }
-      }
-      const { error } = await supabase.from("orders").update(dbPayload).eq("id", orderId);
-      if (error && error.code === "23514" && dbPayload.status === "blocked") {
-        dbPayload.status = "rejected";
-        await supabase.from("orders").update(dbPayload).eq("id", orderId);
+      try {
+        await fetch("/api/orders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            ...data,
+          }),
+        });
+      } catch (e) {
+        console.warn("Failed to call /api/orders PATCH in adminUpdateOrder:", e);
       }
     }
     return true;
@@ -869,7 +870,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      await supabase.from("orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("id", orderId);
+      try {
+        await fetch("/api/orders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            status: "cancelled",
+          }),
+        });
+      } catch (e) {
+        console.warn("Failed to call /api/orders cancel:", e);
+      }
     }
     return true;
   };
@@ -880,8 +892,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      await supabase.from("order_items").delete().eq("order_id", orderId);
-      await supabase.from("orders").delete().eq("id", orderId);
+      try {
+        const res = await fetch(`/api/orders?orderId=${encodeURIComponent(orderId)}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.error("Failed to delete order from database:", errData);
+          return false;
+        }
+      } catch (e) {
+        console.error("Exception calling /api/orders DELETE:", e);
+        return false;
+      }
     }
     return true;
   };
