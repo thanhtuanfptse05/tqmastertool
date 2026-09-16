@@ -148,14 +148,14 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
 
       {/* Word Content Body */}
       {isExpanded && (
-        <div className="p-6 max-h-[460px] overflow-y-auto space-y-4 text-slate-800 font-sans leading-relaxed text-xs">
+        <div className="p-5 max-h-[600px] overflow-y-auto text-slate-800 font-sans leading-relaxed">
           {lab.docxContentHtml ? (
             <div
-              className="prose prose-xs max-w-none text-slate-700 space-y-2 [&_h4]:text-sm [&_h4]:font-black [&_h4]:text-blue-950 [&_p]:text-xs [&_p]:leading-relaxed [&_table]:border-collapse"
+              className="word-doc-body w-full [&_h4]:text-sm [&_h4]:font-black [&_h4]:text-blue-900 [&_h4]:mt-4 [&_h4]:mb-1.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-slate-700 [&_p]:mb-1.5 [&_div]:text-sm"
               dangerouslySetInnerHTML={{ __html: lab.docxContentHtml }}
             />
           ) : (
-            <p className="text-xs text-slate-600 whitespace-pre-line">
+            <p className="text-sm text-slate-600 whitespace-pre-line">
               {lab.docxTextPreview}
             </p>
           )}

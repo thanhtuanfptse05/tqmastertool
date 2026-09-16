@@ -5,6 +5,7 @@ import { LabExerciseItem } from "@/types";
 import { getAllLabExercises, LAB211_RULE_MD } from "@/lib/lab-data";
 import LabDocViewer from "./LabDocViewer";
 import LabCodeViewer from "./LabCodeViewer";
+import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import {
   Sparkles,
   ShieldCheck,
@@ -12,7 +13,6 @@ import {
   BookOpen,
   Code2,
   FileCheck2,
-  CheckCircle2,
   X,
   FileText,
   Search,
@@ -73,8 +73,8 @@ export default function LabDeliverableModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-6xl bg-slate-900 rounded-3xl shadow-2xl border border-slate-700/80 overflow-hidden my-auto flex flex-col max-h-[94vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-2 pb-2 sm:pt-4 sm:pb-4 px-2 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
+      <div className="relative w-full max-w-[98vw] xl:max-w-[1400px] bg-slate-900 rounded-3xl shadow-2xl border border-slate-700/80 overflow-hidden flex flex-col" style={{minHeight: '94vh', maxHeight: '94vh'}}>
         {/* Top Header */}
         <div className="px-6 py-4 bg-[#161b22] border-b border-slate-800 flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
@@ -217,33 +217,40 @@ export default function LabDeliverableModal({
           </div>
         </div>
 
-        {/* Bottom Rule Modal / Drawer */}
+        {/* Rule Modal — Markdown Rendered */}
         {showRuleModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-            <div className="relative w-full max-w-3xl bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 text-emerald-400 font-black text-sm">
-                  <FileCheck2 className="w-5 h-5" />
-                  <span>TẬP QUY TẮC VIẾT CODE MÔN LAB211 (rule.md)</span>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in">
+            <div className="relative w-full max-w-4xl bg-[#0d1117] border border-slate-700/80 rounded-3xl shadow-2xl flex flex-col" style={{maxHeight: '90vh'}}>
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-900/50 text-emerald-400 flex items-center justify-center">
+                    <FileCheck2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white tracking-tight">Tập Quy Tắc Viết Code</h3>
+                    <p className="text-[10px] text-slate-500 font-mono">LAB211 / rule.md — FPT University Standard</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowRuleModal(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white"
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 overflow-y-auto text-xs text-slate-300 font-mono whitespace-pre-line leading-relaxed flex-1">
-                {LAB211_RULE_MD}
+              {/* Markdown Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-5">
+                <MarkdownRenderer content={LAB211_RULE_MD} />
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end px-6 py-4 border-t border-slate-800 shrink-0">
                 <button
                   onClick={() => setShowRuleModal(false)}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-blue-900/30"
                 >
-                  Đã Hiểu Quy Chuẩn
+                  ✓ Đã Hiểu Quy Chuẩn
                 </button>
               </div>
             </div>
