@@ -32,6 +32,7 @@
 | **Phase 5** | **Admin Portal, Full CRUD & Duyệt Đơn** | Hybrid | ✅ DONE | `/admin/*`, Dashboard, Approval Drawer |
 | **Phase 6** | **Kho Bàn Giao (Customer Deliverable Vault)** | SDD Pure | ✅ DONE | `/customer/orders/:id`, Signed URLs |
 | **Phase 7** | **Tối Ưu 60 FPS Three.js, Testing & Audit** | Hybrid | ✅ DONE | Lighthouse, Security Checklist, E2E |
+| **Phase 8** | **LAB211 Deliverable Viewer (Spec 010)** | SDD Pure | ✅ DONE | Word Preview, Java IDE, Exact Downloads |
 
 ---
 
@@ -99,3 +100,14 @@
 - [x] Biên dịch TypeScript Strict (`tsc --noEmit`) đạt 0 lỗi.
 - [x] Production Build Next.js (`npm run build`) thành công 100%.
 - [x] Tạo Walkthrough tổng kết.
+
+### [x] Giai Đoạn 8: Bóc Tách Tự Động & Trình Xem Đề Bài Word / Code Java LAB211 (Spec 010) — ĐÃ HOÀN THÀNH
+- [x] Tự động giải nén và trích xuất cấu trúc 12 bài lab từ `LAB211.zip` thành manifest chuẩn và file standalone project.
+- [x] Tạo trình đọc Word `.docx` (`LabDocViewer`) định dạng chuẩn FPT kèm nút tải file Word đúng tên gốc `J1.L.P0023 - FRUIT.docx`.
+- [x] Tạo trình xem code Java IDE Dark Theme (`LabCodeViewer`) phân theo package MVC, highlight cú pháp, line numbers, nút copy code, tải file `.java` và trọn gói `.zip`.
+- [x] Master Modal (`LabDeliverableModal`) tích hợp thanh chọn 12 bài lab và quy chuẩn code `rule.md`.
+- [x] Endpoint tải file bảo mật `/api/deliverables/lab/download` chặn đơn chưa duyệt, header RFC 5987 / RFC 6266 `Content-Disposition`.
+- [x] Endpoint xem bài lab bảo mật `/api/deliverables/lab/view` kiểm soát trạng thái đơn `completed`.
+- [x] Endpoint Admin Upload ZIP `/api/admin/upload/lab-package` tự động nhận diện bài lab và bóc tách dữ liệu.
+- [x] Cập nhật giao diện Deliverable Vault (`/customer/vault`) và Đơn hàng (`/customer/orders`).
+

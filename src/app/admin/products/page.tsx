@@ -64,9 +64,12 @@ export default function AdminProductsPage() {
   const [isUploadingDeliverable, setIsUploadingDeliverable] = useState(false);
   const [deliverableUploadError, setDeliverableUploadError] = useState<string | null>(null);
   const [uploadedDeliverableInfo, setUploadedDeliverableInfo] = useState<{ name: string; size: number } | null>(null);
+  const [isUploadingLabZip, setIsUploadingLabZip] = useState(false);
+  const [labUploadFeedback, setLabUploadFeedback] = useState<string | null>(null);
 
   const [formGalleryImages, setFormGalleryImages] = useState<string[]>([]);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,7 +133,40 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleLabPackageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLabZip(true);
+    setLabUploadFeedback(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload/lab-package", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Không thể xử lý gói LAB ZIP");
+      }
+
+      setLabUploadFeedback(data.message || `Đã nhận diện thành công ${data.totalLabs} bài lab!`);
+      setFormStoragePath(`digital-deliverables/lab211/${file.name}`);
+      setUploadedDeliverableInfo({ name: file.name, size: file.size });
+    } catch (err: any) {
+      setDeliverableUploadError(err.message || "Lỗi tải gói LAB ZIP lên");
+    } finally {
+      setIsUploadingLabZip(false);
+      e.target.value = "";
+    }
+  };
+
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -768,6 +804,54 @@ export default function AdminProductsPage() {
                     Bảo mật Private Bucket
                   </span>
                 </div>
+
+                {/* SPECIAL LAB211 AUTO-EXTRACT BOX */}
+                {formCategory === "lab211" && (
+                  <div className="p-4 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-blue-900 flex items-center gap-1.5">
+                        <Sparkles className="w-4 h-4 text-blue-600" />
+                        Chế Độ Bóc Tách Tự Động LAB211 (Spec 010)
+                      </span>
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                        Word .docx + Java MVC
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Chỉ cần tải lên file ZIP bài lab (ví dụ: <code className="font-mono font-bold text-blue-700">LAB211.zip</code>), hệ thống sẽ tự động bóc tách đề bài Word, từng file Java theo package, và cấu hình quyền tải chuẩn tên file gốc cho khách hàng.
+                    </p>
+
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all active:scale-95">
+                        {isUploadingLabZip ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Đang Bóc Tách File ZIP...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            <span>Tải Lên File ZIP LAB211 (Tự Động Bóc Tách)</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept=".zip"
+                          disabled={isUploadingLabZip}
+                          onChange={handleLabPackageUpload}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {labUploadFeedback && (
+                        <span className="text-xs text-emerald-700 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          {labUploadFeedback}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* File ZIP Upload Box */}
                 <div className="p-4 rounded-2xl border-2 border-dashed border-emerald-300 bg-white space-y-3 shadow-sm">

@@ -16,11 +16,19 @@ import {
   ShieldCheck,
   AlertCircle,
   FileText,
+  BookOpen,
 } from "lucide-react";
+import LabDeliverableModal from "@/components/store/LabDeliverableModal";
 
 export default function CustomerOrdersPage() {
   const { currentUser, orders, openCheckout, products, openAuthModal } = useStore();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "all">("all");
+  const [activeLabModal, setActiveLabModal] = useState<{
+    isOpen: boolean;
+    orderId: string;
+    orderCode: string;
+  } | null>(null);
+
 
   // Get orders for current user
   const userOrders = currentUser
@@ -217,16 +225,38 @@ export default function CustomerOrdersPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
                     {order.status === "completed" ? (
-                      <a
-                        href="/customer/vault"
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
-                      >
-                        <Package className="w-3.5 h-3.5" />
-                        Tải mã nguồn tại Vault
-                      </a>
+                      <>
+                        {order.items?.some(
+                          (i) =>
+                            i.product_category === "lab211" ||
+                            i.product_title.toLowerCase().includes("lab211")
+                        ) && (
+                          <button
+                            onClick={() =>
+                              setActiveLabModal({
+                                isOpen: true,
+                                orderId: order.id,
+                                orderCode: order.order_code,
+                              })
+                            }
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>Xem Đề Bài Word & Code</span>
+                          </button>
+                        )}
+                        <a
+                          href="/customer/vault"
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
+                        >
+                          <Package className="w-3.5 h-3.5" />
+                          Tải mã nguồn tại Vault
+                        </a>
+                      </>
                     ) : order.status === "pending_payment" ? (
+
                       <button
                         onClick={() => {
                           const prod = products.find((p) => p.id === order.items?.[0]?.product_id);
@@ -265,6 +295,17 @@ export default function CustomerOrdersPage() {
           </a>
         </div>
       )}
+
+      {/* Master Lab Deliverable Modal */}
+      {activeLabModal && (
+        <LabDeliverableModal
+          orderId={activeLabModal.orderId}
+          orderCode={activeLabModal.orderCode}
+          isOpen={activeLabModal.isOpen}
+          onClose={() => setActiveLabModal(null)}
+        />
+      )}
     </div>
   );
 }
+

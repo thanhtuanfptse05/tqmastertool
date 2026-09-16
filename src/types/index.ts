@@ -131,3 +131,40 @@ export interface CartItem {
   product: Product;
   added_at: string;
 }
+
+export interface LabSourceFile {
+  path: string;
+  fileName: string;
+  packageName: string;
+  language: "java" | "xml" | "properties" | "text";
+  content: string;
+  size: number;
+}
+
+export interface LabExerciseItem {
+  id: string;
+  code: string;
+  title: string;
+  folderName: string;
+  docxFileName: string;
+  docxContentHtml: string;
+  docxTextPreview: string;
+  loc?: number;
+  slots?: number;
+  sourceFiles: LabSourceFile[];
+  zipFileName: string;
+  zipSize?: number;
+  docxSize?: number;
+  zipStoragePath?: string;
+  docxStoragePath?: string;
+}
+
+export interface LabPackageManifest {
+  packageId: string;
+  title: string;
+  ruleMarkdown?: string;
+  labs: LabExerciseItem[];
+  totalLabs: number;
+  updatedAt: string;
+}
+
