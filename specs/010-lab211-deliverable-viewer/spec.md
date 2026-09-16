@@ -163,3 +163,32 @@ export interface LabPackageManifest {
 - [ ] Tải file Word đề bài: tên file lưu về đúng định dạng `J1.L.P0023 - FRUIT.docx`.
 - [ ] Tải file mã nguồn Java: tên file lưu về đúng `FruitController.java`.
 - [ ] Tải trọn bộ ZIP: tên file lưu về đúng `J1.L.P0023 - FRUIT.zip`.
+
+---
+
+## 8. Catalog Definition: Danh Sách Sản Phẩm LAB211 Theo Giảng Viên (18 Thầy/Cô)
+
+- Đơn giá đồng bộ: **100,000 VNĐ** (Giá gốc: 200,000 VNĐ).
+- File deliverable dùng chung: `LAB211.zip` (đầy đủ 12 bài lab + Word docx + code MVC Java 8 + test case 10/10).
+- Tên chuẩn hóa: `SOURCE CODE LAB211 GIẢNG VIÊN [MÃ_GIẢNG_VIÊN_IN_HOA]`.
+
+Danh sách 18 giảng viên:
+1. `SOURCE CODE LAB211 GIẢNG VIÊN HIENNM23`
+2. `SOURCE CODE LAB211 GIẢNG VIÊN TAMNT`
+3. `SOURCE CODE LAB211 GIẢNG VIÊN ANHLT`
+4. `SOURCE CODE LAB211 GIẢNG VIÊN HUYNM`
+5. `SOURCE CODE LAB211 GIẢNG VIÊN VANTTN`
+6. `SOURCE CODE LAB211 GIẢNG VIÊN HOAIBM`
+7. `SOURCE CODE LAB211 GIẢNG VIÊN THANHDT`
+8. `SOURCE CODE LAB211 GIẢNG VIÊN THANGPD`
+9. `SOURCE CODE LAB211 GIẢNG VIÊN TRUNGNT`
+10. `SOURCE CODE LAB211 GIẢNG VIÊN DONGLM`
+11. `SOURCE CODE LAB211 GIẢNG VIÊN TUANVM`
+12. `SOURCE CODE LAB211 GIẢNG VIÊN YNT4`
+13. `SOURCE CODE LAB211 GIẢNG VIÊN ANNV22`
+14. `SOURCE CODE LAB211 GIẢNG VIÊN TRITD`
+15. `SOURCE CODE LAB211 GIẢNG VIÊN NUINX`
+16. `SOURCE CODE LAB211 GIẢNG VIÊN DIEUNT`
+17. `SOURCE CODE LAB211 GIẢNG VIÊN HANHNT84`
+18. `SOURCE CODE LAB211 GIẢNG VIÊN NANGNTH`
+

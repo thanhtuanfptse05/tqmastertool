@@ -218,112 +218,746 @@ public void handleOrderCreated(OrderEvent event) {
   );
 
   -- --------------------------------------------------------
-  -- SẢN PHẨM 5: LAB211 - Full 15 Bài Java OOP (Điểm 10/10)
+
+  -- ========================================================
+  -- DANH SÁCH 18 SẢN PHẨM LAB211 THEO GIẢNG VIÊN (FPT)
+  -- ========================================================
   -- --------------------------------------------------------
-  INSERT INTO public.products (
-    id, category, title, slug, short_description, detailed_description,
-    price, original_price, thumbnail_url, status, deliverable_type,
-    storage_file_path, git_repo_url, access_instructions
-  ) VALUES (
-    prod5_id,
-    'lab211',
-    'LAB211 Trọn Bộ 15 Bài Lab Java Core & OOP (Chuẩn PE & Test Case 10/10)',
-    'lab211-tron-bo-15-bai-lab-java-core-oop-diem-10',
-    'Trọn bộ source code giải chi tiết 15 bài Lab môn LAB211 (Đại học FPT): Code sạch, comment giải thích từng dòng, kèm bộ test case và câu hỏi vấn đáp bảo vệ.',
-    '### Danh sách các bài LAB211 có trong gói:
-1. **J1.S.P0001**: Bubble sort algorithm
-2. **J1.S.P0011**: Change base number system (Binary, Decimal, Hex)
-3. **J1.S.P0021**: Student Management (Create, Find, Sort, Update, Delete)
-4. **J1.S.P0052**: Manage Geographic Country Information
-5. **J1.S.P0055**: Doctor Management Program
-6. **J1.S.P0070**: TPBank Login System (Ebank with Captcha validation)
-7. **J1.S.P0071**: Task Management program (Task Type, Time plan)
-8. **J1.S.P0074**: Matrix calculation (Addition, Subtraction, Multiplication)
-9. *Và 7 bài Lab phổ biến khác trong ngân hàng đề thi...*
+  -- LAB211: HIENNM23
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN HIENNM23',
+      'source-code-lab211-giang-vien-hiennm23',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HIENNM23 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HIENNM23
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Chấm cực kỳ kỹ về mô hình MVC chuẩn và cấu trúc packages rành mạch. Đặt biệt chú trọng giải thích data flow giữa Controller và View.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
 
-### Điểm nổi bật:
-- Tuân thủ 100% Coding Convention của giảng viên FPT.
-- Xử lý triệt để ngoại lệ `InputMismatchException`, validate dữ liệu đầu vào không bị crash.
-- Tặng kèm file tổng hợp 50 câu hỏi vấn đáp thường gặp khi bảo vệ Lab.',
-    150000,
-    250000,
-    'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
-    'published',
-    'download_file',
-    'digital-deliverables/lab211_full_15_labs_java.zip',
-    NULL,
-    'Mở project bằng NetBeans 8.2 hoặc Apache NetBeans 12+ / IntelliJ IDEA. Chạy từng package tương ứng với mã đề bài lab.'
-  );
-
-  INSERT INTO public.product_demos (
-    product_id, gallery_images, live_demo_url, video_demo_url,
-    demo_credentials, code_preview_snippet, features_list, tech_stack_tags
-  ) VALUES (
-    prod5_id,
-    '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
-    NULL,
-    NULL,
-    NULL,
-    '// J1.S.P0070: Ebank Captcha & Account Verification
-public class TPBankManager {
-    private static final String ACCOUNT_REGEX = "^\\d{10}$";
-    
-    public boolean checkAccount(String account) {
-        if (!account.matches(ACCOUNT_REGEX)) {
-            System.err.println("Account number must be 10 digits!");
-            return false;
-        }
-        return true;
-    }
-}',
-    '["Đầy đủ 15 bài Lab chuẩn đề", "Test case kiểm tra kỹ lưỡng", "Code comment chi tiết", "Bộ tài liệu vấn đáp bảo vệ môn"]'::jsonb,
-    '["Java", "OOP", "NetBeans", "Clean Code", "Unit Testing"]'::jsonb
-  );
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// J1.L.P0023 - Validation chuẩn phong cách HIENNM23\npublic static int checkIntLimit(String msg, int min, int max) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HIENNM23", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
 
   -- --------------------------------------------------------
-  -- SẢN PHẨM 6: LAB211 - Candidate & Fruit Management
+  -- LAB211: TAMNT
   -- --------------------------------------------------------
-  INSERT INTO public.products (
-    id, category, title, slug, short_description, detailed_description,
-    price, original_price, thumbnail_url, status, deliverable_type,
-    storage_file_path, git_repo_url, access_instructions
-  ) VALUES (
-    prod6_id,
-    'lab211',
-    'LAB211 Bộ 3 Bài Lab Nâng Cao: Candidate, Fruit Shop & Contact Management',
-    'lab211-bo-3-bai-lab-nang-cao-candidate-fruit-contact',
-    'Chuyên sâu 3 bài Lab có độ khó cao nhất trong LAB211 (J1.S.P0022, J1.S.P0023, J1.S.P0025). Tối ưu hóa cấu trúc dữ liệu Collections.',
-    '### Gói bao gồm:
-1. **J1.S.P0022**: Candidates Management (Experience, Fresher, Intern Candidates với kế thừa và đa hình chuẩn OOP).
-2. **J1.S.P0023**: Fruit Shop System (Quản lý giỏ hàng mua sắm trái cây và xuất hóa đơn Order).
-3. **J1.S.P0025**: Normalize Text (Xử lý chuỗi, dấu câu, khoảng trắng tự động chuẩn văn bản).',
-    89000,
-    150000,
-    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80',
-    'published',
-    'download_file',
-    'digital-deliverables/lab211_advanced_3_labs.zip',
-    NULL,
-    'Giải nén file ZIP, import project vào NetBeans và chạy trực tiếp file Main.java.'
-  );
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN TAMNT',
+      'source-code-lab211-giang-vien-tamnt',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TAMNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TAMNT
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Yêu cầu tuyệt đối không để crash chương trình khi nhập sai dữ liệu. Bắt buộc toàn bộ validation phải nằm trong package controller.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
 
-  INSERT INTO public.product_demos (
-    product_id, gallery_images, live_demo_url, video_demo_url,
-    demo_credentials, code_preview_snippet, features_list, tech_stack_tags
-  ) VALUES (
-    prod6_id,
-    '["https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80"]'::jsonb,
-    NULL,
-    NULL,
-    NULL,
-    '// OOP Polymorphism Demonstration: Candidate
-public abstract class Candidate {
-    protected String id, firstName, lastName, phone, email;
-    protected int birthDate, type;
-    public abstract void printInfo();
-}',
-    '["Kế thừa & Đa hình sâu sắc", "Xử lý ArrayList & HashMap linh hoạt", "Regex Validation chống nhập sai", "Hỗ trợ 1-1 nếu cần sửa code"]'::jsonb,
-    '["Java", "OOP", "Data Structures", "Collections"]'::jsonb
-  );
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// InputValidator chuẩn TAMNT - Không bao giờ crash\npublic class InputValidator {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TAMNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: ANHLT
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN ANHLT',
+      'source-code-lab211-giang-vien-anhlt',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANHLT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên ANHLT
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Rất thích hỏi sâu về 4 tính chất OOP (Kế thừa, Đa hình, Đóng gói, Trừu tượng). Code phân tách POJO Entity cực sạch.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Tính đa hình & trừu tượng chuẩn phong cách ANHLT\npublic abstract class Shape {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV ANHLT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: HUYNM
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN HUYNM',
+      'source-code-lab211-giang-vien-huynm',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HUYNM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HUYNM
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Tập trung vào tối ưu thuật toán tìm kiếm và sắp xếp. Hỏi cách vận hành của Binary Search và phân tích độ phức tạp O(log n).
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Binary Search đệ quy & vòng lặp chuẩn HUYNM\npublic static int binarySearch(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HUYNM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: VANTTN
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN VANTTN',
+      'source-code-lab211-giang-vien-vanttn',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên VANTTN (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên VANTTN
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Yêu cầu giao diện Console hiển thị menu gọn gàng, in hóa đơn căn lề chuẩn theo bảng cột (%-15s %-10d).
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// In bảng hóa đơn căn lề đẹp chuẩn VANTTN\nSystem.out.printf(...);',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV VANTTN", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: HOAIBM
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN HOAIBM',
+      'source-code-lab211-giang-vien-hoaibm',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HOAIBM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HOAIBM
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Đặc biệt chú trọng Clean Code, đặt tên biến camelCase chuẩn tiếng Anh, tuân thủ DRY và comment theo chuẩn Javadoc.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '/**\n * Quản lý lương nhân viên chuẩn HOAIBM\n */',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HOAIBM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: THANHDT
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN THANHDT',
+      'source-code-lab211-giang-vien-thanhdt',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANHDT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên THANHDT
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Quan tâm đến cách xử lý cấu trúc dữ liệu Collections (ArrayList, HashMap, Hashtable). Hỏi kỹ về equals() và hashCode().
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Sử dụng Hashtable lưu đơn hàng chuẩn THANHDT\nHashtable<String, ArrayList<OrderItem>> orders = new Hashtable<>();',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV THANHDT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: THANGPD
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN THANGPD',
+      'source-code-lab211-giang-vien-thangpd',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên THANGPD (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên THANGPD
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Thường yêu cầu sinh viên live coding sửa 1 method nhỏ tại chỗ để kiểm tra xem có tự hiểu code hay không. Kèm hướng dẫn chi tiết từng dòng.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Code modular cực kỳ dễ sửa tại chỗ khi thầy THANGPD yêu cầu\npublic boolean checkExistId(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV THANGPD", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: TRUNGNT
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN TRUNGNT',
+      'source-code-lab211-giang-vien-trungnt',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRUNGNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TRUNGNT
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Hỏi bản chất Java SE 8, kiểm tra kiến thức về Garbage Collection, bộ nhớ Heap/Stack và tại sao phải đóng Scanner.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Đóng tài nguyên an toàn chuẩn TRUNGNT\ntry (Scanner scanner = new Scanner(System.in)) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TRUNGNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: DONGLM
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN DONGLM',
+      'source-code-lab211-giang-vien-donglm',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DONGLM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên DONGLM
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Yêu cầu cao về tính toàn vẹn của dữ liệu: Mã sinh viên, Số điện thoại, Email phải validate Regex chặt chẽ không có kẽ hở.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Regex chặt chẽ cho Account & Phone chuẩn DONGLM\npublic static final String PHONE_REGEX = ...',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV DONGLM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: TUANVM
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN TUANVM',
+      'source-code-lab211-giang-vien-tuanvm',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TUANVM (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TUANVM
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Thích sinh viên có tư duy tổ chức code khoa học, chia nhỏ hàm < 30 dòng và viết test case bao phủ toàn bộ luồng biên.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Hàm ngắn gọn, tách nhỏ đúng Single Responsibility chuẩn TUANVM\npublic void processOrder() {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TUANVM", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: YNT4
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN YNT4',
+      'source-code-lab211-giang-vien-ynt4',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên YNT4 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên YNT4
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Hỏi sâu về xử lý mảng 2 chiều (Matrix calculation) và cách xử lý chuỗi chuẩn hóa văn bản (Normalize text).
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Phép nhân 2 ma trận chuẩn thuật toán YNT4\npublic int[][] multiplyMatrix(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV YNT4", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: ANNV22
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN ANNV22',
+      'source-code-lab211-giang-vien-annv22',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên ANNV22 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên ANNV22
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Đề cao sự trung thực và hiểu rõ code: Bắt buộc giải thích được cơ chế Captcha trong bài EBank (P0070) và cách sinh số ngẫu nhiên.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Sinh Captcha ngẫu nhiên an toàn chuẩn ANNV22\npublic static String generateCaptcha(int len) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV ANNV22", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: TRITD
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN TRITD',
+      'source-code-lab211-giang-vien-tritd',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên TRITD (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên TRITD
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Quan tâm đến việc kiểm thử bài làm với số lượng lớn dữ liệu đầu vào. Tặng kèm bộ 50 câu hỏi vấn đáp thực chiến của thầy.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Kiểm tra dữ liệu danh sách lớn chuẩn TRITD\npublic boolean validateCapacity(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV TRITD", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: NUINX
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN NUINX',
+      'source-code-lab211-giang-vien-nuinx',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NUINX (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên NUINX
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Chấm tỉ mỉ từng chi tiết, yêu cầu menu quay vòng chuẩn xác, phím thoát rõ ràng, thông báo lỗi bằng tiếng Anh chuẩn mực.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Menu thân thiện, thông báo lỗi tiếng Anh chuẩn mực NUINX\npublic void showMenu() {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV NUINX", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: DIEUNT
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN DIEUNT',
+      'source-code-lab211-giang-vien-dieunt',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên DIEUNT (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên DIEUNT
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Hỏi cặn kẽ về tư duy giải quyết bài toán và cách tổ chức package MVC. Code sạch, comment giải thích từng dòng.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Quản lý Doctor Management chuẩn DIEUNT\npublic void addDoctor(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV DIEUNT", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: HANHNT84
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN HANHNT84',
+      'source-code-lab211-giang-vien-hanhnt84',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên HANHNT84 (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên HANHNT84
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Kiểm tra kỹ việc xử lý ngày tháng (Date format dd/MM/yyyy) và tính toán khoảng thời gian (Plan time từ 8.0 đến 17.5 trong P0071).
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Validate thời gian làm việc chuẩn HANHNT84\npublic static double checkTime(...) {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV HANHNT84", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
+
+  -- --------------------------------------------------------
+  -- LAB211: NANGNTH
+  -- --------------------------------------------------------
+  DECLARE
+    lab_id UUID := gen_random_uuid();
+  BEGIN
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      lab_id,
+      'lab211',
+      'SOURCE CODE LAB211 GIẢNG VIÊN NANGNTH',
+      'source-code-lab211-giang-vien-nangnth',
+      'Trọn bộ 12 bài Lab Java OOP chuẩn form chấm thi của Giảng viên NANGNTH (Đại học FPT). Code sạch, mô hình MVC, test case 10/10 không crash kèm bộ câu hỏi vấn đáp khi bảo vệ.',
+      '### Bộ Source Code LAB211 Chuẩn Giảng Viên NANGNTH
+- Đầy đủ 12 bài Lab chuẩn FPT.
+- Bám sát phong cách chấm: Đặc biệt chú trọng phong thái tự tin khi bảo vệ lab: Hướng dẫn mẹo trả lời trúng trọng tâm câu hỏi của cô, lấy trọn điểm 10/10.
+- 100% JDK 8, Apache NetBeans 17, Java with Ant, mô hình MVC.',
+      100000,
+      200000,
+      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80',
+      'published',
+      'download_file',
+      'digital-deliverables/lab211/LAB211.zip',
+      NULL,
+      'Sau khi đơn hàng được duyệt, truy cập Kho Tài Nguyên Số (Vault) để xem trực tiếp đề bài Word và mã nguồn Java, hoặc tải về file ZIP.'
+    );
+
+    INSERT INTO public.product_demos (
+      product_id, gallery_images, code_preview_snippet, features_list, tech_stack_tags
+    ) VALUES (
+      lab_id,
+      '["https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80"]'::jsonb,
+      '// Code mẫu chuẩn phong cách cô NANGNTH\npublic class TaskController {...}',
+      '["Trọn bộ 12 bài Lab Java OOP", "Chuẩn form chấm GV NANGNTH", "Test case 10/10 không crash", "Kèm câu hỏi vấn đáp"]'::jsonb,
+      '["Java 8", "OOP", "NetBeans 17", "MVC Pattern", "Clean Code"]'::jsonb
+    );
+  END;
 
 END $$;
