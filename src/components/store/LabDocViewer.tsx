@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { LabExerciseItem } from "@/types";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   FileText,
   Download,
@@ -67,9 +68,22 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
 
     const fetchAndConvert = async () => {
       try {
-        // 1. Fetch DOCX binary from our secure API
+        // 1. Build auth headers — get Supabase session access token
+        const fetchHeaders: Record<string, string> = {};
+        if (isSupabaseConfigured) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.access_token) {
+              fetchHeaders["Authorization"] = `Bearer ${session.access_token}`;
+            }
+          } catch (e) {
+            console.warn("[LabDocViewer] Could not get auth session:", e);
+          }
+        }
+
+        // 2. Fetch DOCX binary from our secure API
         const url = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=docx`;
-        const resp = await fetch(url, { credentials: "include" });
+        const resp = await fetch(url, { credentials: "include", headers: fetchHeaders });
 
         if (!resp.ok) {
           let msg = `Tải file thất bại (HTTP ${resp.status})`;
@@ -230,7 +244,7 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             <Layers className="w-4 h-4 text-indigo-600" />
             <span>LOC Dự Kiến:</span>
             <span className="px-2.5 py-0.5 rounded-lg bg-slate-200/80 font-mono font-bold text-slate-800 border border-slate-300">
-              {lab.loc} dòng
+              {lab.loc} LOC
             </span>
           </div>
         )}
