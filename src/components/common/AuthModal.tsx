@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useStore } from "@/lib/store";
-import { X, Mail, Lock, User, Sparkles, AlertCircle } from "lucide-react";
+import { X, Mail, Lock, User, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 
 export default function AuthModal() {
   const {
@@ -18,10 +18,11 @@ export default function AuthModal() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isAuthModalOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -35,14 +36,23 @@ export default function AuthModal() {
       return;
     }
 
-    if (authModalMode === "register") {
-      const success = register(email, fullName, password);
-      if (!success) {
-        setError("Email này đã tồn tại trong hệ thống. Vui lòng đăng nhập.");
-        return;
+    setIsSubmitting(true);
+    try {
+      if (authModalMode === "register") {
+        const result = await register(email, fullName, password);
+        if (!result.success) {
+          setError(result.error || "Email này đã tồn tại trong hệ thống. Vui lòng đăng nhập.");
+          setIsSubmitting(false);
+          return;
+        }
+      } else {
+        await login(email, password);
       }
-    } else {
-      login(email, password);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Đã xảy ra lỗi khi xác thực.";
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -136,9 +146,17 @@ export default function AuthModal() {
 
           <button
             type="submit"
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-[0.99] mt-2"
+            disabled={isSubmitting}
+            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all active:scale-[0.99] mt-2 flex items-center justify-center gap-2"
           >
-            {authModalMode === "login" ? "Đăng Nhập Ngay" : "Kích Hoạt Tài Khoản"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Đang xử lý...</span>
+              </>
+            ) : (
+              <span>{authModalMode === "login" ? "Đăng Nhập Ngay" : "Kích Hoạt Tài Khoản"}</span>
+            )}
           </button>
         </form>
 

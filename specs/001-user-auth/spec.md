@@ -39,15 +39,21 @@
 
 ## 3. User Scenarios & Acceptance Criteria
 
-### User Story 1 — Đăng Ký Tài Khoản Tức Thì (Priority: P1)
+### User Story 1 — Đăng Ký Tài Khoản Tức Thì & Bỏ Xác Nhận Email (Zero Friction Onboarding) (Priority: P1)
 - **GIVEN** người dùng mở `AuthModal` ở chế độ "register"
 - **WHEN** nhập Họ tên, Email hợp lệ và Mật khẩu (tối thiểu 6 ký tự) và bấm "Kích Hoạt Tài Khoản"
-- **THEN** hệ thống tạo tài khoản mới với vai trò `customer`, lưu vào `localStorage` (`cv_users`, `cv_current_user`), đồng bộ với Supabase Auth (`supabase.auth.signUp`), tự động đăng nhập và đóng modal ngay lập tức mà không cần xác nhận qua email.
+- **THEN** hệ thống:
+  1. Gửi request đến server API `/api/auth/register`.
+  2. Server sử dụng Supabase Service Role (`supabaseAdmin.auth.admin.createUser`) với tham số `email_confirm: true` để tạo tài khoản và tự động đánh dấu đã xác thực email ngay lập tức, loại bỏ hoàn toàn yêu cầu click link trong email.
+  3. Client gọi `supabase.auth.signInWithPassword` để thiết lập phiên làm việc (session + JWT token) chính thống với Supabase Auth.
+  4. Đóng modal, lưu trạng thái đăng nhập và cho phép khách hàng thực hiện mua hàng, thanh toán VietQR và truy cập Vault ngay lập tức.
 
-### User Story 2 — Đăng Nhập & Duy Trì Phiên (Priority: P1)
+### User Story 2 — Đăng Nhập & Tự Động Giải Cứu Tài Khoản Chưa Confirm (Priority: P1)
 - **GIVEN** người dùng mở `AuthModal` ở chế độ "login"
 - **WHEN** nhập Email và Mật khẩu hợp lệ
-- **THEN** hệ thống kiểm tra thông tin, thiết lập `currentUser`, đồng bộ phiên Supabase Auth (`signInWithPassword`), đóng modal và cập nhật trạng thái người dùng trên TopNav.
+- **THEN** hệ thống kiểm tra thông tin và đăng nhập qua `signInWithPassword`:
+  1. Nếu thành công: Thiết lập `currentUser`, đồng bộ phiên Supabase Auth và cập nhật TopNav.
+  2. Nếu tài khoản gặp lỗi "Email not confirmed" (do tạo trước đây khi chưa tắt confirm mail): Client tự động gọi `/api/auth/auto-confirm` để backend kích hoạt tài khoản ngay tức thì, sau đó tự động đăng nhập lại thành công mà không bắt người dùng phải check mail.
 
 ### User Story 3 — Đăng Xuất An Toàn (Priority: P2)
 - **GIVEN** người dùng đang ở trạng thái đăng nhập
@@ -75,7 +81,7 @@
 ## 4. Functional Requirements (EARS)
 
 - **FR-001 (Ubiquitous)**: THE system SHALL authenticate users using email and password with minimum 6 characters.
-- **FR-002 (Event-Driven)**: WHEN a user registers with a new email, THE system SHALL immediately activate the account with role `customer` without email confirmation delay.
+- **FR-002 (Event-Driven - Zero-Delay Activation)**: WHEN a user registers or logs in, THE system SHALL ensure the user's email status is automatically confirmed (`email_confirm: true`) via backend admin authority, eliminating email confirmation waiting screens and preventing `Email not confirmed` errors from blocking purchases.
 - **FR-003 (Event-Driven)**: WHEN an admin updates a user role at `/admin/users`, THE system SHALL update the role in client state and sync with Supabase `profiles` table.
 - **FR-004 (Event-Driven)**: WHEN an admin triggers password reset, THE system SHALL validate the new password is at least 6 characters and update the record.
 - **FR-005 (State-Driven)**: WHILE a user is authenticated, THE system SHALL display user avatar, full name, and appropriate navigation links (e.g. "Quản Trị Admin" if role is `admin`).

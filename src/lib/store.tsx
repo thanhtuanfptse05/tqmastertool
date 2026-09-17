@@ -24,8 +24,12 @@ interface StoreContextType {
   currentUser: UserProfile | null;
   isAuthLoading: boolean;
   users: UserProfile[];
-  login: (email: string, password?: string) => boolean;
-  register: (email: string, fullName: string, password?: string) => boolean;
+  login: (email: string, password?: string) => Promise<boolean>;
+  register: (
+    email: string,
+    fullName: string,
+    password?: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   adminResetPassword: (userId: string) => boolean;
   adminUpdateRole: (userId: string, role: UserRole) => void;
@@ -444,8 +448,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [fetchProductsFromDB, fetchOrdersFromDB]);
 
-  // Auth Operations: Normal Login
-  const login = (email: string, password?: string): boolean => {
+  // Auth Operations: Normal Login with Auto-Heal for unconfirmed emails
+  const login = async (email: string, password?: string): Promise<boolean> => {
     const cleanEmail = email.trim().toLowerCase();
     const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
@@ -476,45 +480,94 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     // Sync with Supabase Auth if configured
     if (isSupabaseConfigured && password) {
-      supabase.auth.signInWithPassword({ email: cleanEmail, password }).then(({ data, error }) => {
-        if (!error && data?.user) {
-          supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", data.user.id)
-            .single()
-            .then(({ data: profile }) => {
-              if (profile) {
-                const dbIsAdmin = profile.role === "admin" || isAdmin;
-                const updatedUser: UserProfile = {
-                  ...userToSet,
-                  id: data.user.id,
-                  role: dbIsAdmin ? "admin" : "customer",
-                  full_name: profile.full_name || userToSet.full_name,
-                  avatar_url: profile.avatar_url || userToSet.avatar_url,
-                };
-                setCurrentUser(updatedUser);
-                persist(STORAGE_KEYS.USER, updatedUser);
-              }
-            });
+      let { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+
+      // Auto-heal: If Supabase blocked due to unconfirmed email, auto-confirm via backend and retry!
+      if (error && (error.message.includes("Email not confirmed") || error.message.includes("email_not_confirmed"))) {
+        console.log("[Auth] Detected unconfirmed email on Supabase. Auto-confirming via backend...");
+        try {
+          const autoRes = await fetch("/api/auth/auto-confirm", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: cleanEmail }),
+          });
+          if (autoRes.ok) {
+            const retry = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+            data = retry.data;
+            error = retry.error;
+          }
+        } catch (e) {
+          console.warn("[Auth] Auto-confirm retry failed:", e);
         }
-      });
+      }
+
+      if (!error && data?.user) {
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              const dbIsAdmin = profile.role === "admin" || isAdmin;
+              const updatedUser: UserProfile = {
+                ...userToSet,
+                id: data.user.id,
+                role: dbIsAdmin ? "admin" : "customer",
+                full_name: profile.full_name || userToSet.full_name,
+                avatar_url: profile.avatar_url || userToSet.avatar_url,
+              };
+              setCurrentUser(updatedUser);
+              persist(STORAGE_KEYS.USER, updatedUser);
+            }
+          });
+      }
     }
 
     return true;
   };
 
-  const register = (email: string, fullName: string, password?: string): boolean => {
+  const register = async (
+    email: string,
+    fullName: string,
+    password?: string
+  ): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim() || cleanEmail.split("@")[0];
+
+    // Check duplicate in local state
     if (users.some((u) => u.email.toLowerCase() === cleanEmail)) {
-      return false;
+      return {
+        success: false,
+        error: "Email này đã tồn tại trong hệ thống. Vui lòng chuyển sang Đăng Nhập.",
+      };
+    }
+
+    // Call server register API with email_confirm: true (Zero confirmation delay)
+    if (password) {
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, password, fullName: cleanName }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          if (json.error && json.error.includes("tồn tại")) {
+            return { success: false, error: json.error };
+          }
+          console.warn("[Register API]", json.error);
+        }
+      } catch (err) {
+        console.warn("[Register API network fallback]:", err);
+      }
     }
 
     const isAdmin = checkIsAdminEmail(cleanEmail);
     const newUser: UserProfile = {
       id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
       email: cleanEmail,
-      full_name: fullName.trim() || cleanEmail.split("@")[0],
+      full_name: cleanName,
       avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
       role: isAdmin ? "admin" : "customer",
       created_at: new Date().toISOString(),
@@ -528,17 +581,35 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.USER, newUser);
     setIsAuthModalOpen(false);
 
+    // Immediately sign in with Supabase Auth to establish active session & JWT token
     if (isSupabaseConfigured && password) {
-      supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password,
-        options: {
-          data: { full_name: fullName.trim() },
-        },
       });
+
+      if (!error && data?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profile) {
+          const dbIsAdmin = profile.role === "admin" || isAdmin;
+          const updatedUser: UserProfile = {
+            ...newUser,
+            id: data.user.id,
+            role: dbIsAdmin ? "admin" : "customer",
+            full_name: profile.full_name || cleanName,
+          };
+          setCurrentUser(updatedUser);
+          persist(STORAGE_KEYS.USER, updatedUser);
+        }
+      }
     }
 
-    return true;
+    return { success: true };
   };
 
   const logout = () => {

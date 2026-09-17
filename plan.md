@@ -207,3 +207,18 @@
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Push commit lên remote GitHub `origin/main`.
 
+### [x] Giai Đoạn 15: Đồng Bộ Xác Thực Zero-Delay & Triệt Tiêu Yêu Cầu Confirm Email (Spec-First) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/001-user-auth/spec.md`: Nâng cấp User Story 1, User Story 2 và FR-002 (Zero-Delay Activation) đặc tả cơ chế tự động kích hoạt tài khoản ngay khi tạo và tự động giải cứu tài khoản cũ.
+- [x] **Xây dựng API Backend Auto-Confirm**:
+  - `src/app/api/auth/register/route.ts`: Tạo user trực tiếp bằng `supabaseAdmin.auth.admin.createUser({ email_confirm: true })`, đồng bộ bản ghi `profiles`, kích hoạt tài khoản tức thì mà không cần check email.
+  - `src/app/api/auth/auto-confirm/route.ts`: Tự động kích hoạt các tài khoản cũ bị kẹt trạng thái `unconfirmed`.
+- [x] **Tích Hợp Client Store & Modal**:
+  - `src/lib/store.tsx`: Chuyển `login` và `register` sang async với cơ chế auto-retry khi gặp lỗi email chưa confirm, đồng bộ Supabase JWT session lập tức.
+  - `src/components/common/AuthModal.tsx`: Bổ sung trạng thái loading `Loader2`, xử lý phản hồi lỗi rõ ràng.
+- [x] **Kiểm Thử & Triển Khai**:
+  - Script test xác thực `email_confirmed_at` sinh ngay lập tức trong Supabase.
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Đẩy code lên GitHub `origin/main`.
+
+
