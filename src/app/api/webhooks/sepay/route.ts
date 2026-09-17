@@ -5,6 +5,8 @@ import {
   formatOrderNotesWithLicense,
 } from "@/lib/coursera-keygen";
 
+export const dynamic = "force-dynamic";
+
 interface SePayWebhookBody {
   id: number | string;
   gateway: string;
