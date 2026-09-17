@@ -35,7 +35,7 @@ export default function OrderDetailModal({
   onClose,
   onOpenDeliverable,
 }: OrderDetailModalProps) {
-  const { cancelOrder, deleteOrder, setActiveOrderForPayment } = useStore();
+  const { cancelOrder, deleteOrder, setActiveOrderForPayment, products } = useStore();
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -255,46 +255,61 @@ export default function OrderDetailModal({
 
             {order.items && order.items.length > 0 ? (
               <div className="space-y-2 border border-slate-200 rounded-2xl p-3 bg-slate-50/60">
-                {order.items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between gap-3 p-2 bg-white rounded-xl border border-slate-200/80"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      {item.product_thumbnail ? (
-                        <img
-                          src={item.product_thumbnail}
-                          alt={item.product_title}
-                          className="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
-                          LAB
+                {order.items.map((item, idx) => {
+                  const matchedProd = products.find((p) => p.id === item.product_id || p.price === item.unit_price || p.price === order.total_amount);
+                  const title = matchedProd?.title || item.product_title;
+                  const category = matchedProd?.category || item.product_category;
+                  const thumb = item.product_thumbnail || matchedProd?.thumbnail_url;
+                  return (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between gap-3 p-2 bg-white rounded-xl border border-slate-200/80"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={title}
+                            className="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            LAB
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h5 className="font-bold text-slate-900 truncate text-xs">
+                            {title}
+                          </h5>
+                          <span className="text-[10px] text-slate-400 uppercase font-bold">
+                            {category}
+                          </span>
                         </div>
-                      )}
-                      <div className="min-w-0">
-                        <h5 className="font-bold text-slate-900 truncate text-xs">
-                          {item.product_title}
-                        </h5>
-                        <span className="text-[10px] text-slate-400 uppercase font-bold">
-                          {item.product_category}
-                        </span>
                       </div>
+                      <span className="font-extrabold text-slate-800 shrink-0">
+                        {formatVND(item.unit_price || order.total_amount)}
+                      </span>
                     </div>
-                    <span className="font-extrabold text-slate-800 shrink-0">
-                      {formatVND(item.unit_price || order.total_amount)}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-900 block text-xs">Gói Mã Nguồn &amp; Tài Nguyên Số LAB211</span>
-                  <span className="text-[11px] text-slate-500">Bản quyền 12 bài Lab Java MVC + Word docx</span>
-                </div>
-                <span className="font-black text-slate-900">{formatVND(order.total_amount)}</span>
-              </div>
+              (() => {
+                const matchedProd = products.find((p) => p.price === order.total_amount);
+                return (
+                  <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">
+                        {matchedProd?.title || "Gói Mã Nguồn & Tài Nguyên Số LAB211"}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        {matchedProd ? (matchedProd.category === "lab211" ? "Bản quyền 12 bài Lab Java MVC + Word docx" : matchedProd.category.toUpperCase()) : "Bản quyền 12 bài Lab Java MVC + Word docx"}
+                      </span>
+                    </div>
+                    <span className="font-black text-slate-900">{formatVND(order.total_amount)}</span>
+                  </div>
+                );
+              })()
             )}
           </div>
 

@@ -113,10 +113,13 @@ export async function GET(req: NextRequest) {
 
     // 3. Special case: Download all labs full zip
     if (labId === "all" || labId.toLowerCase() === "full") {
-      const fullZipPath = `${process.cwd()}/private_deliverables/lab211/zips/LAB211_Full.zip`;
+      let fullZipPath = `${process.cwd()}/private_deliverables/lab211/zips/LAB211_Full.zip`;
+      if (!fs.existsSync(fullZipPath) && fs.existsSync(`${process.cwd()}/LAB211.zip`)) {
+        fullZipPath = `${process.cwd()}/LAB211.zip`;
+      }
       if (fs.existsSync(fullZipPath)) {
         const fileBuffer = fs.readFileSync(fullZipPath);
-        const fileName = "LAB211_Tron_Bo_Java_OOP.zip";
+        const fileName = "LAB211.zip";
         return new NextResponse(fileBuffer, {
           status: 200,
           headers: {

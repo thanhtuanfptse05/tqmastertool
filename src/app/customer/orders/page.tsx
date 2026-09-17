@@ -321,37 +321,52 @@ export default function CustomerOrdersPage() {
                     {/* Items in order */}
                     <div className="space-y-2">
                       {order.items && order.items.length > 0 ? (
-                        order.items.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
-                            {item.product_thumbnail ? (
-                              <img
-                                src={item.product_thumbnail}
-                                alt={item.product_title}
-                                className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-[9px] flex items-center justify-center border border-blue-300 shrink-0 shadow-sm">
+                        order.items.map((item) => {
+                          const matchedProd = products.find((p) => p.id === item.product_id || p.price === item.unit_price || p.price === order.total_amount);
+                          const title = matchedProd?.title || item.product_title;
+                          const category = matchedProd?.category || item.product_category;
+                          const thumb = item.product_thumbnail || matchedProd?.thumbnail_url;
+                          return (
+                            <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
+                              {thumb ? (
+                                <img
+                                  src={thumb}
+                                  alt={title}
+                                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-[9px] flex items-center justify-center border border-blue-300 shrink-0 shadow-sm">
+                                  LAB<br />211
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-extrabold text-slate-900 truncate">{title}</h4>
+                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{category}</span>
+                              </div>
+                              <span className="text-sm font-extrabold text-slate-800 shrink-0">{formatVND(item.unit_price || order.total_amount)}</span>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        (() => {
+                          const matchedProduct = products.find((p) => p.price === order.total_amount);
+                          return (
+                            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 shadow-sm">
                                 LAB<br />211
                               </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-extrabold text-slate-900 truncate">{item.product_title}</h4>
-                              <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{item.product_category}</span>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-sm font-extrabold text-slate-900">
+                                  {matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211 Chuẩn Giảng Viên FPT"}
+                                </h4>
+                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">
+                                  {matchedProduct ? (matchedProduct.category === "lab211" ? "Gói bản quyền môn học Java Core & OOP" : matchedProduct.category.toUpperCase()) : "Gói bản quyền môn học Java Core & OOP"}
+                                </span>
+                              </div>
+                              <span className="text-sm font-extrabold text-slate-800 shrink-0">{formatVND(order.total_amount)}</span>
                             </div>
-                            <span className="text-sm font-extrabold text-slate-800 shrink-0">{formatVND(item.unit_price || order.total_amount)}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 shadow-sm">
-                            LAB<br />211
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-extrabold text-slate-900">Trọn Bộ Mã Nguồn & Đề Bài LAB211 Chuẩn Giảng Viên FPT</h4>
-                            <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Gói bản quyền môn học Java Core & OOP</span>
-                          </div>
-                          <span className="text-sm font-extrabold text-slate-800 shrink-0">{formatVND(order.total_amount)}</span>
-                        </div>
+                          );
+                        })()
                       )}
                     </div>
 

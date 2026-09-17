@@ -163,7 +163,7 @@ export default function LabDeliverableModal({
       const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=all&type=zip`;
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = "LAB211_Tron_Bo_Java_OOP.zip";
+      link.download = "LAB211.zip";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

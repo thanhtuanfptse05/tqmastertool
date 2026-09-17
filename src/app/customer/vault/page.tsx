@@ -82,23 +82,24 @@ export default function DeliverableVaultPage() {
 
       if (hasItems) {
         order.items!.forEach((item) => {
-          const product = products.find((p) => p.id === item.product_id);
+          const product = products.find((p) => p.id === item.product_id || p.price === item.unit_price || p.price === order.total_amount);
           result.push({
             order_id: order.id,
             order_code: order.order_code,
-            product_id: item.product_id,
+            product_id: item.product_id || product?.id || `order-${order.id}`,
             product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
             product_category: product?.category || item.product_category || "lab211",
           });
         });
       } else {
-        // Fallback when order_items join fails (Supabase RLS)
+        // Dynamic fallback when order_items join fails (Supabase RLS or legacy order)
+        const matchedProduct = products.find((p) => p.price === order.total_amount);
         result.push({
           order_id: order.id,
           order_code: order.order_code,
-          product_id: `order-${order.id}`,
-          product_title: "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
-          product_category: "lab211",
+          product_id: matchedProduct?.id || `order-${order.id}`,
+          product_title: matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
+          product_category: matchedProduct?.category || "lab211",
         });
       }
     });
@@ -206,7 +207,7 @@ export default function DeliverableVaultPage() {
                           item.order_id,
                           lab ? "all" : item.product_id,
                           "zip",
-                          `${item.product_title.replace(/[^a-zA-Z0-9]/g, "_")}.zip`
+                          lab ? "LAB211.zip" : `${item.product_title.replace(/[^a-zA-Z0-9]/g, "_")}.zip`
                         )
                       }
                       disabled={downloading === `${item.order_id}-${lab ? "all" : item.product_id}-zip`}

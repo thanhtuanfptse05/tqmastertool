@@ -149,6 +149,7 @@
 - **FR-011 (Default Expanded View)**: THE deliverable viewer SHALL default to an expanded/spacious reading view with the Word document rendered at generous height and full width. Users may toggle between compact and expanded modes.
 - **FR-012 (Lab Explanation & Coding Mindset Section)**: BETWEEN the Word assignment viewer and the Java source code viewer, THE system SHALL display a dedicated "Phân Tích Đề & Hướng Dẫn Tư Duy" panel providing: (1) a brief plain-Vietnamese summary of what the lab requires, (2) step-by-step coding mindset guidance (how to approach and structure the solution), and (3) key OOP concepts applied in the lab.
 - **FR-013 (FAQ Section)**: BELOW the source code viewer, THE system SHALL display a "Câu Hỏi Thường Gặp & Ôn Tập" panel containing: 3 theory questions about OOP/Java concepts relevant to the lab, 2 applied questions about extending or modifying the program features (testing adaptability), all displayed in an expandable/collapsible accordion format.
+- **FR-014 (Standardized LAB211 Package Download Filename)**: WHEN downloading the full/all lab deliverable archive from the API endpoint `/api/deliverables/lab/download?labId=all&type=zip` or clicking download in the Deliverable Vault or modal, THE download filename header and browser anchor attribute SHALL strictly be `LAB211.zip`.
 
 ---
 

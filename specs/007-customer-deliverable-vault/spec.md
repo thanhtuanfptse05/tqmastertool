@@ -67,6 +67,8 @@
 - **FR-003 (Event-Driven)**: WHEN the customer clicks "Tải Mã Nguồn (.ZIP)", THE system SHALL trigger the browser download for the authorized package.
 - **FR-004 (Optional Feature)**: WHERE a product includes a license key or Git repo, THE system SHALL display the credential block with a 1-click clipboard copy button.
 - **FR-005 (State-Driven)**: WHILE rendering `/customer/orders`, THE system SHALL display admin review notes for rejected orders.
+- **FR-006 (Exact Product Title Resolution)**: THE system SHALL dynamically and faithfully resolve the exact product title (`product.title`) for both order items and vault deliverables. If database `order_items` records are temporarily unjoined or missing, THE system SHALL cross-match `order.total_amount` or `item.product_id` against the loaded `products` catalog to retrieve the authentic product title rather than showing static hardcoded strings.
+- **FR-007 (Standardized Download File Naming)**: WHEN downloading digital packages for the LAB211 course from the vault, modal, or API, THE system SHALL name the downloaded file strictly as `LAB211.zip`.
 
 ---
 

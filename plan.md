@@ -145,7 +145,20 @@
   - Khóa chặt chỉ cho phép danh sách whitelist email cố định (`lequan12305@gmail.com`, `admin@codevault.io`) và vai trò `role === 'admin'` từ bảng profiles.
 - [x] **Kiểm thử tự động & Triển khai**:
   - Chạy bộ test thâm nhập tự động: 7/7 kịch bản tấn công bị chặn thành công 100%.
-  - Typecheck `npx tsc --noEmit` đạt 0 lỗi biên dịch.
-  - Đẩy mã nguồn lên remote GitHub `main` (`bb35c29`).
+### [x] Giai Đoạn 11: Chuẩn Hóa Tên Gói Sản Phẩm & Tên File Tải Về LAB211 (Spec-First) — ĐÃ HOÀN THÀNH
+- [x] **Cập nhật Spec trước khi sửa code**:
+  - `specs/007-customer-deliverable-vault/spec.md`: Bổ sung FR-006 (Exact Product Title Resolution) và FR-007 (Standardized Download File Naming).
+  - `specs/010-lab211-deliverable-viewer/spec.md`: Bổ sung FR-014 (Standardized LAB211 Package Download Filename).
+- [x] **Sửa lỗi lưu trữ `order_items`**:
+  - Loại bỏ trường `product_thumbnail` không tồn tại trong schema bảng `public.order_items`, đảm bảo đơn hàng mới được insert thành công 100% vào database Supabase.
+- [x] **Dynamic Fallback & Đồng bộ tên sản phẩm**:
+  - `src/lib/store.tsx`: Bổ sung cơ chế đối chiếu `total_amount` / `product_id` với catalog `products` khi map orders từ DB, giải quyết triệt để tình trạng `order.items` rỗng.
+  - `src/app/customer/orders/page.tsx` & `src/components/store/OrderDetailModal.tsx`: Luôn lấy đúng tên sản phẩm thực tế thay vì hiển thị fallback hardcoded tĩnh.
+  - `src/app/customer/vault/page.tsx`: Lấy chuẩn xác tên gói sản phẩm hiển thị trong Kho tài nguyên số.
+- [x] **Chuẩn hóa tên file tải về**:
+  - Cố định tên file tải về trọn bộ LAB211 là `LAB211.zip` trên cả 3 điểm chạm: `vault/page.tsx`, `LabDeliverableModal.tsx`, và `/api/deliverables/lab/download`.
+- [x] **Kiểm thử & Triển khai**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Đẩy code lên GitHub `origin/main`.
 
 

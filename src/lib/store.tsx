@@ -235,22 +235,49 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               ? o.order_items
               : allFallbackItems.filter((i: any) => i.order_id === o.id);
 
+          let resolvedItems = rawItems.map((item: any) => ({
+            id: item.id || `item-${item.product_id}`,
+            order_id: o.id,
+            product_id: item.product_id,
+            product_title: item.product_title || "Sản phẩm CodeVault",
+            product_category: item.product_category || "lab211",
+            product_thumbnail: item.product_thumbnail || "",
+            unit_price: Number(item.unit_price) || 0,
+            created_at: item.created_at || o.created_at,
+          }));
+
+          // Robust Fallback: If DB join returned no items, match product by total_amount
+          if (resolvedItems.length === 0) {
+            try {
+              const savedProds = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.PRODUCTS) : null;
+              const prodList: any[] = savedProds ? JSON.parse(savedProds) : [];
+              const matched = prodList.find((p: any) => Number(p.price) === Number(o.total_amount));
+              if (matched) {
+                resolvedItems = [
+                  {
+                    id: `item-${matched.id}`,
+                    order_id: o.id,
+                    product_id: matched.id,
+                    product_title: matched.title,
+                    product_category: matched.category,
+                    product_thumbnail: matched.thumbnail_url || "",
+                    unit_price: Number(matched.price),
+                    created_at: o.created_at,
+                  },
+                ];
+              }
+            } catch (err) {
+              console.warn("[fetchOrdersFromDB] Dynamic fallback match failed:", err);
+            }
+          }
+
           return {
             id: o.id,
             order_code: o.order_code,
             user_id: o.user_id,
             user_email: o.user_email || "",
             user_name: o.user_name || "",
-            items: rawItems.map((item: any) => ({
-              id: item.id || `item-${item.product_id}`,
-              order_id: o.id,
-              product_id: item.product_id,
-              product_title: item.product_title || "Sản phẩm CodeVault",
-              product_category: item.product_category || "lab211",
-              product_thumbnail: item.product_thumbnail || "",
-              unit_price: Number(item.unit_price) || 0,
-              created_at: item.created_at || o.created_at,
-            })),
+            items: resolvedItems,
             total_amount: Number(o.total_amount),
             status: (o.status === "blocked" || (o.admin_notes && o.admin_notes.includes("[BLOCKED]"))) ? "blocked" : o.status,
             payment_method: o.payment_method,
@@ -762,17 +789,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: newOrder.status,
         payment_method: newOrder.payment_method,
         vietqr_content: newOrder.vietqr_content,
-      }).then(({ error }) => {
-        if (!error) {
-          supabase.from("order_items").insert({
-            order_id: newOrder.id,
-            product_id: product.id,
-            unit_price: product.price,
-            product_title: product.title,
-            product_category: product.category,
-            product_thumbnail: product.thumbnail_url,
-          });
+      }).then(({ error: orderErr }) => {
+        if (orderErr) {
+          console.error("[createOrder] Failed to insert orders record:", orderErr);
+          return;
         }
+        supabase.from("order_items").insert({
+          order_id: newOrder.id,
+          product_id: product.id,
+          unit_price: product.price,
+          product_title: product.title,
+          product_category: product.category,
+        }).then(({ error: itemErr }) => {
+          if (itemErr) {
+            console.error("[createOrder] Failed to insert order_items record:", itemErr);
+          } else {
+            console.log(`[createOrder] Order ${newOrder.order_code} & item "${product.title}" saved successfully to DB.`);
+          }
+        });
       });
     }
 
