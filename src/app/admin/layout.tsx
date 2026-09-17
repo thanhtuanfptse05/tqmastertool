@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Lock,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -24,7 +23,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { currentUser, isAuthLoading, orders, openAuthModal, login } = useStore();
+  const { currentUser, isAuthLoading, orders, openAuthModal } = useStore();
   const pathname = usePathname();
 
   const pendingCount = orders.filter((o) => o.status === "pending_approval").length;
@@ -46,7 +45,7 @@ export default function AdminLayout({
     );
   }
 
-  // 2. RBAC Guard: If not admin, provide 1-click login or manual login
+  // 2. RBAC Guard: If not admin, require secure manual authentication
   const isAdmin = currentUser?.role === "admin";
 
   if (!isAdmin) {
@@ -60,28 +59,20 @@ export default function AdminLayout({
             Yêu Cầu Quyền Quản Trị Viên (Admin)
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Bạn hiện đang ở quyền <b>{currentUser ? currentUser.role : "Khách vãng lai"}</b>. Khu vực này chỉ dành cho Admin quản lý đơn hàng và cấu hình sản phẩm.
+            Khu vực này được bảo mật và chỉ dành riêng cho Quản trị viên hệ thống. Vui lòng đăng nhập bằng tài khoản Quản trị viên để tiếp tục.
           </p>
           <div className="pt-2 space-y-2.5">
-            {/* Quick 1-click admin login */}
-            <button
-              onClick={() => login("admin@gmail.com", "tuan0112")}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all active:scale-98 flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-blue-200" />
-              <span>Đăng Nhập Nhanh Admin (admin@gmail.com)</span>
-            </button>
-
             <button
               onClick={() => openAuthModal("login")}
-              className="w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all active:scale-98 flex items-center justify-center gap-2"
             >
-              Đăng Nhập Bằng Tài Khoản Khác
+              <Lock className="w-4 h-4" />
+              <span>Đăng Nhập Quản Trị Viên</span>
             </button>
 
             <Link
               href="/"
-              className="block w-full py-2 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              className="block w-full py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all text-center"
             >
               Quay lại Trang Chủ
             </Link>

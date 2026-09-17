@@ -54,10 +54,14 @@
 - **WHEN** bấm nút "Đăng xuất" trên menu người dùng
 - **THEN** hệ thống xóa `currentUser` khỏi state và `localStorage` (`cv_current_user`), gọi `supabase.auth.signOut()`, đưa người dùng về trạng thái Guest.
 
-### User Story 4 — Kiểm Soát Truy Cập Phân Quyền (RBAC Guard) (Priority: P1)
+### User Story 4 — Kiểm Soát Truy Cập Phân Quyền (RBAC Guard & Bảo Mật Tuyệt Đối) (Priority: P1)
 - **GIVEN** người dùng có `role !== 'admin'` hoặc chưa đăng nhập
 - **WHEN** cố gắng truy cập trực tiếp các route quản trị `/admin/*`
-- **THEN** `src/app/admin/layout.tsx` kiểm tra quyền và hiển thị cảnh báo "Truy Cập Bị Từ Chối" hoặc điều hướng về trang chủ / mở AuthModal.
+- **THEN** `src/app/admin/layout.tsx` kiểm tra quyền và hiển thị màn hình chặn truy cập an toàn ("Yêu Cầu Quyền Quản Trị Viên").
+- **SECURITY REQUIREMENT (BẢO MẬT TUYỆT ĐỐI)**:
+  - CẤM TUYỆT ĐỐI đặt các nút "Đăng Nhập Nhanh" (quick-login bypass), tự động điền credentials, hay hiển thị email/mật khẩu Admin trong giao diện client.
+  - Không được hardcode mật khẩu hay email Admin trong mã nguồn frontend.
+  - Màn hình chặn chỉ cung cấp nút "Đăng Nhập Quản Trị Viên" (kích hoạt AuthModal trống để người dùng tự nhập) và "Quay lại Trang Chủ".
 
 ### User Story 5 — Admin Quản Lý Người Dùng & Cấp Lại Mật Khẩu (Priority: P2)
 - **GIVEN** Admin truy cập `/admin/users`
@@ -75,7 +79,7 @@
 - **FR-003 (Event-Driven)**: WHEN an admin updates a user role at `/admin/users`, THE system SHALL update the role in client state and sync with Supabase `profiles` table.
 - **FR-004 (Event-Driven)**: WHEN an admin triggers password reset, THE system SHALL validate the new password is at least 6 characters and update the record.
 - **FR-005 (State-Driven)**: WHILE a user is authenticated, THE system SHALL display user avatar, full name, and appropriate navigation links (e.g. "Quản Trị Admin" if role is `admin`).
-- **FR-006 (Unwanted Behavior)**: IF a non-admin user accesses `/admin/*`, THEN THE system SHALL block access and show a 403 Forbidden screen.
+- **FR-006 (Unwanted Behavior - Anti-Leak & Secure RBAC Guard)**: IF a non-admin user accesses `/admin/*`, THEN THE system SHALL block access and show a secure Access Restricted barrier. The barrier MUST NOT display or expose any admin email, password, or 1-click login shortcut. All authentication must occur through manual credential entry via AuthModal or redirects.
 
 ---
 

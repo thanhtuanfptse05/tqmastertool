@@ -193,3 +193,17 @@
 - [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - Kiểm tra `npx tsc --noEmit` đạt 0 lỗi.
   - Push code lên remote GitHub `origin/main`.
+
+### [x] Giai Đoạn 14: Vá Lỗ Hổng Bảo Mật Khẩn Cấp — Triệt Tiêu Lộ Credentials & Nút Quick Login Admin (Spec-First) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/001-user-auth/spec.md`: Bổ sung ràng buộc bảo mật nghiêm ngặt vào User Story 4 và FR-006 (Anti-Leak & Secure RBAC Guard), nghiêm cấm bypass/quick-login hoặc lộ thông tin credentials.
+  - `specs/006-admin-order-management/spec.md`: Bổ sung yêu cầu bảo vệ phân quyền FR-001 (Anti-Leak RBAC) cho toàn bộ route quản trị `/admin/*`.
+- [x] **Loại Bỏ Hoàn Toàn Lỗ Hổng Client-side Leak**:
+  - `src/app/admin/layout.tsx`: Xóa bỏ 100% nút "Đăng Nhập Nhanh Admin (admin@gmail.com)", loại bỏ hoàn toàn mật khẩu plaintext `tuan0112` và email hardcoded khỏi bundle.
+  - Chuẩn hóa màn hình chặn RBAC: Hiển thị giao diện cảnh báo quyền riêng tư, cung cấp nút "Đăng Nhập Quản Trị Viên" (mở AuthModal form trống để tự nhập) và nút "Quay lại Trang Chủ".
+- [x] **Audit An Ninh Toàn Dự Án**:
+  - Quét regex toàn bộ codebase: Xác nhận 0 file còn chứa mật khẩu hoặc tài khoản admin bị gán cứng.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - Chạy `npx tsc --noEmit` đạt 0 lỗi.
+  - Push commit lên remote GitHub `origin/main`.
+

@@ -62,7 +62,7 @@
 
 ## 4. Functional Requirements (EARS)
 
-- **FR-001 (Ubiquitous)**: THE system SHALL restrict access to `/admin/orders` exclusively to users with `role === "admin"`.
+- **FR-001 (Ubiquitous - Anti-Leak RBAC)**: THE system SHALL restrict access to `/admin/*` exclusively to users with `role === "admin"`. For unauthorized users, THE system SHALL display an access-restricted barrier without exposing any admin emails, passwords, or 1-click login shortcuts. Authentication must be requested via manual login modal or redirecting to home.
 - **FR-002 (State-Driven)**: WHILE orders exist in `pending_approval`, THE system SHALL display an alert banner and badge counter on both the dashboard and orders header.
 - **FR-003 (Event-Driven)**: WHEN an admin clicks on the bill thumbnail or zoom button, THE system SHALL display the payment proof in a full-screen image lightbox.
 - **FR-004 (Event-Driven)**: WHEN an admin approves an order, THE system SHALL set order status to `completed`, record review timestamps, and immediately make deliverables visible in the customer's vault.
