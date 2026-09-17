@@ -5,6 +5,7 @@
 
 DO $$
 DECLARE
+  prod_edx_id UUID := 'e0a102ed-ed01-4b02-9a03-ed0000010200';
   prod1_id UUID := gen_random_uuid();
   prod2_id UUID := gen_random_uuid();
   prod3_id UUID := gen_random_uuid();
@@ -15,6 +16,94 @@ BEGIN
 
   -- 1. Xoá dữ liệu cũ nếu muốn làm sạch (tuỳ chọn)
   -- TRUNCATE public.order_items, public.orders, public.product_demos, public.products CASCADE;
+
+  -- --------------------------------------------------------
+  -- SẢN PHẨM TOOL EDX IOT102 - FPTU BONUS (Spec 012)
+  -- --------------------------------------------------------
+  INSERT INTO public.products (
+    id, category, title, slug, short_description, detailed_description,
+    price, original_price, thumbnail_url, status, deliverable_type,
+    storage_file_path, git_repo_url, access_instructions
+  ) VALUES (
+    prod_edx_id,
+    'tool',
+    'TOOL TỰ ĐỘNG EDX IOT102 – 1 CLICK LẤY FULL BONUS FPTU',
+    'tool-tu-dong-edx-iot102-fptu-bonus',
+    'Bộ tool tự động hóa hoàn thành toàn bộ khóa học, video, bài đọc và quiz edX môn IOT102 Đại học FPT siêu tốc. Giúp bạn lấy trọn vẹn điểm thưởng/bonus mà không tốn hàng chục giờ cày cuốc nhàm chán.',
+    '### 🎯 GIẢI PHÁP TỐI ƯU CHO SINH VIÊN ĐẠI HỌC FPT MÔN IOT102
+
+Khóa học **IOT102 (Internet of Things)** trên nền tảng **edX** là một trong những học phần quan trọng và có phần điểm thưởng (Bonus Points) cực kỳ giá trị để nâng cao GPA môn học. Tuy nhiên:
+- Số lượng video bài giảng và tài liệu đọc kéo dài hàng chục tuần, tốn từ **30 - 50 tiếng** ngồi canh máy tính thủ công.
+- Các checkpoint yêu cầu phải xem hết từng giây video, không được tua nhanh bừa bãi nếu không sẽ không nhận điểm.
+- Việc bấm click thủ công từng bài cực kỳ nhàm chán và lãng phí thời gian quý báu của sinh viên.
+
+---
+
+### ⚡ TÍNH NĂNG ĐỘT PHÁ CỦA TOOL EDX IOT102
+
+1. **Auto Play & Đồng Bộ Video An Toàn**: Tự động phát và đồng bộ tiến độ video lên máy chủ edX với tốc độ tối ưu, đảm bảo hệ thống edX ghi nhận 100% thời lượng hoàn thành.
+2. **Auto Next Module & Mark Completed**: Tự động chuyển tiếp giữa các bài học, modules và kích hoạt dấu tích xanh (Green Checkmark) toàn khóa học.
+3. **Checkpoint & Reading Solver**: Tự động đánh dấu hoàn tất các bài đọc bắt buộc và hỗ trợ vượt qua các câu hỏi checkpoint trong quá trình học.
+4. **Anti-Detection & Smart Delay**: Cơ chế giả lập thao tác người dùng thật với độ trễ ngẫu nhiên an toàn, tuyệt đối không gây nghẽn mạng hay bị đánh dấu bất thường.
+5. **1 Click Duy Nhất**: Giao diện trực quan tích hợp ngay trên trình duyệt, chỉ cần 1 nút bấm là tool tự động chạy từ A đến Z.
+
+---
+
+### 📦 TÀI NGUYÊN BÀN GIAO KHI MUA HÀNG (DELIVERABLES)
+
+- **Link Thư Mục Google Drive Độc Quyền**: Chứa toàn bộ file script bản mới nhất, hướng dẫn cấu hình và file backup.
+- **Video Hướng Dẫn Tận Tình**: Video full HD từ kênh **Tuấn và Quân FPT UNIVERSITY** chỉ dẫn chi tiết từ lúc tải về đến lúc ăn trọn điểm thưởng.
+- **Hỗ Trợ Cập Nhật Miễn Phí**: Cam kết update script nếu edX có bất kỳ đợt cập nhật giao diện hoặc thuật toán mới nào.
+- **Hỗ Trợ 1-1**: Giải đáp thắc mắc nếu gặp khó khăn khi cài đặt hoặc vận hành.',
+    99000,
+    199000,
+    'https://i.ytimg.com/vi/OxmUL2i8BX4/maxresdefault.jpg',
+    'published',
+    'download_file',
+    NULL,
+    'https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing',
+    '### 🚀 Hướng Dẫn Kích Hoạt & Vận Hành Tool edX IOT102:
+
+1. **Bước 1 — Tải Tool**: Nhấn nút **"Mở Thư Mục Google Drive"** bên trên để tải bộ mã nguồn script tool và các file hỗ trợ về máy tính của bạn.
+2. **Bước 2 — Xem Video Chi Tiết**: Nhấn nút **"Xem Video Hướng Dẫn"** từ kênh chính chủ **Tuấn và Quân FPT UNIVERSITY** (link YouTube đính kèm) để nắm bắt từng bước thao tác thực tế.
+3. **Bước 3 — Cài Đặt Tampermonkey / Script Runner**: Cài tiện ích mở rộng (Extension) **Tampermonkey** hoặc **Violentmonkey** trên trình duyệt (Chrome, Edge, Cốc Cốc, Brave). Sau đó import file script `.js` trong thư mục Drive vào tiện ích.
+4. **Bước 4 — Chạy Tool Trên edX**: Mở trang khóa học IOT102 của bạn trên edX, đăng nhập tài khoản. Giao diện điều khiển của Tool sẽ tự động xuất hiện ở góc màn hình.
+5. **Bước 5 — Bấm 1-Click & Nhận Điểm**: Nhấn **"Start Automation"**, tool sẽ tự động học các video, hoàn thành các phần reading và đánh dấu hoàn thành (dấu tích xanh) toàn bộ học phần.
+6. **Bước 6 — Kiểm Tra Điểm Thưởng**: Vào mục **Progress** trên edX để kiểm tra điểm số đạt 100% bonus cho môn IOT102.'
+  ) ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    price = EXCLUDED.price,
+    detailed_description = EXCLUDED.detailed_description,
+    git_repo_url = EXCLUDED.git_repo_url,
+    access_instructions = EXCLUDED.access_instructions;
+
+  INSERT INTO public.product_demos (
+    product_id, gallery_images, live_demo_url, video_demo_url,
+    demo_credentials, code_preview_snippet, features_list, tech_stack_tags
+  ) VALUES (
+    prod_edx_id,
+    '["https://i.ytimg.com/vi/OxmUL2i8BX4/maxresdefault.jpg", "https://i.ytimg.com/vi/OxmUL2i8BX4/hqdefault.jpg"]'::jsonb,
+    'https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing',
+    'https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt',
+    'Kênh hướng dẫn chính chủ: Tuấn và Quân FPT UNIVERSITY',
+    '// [CodeVault Studio] edX IOT102 Automated Bonus Bot Runner
+const bot = new EdxAutoWorker({
+  courseId: "course-v1:FPTU+IOT102x+2026",
+  autoPlayVideo: true,
+  smartDelayMs: 1500,
+  bypassCheckpoints: true,
+  targetBonusScore: 100
+});
+console.log("🚀 Bắt đầu chuỗi tự động hóa edX IOT102...");
+await bot.runScheduleSync();',
+    '["Tự động xem toàn bộ video bài giảng edX không cần canh giờ", "Tự động chuyển bài & đánh dấu hoàn thành (Green Checkmark)", "Hỗ trợ vượt qua các checkpoint reading & quiz module IOT102", "1 Click lấy trọn vẹn 100% điểm Bonus môn IOT102 FPTU", "An toàn tuyệt đối, cơ chế delay thông minh mô phỏng thao tác người dùng", "Kèm video hướng dẫn cài đặt & vận hành chi tiết từ A-Z"]'::jsonb,
+    '["edX Automation", "IOT102", "FPT University", "JavaScript", "Tampermonkey / Extension", "Auto Bot"]'::jsonb
+  ) ON CONFLICT (product_id) DO UPDATE SET
+    gallery_images = EXCLUDED.gallery_images,
+    live_demo_url = EXCLUDED.live_demo_url,
+    video_demo_url = EXCLUDED.video_demo_url,
+    features_list = EXCLUDED.features_list,
+    tech_stack_tags = EXCLUDED.tech_stack_tags;
 
   -- --------------------------------------------------------
   -- SẢN PHẨM 1: TOOL - Shopee Affiliate Auto Bot Pro

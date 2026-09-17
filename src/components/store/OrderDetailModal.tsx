@@ -20,6 +20,9 @@ import {
   Trash2,
   ExternalLink,
   Sparkles,
+  Play,
+  FolderDown,
+  BookOpen,
 } from "lucide-react";
 
 interface OrderDetailModalProps {
@@ -40,6 +43,14 @@ export default function OrderDetailModal({
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!isOpen || !order) return null;
+
+  const isTool =
+    order.items?.some((i) => i.product_category === "tool") ||
+    products.find(
+      (p) =>
+        p.id === order.items?.[0]?.product_id ||
+        p.price === order.total_amount
+    )?.category === "tool";
 
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -313,6 +324,54 @@ export default function OrderDetailModal({
             )}
           </div>
 
+          {/* Tool Deliverables Quick Access — Khi đơn hàng Tool đã hoàn tất */}
+          {order.status === "completed" && isTool && (
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-400/40 shadow-sm space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  Tài Nguyên Tool Đã Mở Khóa:
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
+                  ĐÃ MỞ KHÓA
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Đơn hàng đã hoàn tất thành công! Bạn có thể truy cập ngay thư mục Google Drive tải tool và xem video hướng dẫn của kênh Tuấn và Quân FPT.
+              </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <a
+                  href="https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <FolderDown className="w-3.5 h-3.5" />
+                  Mở Google Drive Tải Tool
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm shadow-rose-500/20 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <Play className="w-3.5 h-3.5" />
+                  Xem Video YouTube
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="/customer/vault"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                  Vào Kho Tài Nguyên
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* Payment Proof Image — hiện khi đã nộp bill */}
           {(order.status === "pending_approval" || order.status === "completed" || order.status === "rejected") && order.payment_proof_image && (
             <div>
@@ -416,17 +475,37 @@ export default function OrderDetailModal({
               </button>
             )}
 
-            {order.status === "completed" && onOpenDeliverable && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenDeliverable(order.id, order.order_code);
-                }}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
-              >
-                <Package className="w-3.5 h-3.5" />
-                Xem Đề Bài Word &amp; Code
-              </button>
+            {order.status === "completed" && (
+              isTool ? (
+                <a
+                  href="/customer/vault"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Mở Kho Tool &amp; Hướng Dẫn
+                </a>
+              ) : onOpenDeliverable ? (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenDeliverable(order.id, order.order_code);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  Xem Đề Bài Word &amp; Code
+                </button>
+              ) : (
+                <a
+                  href="/customer/vault"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  Vào Kho Tài Nguyên
+                </a>
+              )
             )}
           </div>
         </div>

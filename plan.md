@@ -161,4 +161,18 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Đẩy code lên GitHub `origin/main`.
 
+### [x] Giai Đoạn 12: Bổ Sung Sản Phẩm Tool edX IOT102 & Tối Ưu Bàn Giao Tài Nguyên Số (Spec 012) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First**: Tạo `specs/012-tool-edx-iot102-data-and-deliverables/spec.md`.
+- [x] **Đẩy data lên Supabase**:
+  - Chèn sản phẩm `TOOL TỰ ĐỘNG EDX IOT102 – 1 CLICK LẤY FULL BONUS FPTU` vào `public.products`.
+  - Chèn rich demo (Video YouTube Tuấn và Quân FPT, Link Google Drive, Features list, Tech tags) vào `public.product_demos`.
+- [x] **Tối ưu hiển thị Deliverables Vault & Order Details**:
+  - `src/app/customer/vault/page.tsx`: Hiển thị nút "Mở Google Drive", "Video HD" và modal "Hướng Dẫn Cài Đặt" riêng biệt cho danh mục Tool.
+  - `src/components/store/ProductDescriptionRenderer.tsx`: Không hiển thị banner tặng Web OOP Java cho Tool, render cấu trúc mô tả Tool và Deliverables Matrix chuẩn mực.
+  - `src/components/store/OrderDetailModal.tsx`: Hiển thị khối truy cập nhanh Tool và nút "Mở Kho Tool & Hướng Dẫn" khi đơn hàng Tool hoàn tất.
+- [x] **Typecheck & Git Commit**:
+  - Kiểm tra `npx tsc --noEmit` đạt 0 lỗi.
+  - Push lên remote GitHub `main`.
+
+
 
