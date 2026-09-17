@@ -62,12 +62,14 @@
 - **WHEN** chọn file ZIP mã nguồn từ máy tính
 - **THEN** client gửi file qua `POST /api/admin/upload/deliverable`, server lưu vào private bucket `digital-deliverables` tại `packages/{timestamp}_{name}.zip`, điền tự động `storage_file_path` vào form.
 
-### User Story 4 — Chỉnh Sửa & Xóa Mềm Sản Phẩm (Priority: P1)
-- **GIVEN** Admin muốn cập nhật giá hoặc ẩn một sản phẩm
-- **WHEN** bấm nút "Sửa" hoặc "Xóa"
+### User Story 4 — Chỉnh Sửa & Xóa Vĩnh Viễn Sản Phẩm (Hard Delete) (Priority: P1)
+- **GIVEN** Admin muốn chỉnh sửa hoặc xóa vĩnh viễn một sản phẩm khỏi hệ thống
+- **WHEN** Admin bấm nút biểu tượng thùng rác (Xóa) tại hàng sản phẩm tương ứng trong bảng `/admin/products`
 - **THEN**:
-  - Bấm "Sửa": form điền sẵn dữ liệu cũ, bấm lưu gọi `adminUpdateProduct`.
-  - Bấm "Xóa": hệ thống thực hiện xóa mềm bằng cách gọi `adminArchiveProduct`, chuyển trạng thái thành `archived` và ẩn khỏi Storefront.
+  - Hệ thống mở Hộp thoại xác nhận nguy hiểm (Confirm Modal) hiển thị tên sản phẩm cần xóa.
+  - Khi Admin bấm "Xác Nhận Xóa Vĩnh Viễn", client gọi `adminDeleteProduct(productId)` -> kích hoạt API `DELETE /api/admin/products?productId=...`.
+  - Server xác thực quyền Quản trị viên (Admin), dọn dẹp các dữ liệu demo liên quan trong `product_demos` và xóa vĩnh viễn bản ghi khỏi bảng `products` trong Supabase.
+  - State của ứng dụng và LocalStorage được cập nhật ngay lập tức, loại bỏ sản phẩm khỏi giao diện bảng quản trị và Storefront.
 
 ---
 
@@ -76,7 +78,7 @@
 - **FR-001 (Ubiquitous)**: THE system SHALL validate that Title, Price, and Category are non-empty upon product save.
 - **FR-002 (Event-Driven)**: WHEN an admin uploads thumbnail or gallery files via `POST /api/admin/upload/asset`, THE server SHALL validate MIME types (JPG, PNG, WEBP, GIF, SVG), verify size <= 10MB, and store in bucket `product-assets`.
 - **FR-003 (Event-Driven)**: WHEN an admin uploads deliverable packages via `POST /api/admin/upload/deliverable`, THE server SHALL verify size <= 50MB and store in private bucket `digital-deliverables`.
-- **FR-004 (Event-Driven)**: WHEN an admin archives a product, THE system SHALL update its status to `archived` to preserve historical order references.
+- **FR-004 (Event-Driven)**: WHEN an admin confirms permanent deletion of a product, THE system SHALL invoke `DELETE /api/admin/products` to purge the product and related demo records permanently from Supabase and clear it from local state.
 - **FR-005 (State-Driven)**: WHILE editing a product, THE system SHALL support `deliverable_type` options: `download_file`, `git_access`, `license_key`, `instructions_only`.
 
 ---
@@ -92,6 +94,12 @@
 - **Purpose**: Upload file mã nguồn .ZIP vào private bucket `digital-deliverables`.
 - **Limit**: Max 50MB; MIME `application/zip` hoặc file nén.
 - **Response**: `{ success: true, storagePath: string, fileName: string, size: number }`.
+
+### 3. `DELETE /api/admin/products`
+- **Purpose**: Xóa vĩnh viễn sản phẩm và các cấu hình demo liên quan khỏi Supabase.
+- **Query Params**: `productId` (UUID v4 của sản phẩm cần xóa).
+- **Security**: Chỉ Quản trị viên (Admin) được phép thực hiện (xác thực `getAuthenticatedUser`).
+- **Response**: `{ success: true, message: "Đã xóa vĩnh viễn sản phẩm thành công." }`.
 
 ---
 

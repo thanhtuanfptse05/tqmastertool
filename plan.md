@@ -86,7 +86,7 @@
   - **2 Nút thao tác chính:** **[Duyệt Đơn]** (Approve -> status `completed`) và **[Từ Chối]** (Reject kèm ghi chú lý do).
 - [x] **Admin Products CRUD:**
   - Form tạo/sửa sản phẩm: Tải ảnh, nhập giá, chọn danh mục, điền link live demo, link video, upload file zip vào private storage.
-  - Xóa mềm sản phẩm (`archived`).
+  - Xóa vĩnh viễn sản phẩm (Hard Delete với Modal xác nhận nguy hiểm và API dọn dẹp Supabase).
 - [x] **Admin Users & Password Reset:**
   - Quản lý người dùng, đổi quyền Customer ↔ Admin, cấp lại mật khẩu trực tiếp.
 
