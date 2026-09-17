@@ -21,8 +21,10 @@ import {
   Check,
   Wrench,
   Layers,
+  Key,
 } from "lucide-react";
 import LabDeliverableModal from "@/components/store/LabDeliverableModal";
+import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
 
 export default function DeliverableVaultPage() {
   const { currentUser, orders, products } = useStore();
@@ -40,10 +42,25 @@ export default function DeliverableVaultPage() {
     instructions?: string;
     driveUrl: string;
     videoUrl?: string;
+    licenseKey?: string;
+    courseraEmail?: string;
   } | null>(null);
 
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
+
+  const handleCopyKey = (key: string) => {
+    navigator.clipboard.writeText(key);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const getYouTubeEmbedUrl = (url?: string) => {
+    if (!url) return "https://www.youtube.com/embed/qld1bT_U8AQ";
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+  };
 
   // Authenticated download — sends Bearer token so API security gate passes
   const handleAuthDownload = async (
@@ -97,9 +114,12 @@ export default function DeliverableVaultPage() {
       product_title: string;
       product_category: string;
       product?: Product;
+      license_key?: string;
+      coursera_email?: string;
     }> = [];
 
     completed.forEach((order) => {
+      const { licenseKey, courseraEmail } = extractOrderLicenseInfo(order);
       const hasItems = order.items && order.items.length > 0;
 
       if (hasItems) {
@@ -117,6 +137,8 @@ export default function DeliverableVaultPage() {
             product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
             product_category: product?.category || item.product_category || "lab211",
             product: product,
+            license_key: licenseKey || order.license_key,
+            coursera_email: courseraEmail || order.user_email,
           });
         });
       } else {
@@ -129,6 +151,8 @@ export default function DeliverableVaultPage() {
           product_title: matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
           product_category: matchedProduct?.category || "lab211",
           product: matchedProduct,
+          license_key: licenseKey || order.license_key,
+          coursera_email: courseraEmail || order.user_email,
         });
       }
     });
@@ -189,14 +213,20 @@ export default function DeliverableVaultPage() {
             const isTool = item.product_category === "tool";
             const catColor = getCategoryColor(item.product_category);
 
+            const isCoursera = item.product_title.toLowerCase().includes("coursera");
+
             const toolDriveUrl =
               item.product?.git_repo_url ||
               item.product?.demo?.live_demo_url ||
-              "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing";
+              (isCoursera
+                ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
+                : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing");
 
             const toolVideoUrl =
               item.product?.demo?.video_demo_url ||
-              "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt";
+              (isCoursera
+                ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
+                : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt");
 
             return (
               <div
@@ -267,6 +297,8 @@ export default function DeliverableVaultPage() {
                               instructions: item.product?.access_instructions,
                               driveUrl: toolDriveUrl,
                               videoUrl: toolVideoUrl,
+                              licenseKey: item.license_key,
+                              courseraEmail: item.coursera_email,
                             })
                           }
                           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 whitespace-nowrap"
@@ -313,8 +345,51 @@ export default function DeliverableVaultPage() {
                       </>
                     )}
                   </div>
-
                 </div>
+
+                {/* License Key Box if applicable */}
+                {item.license_key && (
+                  <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                            <Key className="w-3.5 h-3.5" />
+                            License Key Bản Quyền
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-extrabold">
+                            Vĩnh Viễn (PERM)
+                          </span>
+                        </div>
+                        <div className="font-mono text-sm sm:text-base font-bold text-cyan-300 tracking-wider break-all select-all">
+                          {item.license_key}
+                        </div>
+                        {item.coursera_email && (
+                          <div className="text-[11px] text-slate-400">
+                            Email kích hoạt Coursera: <span className="text-slate-200 font-semibold">{item.coursera_email}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => handleCopyKey(item.license_key!)}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
+                      >
+                        {copiedKey === item.license_key ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-slate-950" />
+                            <span>Đã sao chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-950" />
+                            <span>Sao chép Key</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -397,6 +472,50 @@ export default function DeliverableVaultPage() {
                 </p>
               </div>
 
+              {/* License Key in Modal if available */}
+              {activeToolModal.licenseKey && (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                          <Key className="w-3.5 h-3.5" />
+                          License Key Kích Hoạt Của Bạn
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-extrabold">
+                          Vĩnh Viễn (PERM)
+                        </span>
+                      </div>
+                      <div className="font-mono text-base sm:text-lg font-black text-cyan-300 tracking-wider break-all select-all">
+                        {activeToolModal.licenseKey}
+                      </div>
+                      {activeToolModal.courseraEmail && (
+                        <div className="text-xs text-slate-300">
+                          Email Coursera kích hoạt: <span className="text-cyan-300 font-semibold">{activeToolModal.courseraEmail}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleCopyKey(activeToolModal.licenseKey!)}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/25 shrink-0"
+                    >
+                      {copiedKey === activeToolModal.licenseKey ? (
+                        <>
+                          <Check className="w-4 h-4 text-slate-950" />
+                          <span>Đã sao chép</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 text-slate-950" />
+                          <span>Sao chép Key</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <a
@@ -411,7 +530,7 @@ export default function DeliverableVaultPage() {
                     </div>
                     <div className="text-left">
                       <div className="text-xs font-black">Google Drive Folder</div>
-                      <div className="text-[11px] text-emerald-700 font-normal">Tải script và bộ cài tool</div>
+                      <div className="text-[11px] text-emerald-700 font-normal">Tải extension và bộ cài tool</div>
                     </div>
                   </div>
                   <ExternalLink className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
@@ -429,7 +548,7 @@ export default function DeliverableVaultPage() {
                         <Play className="w-5 h-5" />
                       </div>
                       <div className="text-left">
-                        <div className="text-xs font-black">Video YouTube</div>
+                        <div className="text-xs font-black">Video YouTube Hướng Dẫn</div>
                         <div className="text-[11px] text-rose-700 font-normal">Kênh Tuấn và Quân FPT</div>
                       </div>
                     </div>
@@ -446,7 +565,7 @@ export default function DeliverableVaultPage() {
                     Video Hướng Dẫn Thao Tác Trực Quan:
                   </span>
                   <button
-                    onClick={() => handleCopyLink(activeToolModal.videoUrl || "https://youtu.be/OxmUL2i8BX4")}
+                    onClick={() => handleCopyLink(activeToolModal.videoUrl || "https://youtu.be/qld1bT_U8AQ")}
                     className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
                   >
                     {copiedLink ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -455,8 +574,8 @@ export default function DeliverableVaultPage() {
                 </div>
                 <div className="aspect-video w-full">
                   <iframe
-                    src="https://www.youtube.com/embed/OxmUL2i8BX4"
-                    title="Video Hướng Dẫn Tool edX IOT102"
+                    src={getYouTubeEmbedUrl(activeToolModal.videoUrl)}
+                    title={activeToolModal.productTitle}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -471,42 +590,83 @@ export default function DeliverableVaultPage() {
                   Hướng Dẫn Cài Đặt Chi Tiết Từng Bước:
                 </h4>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs leading-relaxed">
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
-                    <div>
-                      <strong className="text-slate-900">Tải bộ mã nguồn Tool</strong>: Nhấn nút <b>Google Drive</b> ở trên để tải toàn bộ thư mục tool về máy tính.
+                {activeToolModal.productTitle.toLowerCase().includes("coursera") ? (
+                  /* Coursera Instructions */
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs leading-relaxed">
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                      <div>
+                        <strong className="text-slate-900">Tải bộ cài Tool từ Google Drive</strong>: Bấm nút <b>Google Drive Folder</b> ở trên và tải toàn bộ thư mục tiện ích về máy tính, sau đó giải nén (Unzip) ra một thư mục.
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
-                    <div>
-                      <strong className="text-slate-900">Xem kỹ video hướng dẫn</strong>: Mở video trên của kênh <b>Tuấn và Quân FPT UNIVERSITY</b> để hiểu cách import script vào trình duyệt.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                      <div>
+                        <strong className="text-slate-900">Mở trang tiện ích Chrome</strong>: Mở trình duyệt Chrome / Cốc Cốc / Edge, truy cập đường dẫn <code className="bg-slate-200 px-1.5 py-0.5 rounded text-blue-700 font-mono">chrome://extensions</code> trên thanh địa chỉ.
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
-                    <div>
-                      <strong className="text-slate-900">Cài đặt tiện ích mở rộng</strong>: Cài extension <b>Tampermonkey</b> hoặc <b>Violentmonkey</b> trên Chrome / Edge / Cốc Cốc, sau đó nạp file script vào extension.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                      <div>
+                        <strong className="text-slate-900">Bật Chế độ Nhà phát triển &amp; Load Unpacked</strong>: Bật công tắc <b>Developer mode (Chế độ dành cho nhà phát triển)</b> ở góc trên bên phải, bấm nút <b>Tải tiện ích đã giải nén (Load unpacked)</b> và chọn thư mục tool vừa giải nén ở Bước 1.
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">4</span>
-                    <div>
-                      <strong className="text-slate-900">Khởi chạy trên edX</strong>: Đăng nhập tài khoản edX, vào khóa học <b>IOT102</b> và bấm nút kích hoạt automation để tool tự động cày video và modules.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">4</span>
+                      <div>
+                        <strong className="text-slate-900">Đăng nhập tài khoản Coursera</strong>: Truy cập Coursera.org và đăng nhập đúng tài khoản có email {activeToolModal.courseraEmail ? <b className="text-blue-600 font-semibold">{activeToolModal.courseraEmail}</b> : "bạn đã nhập khi đặt mua"}.
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">5</span>
-                    <div>
-                      <strong className="text-slate-900">Kiểm tra kết quả</strong>: Kiểm tra tab Progress trên edX để xác nhận 100% điểm bonus môn IOT102.
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">5</span>
+                      <div>
+                        <strong className="text-slate-900">Nhập License Key kích hoạt bản quyền</strong>: Mở popup extension hoặc vào bất kỳ bài học nào trên Coursera, dán mã <b>License Key</b> ở trên vào ô kích hoạt và bấm Xác nhận để tự động kích hoạt Auto Skip Video, Reading và AI Quiz Solver!
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  /* Standard / edX Instructions */
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs leading-relaxed">
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">1</span>
+                      <div>
+                        <strong className="text-slate-900">Tải bộ mã nguồn Tool</strong>: Nhấn nút <b>Google Drive</b> ở trên để tải toàn bộ thư mục tool về máy tính.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">2</span>
+                      <div>
+                        <strong className="text-slate-900">Xem kỹ video hướng dẫn</strong>: Mở video trên của kênh <b>Tuấn và Quân FPT UNIVERSITY</b> để hiểu cách import script vào trình duyệt.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">3</span>
+                      <div>
+                        <strong className="text-slate-900">Cài đặt tiện ích mở rộng</strong>: Cài extension <b>Tampermonkey</b> hoặc <b>Violentmonkey</b> trên Chrome / Edge / Cốc Cốc, sau đó nạp file script vào extension.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">4</span>
+                      <div>
+                        <strong className="text-slate-900">Khởi chạy trên trang học</strong>: Đăng nhập tài khoản, vào khóa học và bấm nút kích hoạt automation để tool tự động cày video và modules.
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">5</span>
+                      <div>
+                        <strong className="text-slate-900">Kiểm tra kết quả</strong>: Kiểm tra thanh tiến độ (Progress) để xác nhận 100% hoàn thành khóa học.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Support Contact Note */}
@@ -514,7 +674,7 @@ export default function DeliverableVaultPage() {
                 <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold">Hỗ Trợ Kỹ Thuật 1-1: </span>
-                  Nếu bạn gặp khó khăn trong quá trình cài đặt tiện ích hoặc chạy script trên edX, vui lòng liên hệ Admin qua kênh hỗ trợ để được hướng dẫn trực tiếp qua Ultraviewer / Anydesk hoàn toàn miễn phí.
+                  Nếu bạn gặp khó khăn trong quá trình cài đặt tiện ích hoặc kích hoạt key, vui lòng liên hệ Admin qua kênh hỗ trợ Zalo/Telegram để được hướng dẫn trực tiếp qua Ultraviewer / Anydesk hoàn toàn miễn phí.
                 </div>
               </div>
             </div>

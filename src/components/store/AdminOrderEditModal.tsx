@@ -15,7 +15,13 @@ import {
   Clock,
   QrCode,
   XCircle,
+  Key,
 } from "lucide-react";
+import {
+  generateCourseraLicenseKey,
+  extractOrderLicenseInfo,
+  formatOrderNotesWithLicense,
+} from "@/lib/coursera-keygen";
 
 interface AdminOrderEditModalProps {
   order: Order | null;
@@ -51,9 +57,23 @@ export default function AdminOrderEditModal({
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      let finalAdminNotes = adminNotes;
+      if (status === "completed") {
+        const { courseraEmail } = extractOrderLicenseInfo({ ...order, admin_notes: adminNotes });
+        const email = courseraEmail || order.user_email;
+        const isCoursera =
+          order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
+          Boolean(courseraEmail);
+
+        if (isCoursera && email && !finalAdminNotes.includes("CSR-PERM")) {
+          const key = generateCourseraLicenseKey(email);
+          finalAdminNotes = formatOrderNotesWithLicense(finalAdminNotes, key, email);
+        }
+      }
+
       await adminUpdateOrder(order.id, {
         status,
-        admin_notes: adminNotes,
+        admin_notes: finalAdminNotes,
         transaction_ref: transactionRef,
         total_amount: totalAmount,
         reviewed_at: new Date().toISOString(),

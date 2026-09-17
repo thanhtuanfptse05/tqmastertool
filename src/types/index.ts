@@ -86,6 +86,7 @@ export interface Order {
   reviewed_by_admin_id?: UUID;
   reviewed_at?: string;
   admin_notes?: string;
+  license_key?: string;
   
   created_at: string;
   updated_at: string;
@@ -103,6 +104,7 @@ export interface OrderItem {
   product_title: string;
   product_category: ProductCategory;
   product_thumbnail?: string;
+  license_key?: string;
   created_at: string;
 }
 

@@ -21,6 +21,8 @@ import {
   AlertCircle,
   ArrowRight,
   Loader2,
+  Mail,
+  Key,
 } from "lucide-react";
 
 export default function CheckoutModal() {
@@ -42,6 +44,22 @@ export default function CheckoutModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingBill, setIsUploadingBill] = useState(false);
   const [billUploadError, setBillUploadError] = useState<string | null>(null);
+
+  const isLicenseRequired =
+    checkoutProduct?.deliverable_type === "license_key" ||
+    checkoutProduct?.slug.toLowerCase().includes("coursera") ||
+    checkoutProduct?.title.toLowerCase().includes("coursera");
+
+  const [customerEmail, setCustomerEmail] = useState<string>("");
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (activeOrderForPayment?.user_email && !customerEmail) {
+      setCustomerEmail(activeOrderForPayment.user_email);
+    } else if (currentUser?.email && !customerEmail) {
+      setCustomerEmail(currentUser.email);
+    }
+  }, [activeOrderForPayment, currentUser]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,6 +134,7 @@ export default function CheckoutModal() {
         }
       } catch {}
 
+      const cleanEmail = customerEmail.trim().toLowerCase();
       const res = await fetch("/api/orders", {
         method: "PATCH",
         headers,
@@ -124,6 +143,8 @@ export default function CheckoutModal() {
           status: "pending_approval",
           payment_proof_image: billImage,
           transaction_ref: ref,
+          customer_email: cleanEmail,
+          admin_notes: cleanEmail ? `[COURSERA_EMAIL: ${cleanEmail}]` : undefined,
         }),
       });
 
@@ -153,6 +174,18 @@ export default function CheckoutModal() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleProceedToUpload = () => {
+    if (isLicenseRequired) {
+      const trimmed = customerEmail.trim().toLowerCase();
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!trimmed || !emailRegex.test(trimmed)) {
+        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera để hệ thống cấp License Key!");
+        return;
+      }
+    }
+    setStep("upload");
   };
 
   return (
@@ -218,6 +251,47 @@ export default function CheckoutModal() {
                   <span className="text-slate-400 font-semibold block mb-0.5">Sản phẩm đặt mua:</span>
                   <p className="font-extrabold text-slate-900 line-clamp-1">{checkoutProduct.title}</p>
                 </div>
+
+                {/* Mandatory Coursera License Email */}
+                {isLicenseRequired && (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/90 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
+                        <Mail className="w-4 h-4 text-indigo-600" />
+                        Email Coursera Kích Hoạt Key:
+                        <span className="text-rose-500">* Bắt buộc</span>
+                      </label>
+                      <span className="text-[10px] text-indigo-800 font-extrabold bg-indigo-200/60 px-2 py-0.5 rounded-full border border-indigo-300">
+                        Cấp Key VIP
+                      </span>
+                    </div>
+
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => {
+                        setCustomerEmail(e.target.value);
+                        if (emailError) setEmailError(null);
+                      }}
+                      placeholder="Nhập email đăng nhập Coursera của bạn..."
+                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-indigo-300 focus:outline-none focus:border-indigo-600 bg-white font-mono font-bold text-slate-900 shadow-sm"
+                    />
+
+                    <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
+                      <span className="font-bold shrink-0">⚠️ Lưu ý:</span>
+                      <span>
+                        License Key sẽ được hệ thống mã hóa gắn liền với Email này. Vui lòng điền <b>chính xác email bạn dùng trên Coursera</b>.
+                      </span>
+                    </p>
+
+                    {emailError && (
+                      <p className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                   <div className="flex items-center justify-between">
@@ -301,7 +375,7 @@ export default function CheckoutModal() {
                 Hủy
               </button>
               <button
-                onClick={() => setStep("upload")}
+                onClick={handleProceedToUpload}
                 className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95"
               >
                 <span>Tôi đã chuyển khoản — Tải ảnh bill</span>
@@ -322,6 +396,24 @@ export default function CheckoutModal() {
                 Tải lên ảnh chụp màn hình ứng dụng ngân hàng hoặc cung cấp mã giao dịch để Admin đối chiếu số dư.
               </p>
             </div>
+
+            {isLicenseRequired && customerEmail && (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span className="text-slate-700">
+                    Email nhận License Key: <b className="font-mono text-indigo-950">{customerEmail}</b>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep("qr")}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline"
+                >
+                  Đổi email
+                </button>
+              </div>
+            )}
 
             {/* Bill Upload & Preview Area */}
             <div className={`space-y-3 p-4 rounded-2xl border-2 border-dashed ${!billImage ? 'border-rose-300 bg-rose-50/30' : 'border-blue-200 bg-blue-50/40'}`}>

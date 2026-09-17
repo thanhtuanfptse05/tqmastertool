@@ -32,7 +32,7 @@
 | **Phase 5** | **Admin Portal, Full CRUD & Duyệt Đơn** | Hybrid | ✅ DONE | `/admin/*`, Dashboard, Approval Drawer |
 | **Phase 6** | **Kho Bàn Giao (Customer Deliverable Vault)** | SDD Pure | ✅ DONE | `/customer/orders/:id`, Signed URLs |
 | **Phase 7** | **Tối Ưu 60 FPS Three.js, Testing & Audit** | Hybrid | ✅ DONE | Lighthouse, Security Checklist, E2E |
-| **Phase 8** | **LAB211 Deliverable Viewer (Spec 010)** | SDD Pure | ✅ DONE | Word Preview, Java IDE, Exact Downloads |
+| **Phase 13** | **Tool Coursera & Auto License Keygen (Spec 013)** | SDD Pure | ✅ DONE | Keygen engine, Checkout, Vault, Supabase Seed |
 
 ---
 
@@ -174,5 +174,22 @@
   - Kiểm tra `npx tsc --noEmit` đạt 0 lỗi.
   - Push lên remote GitHub `main`.
 
-
-
+### [x] Giai Đoạn 13: Bổ Sung Tool Coursera Auto Skip & Hệ Thống Tự Động Sinh License Key (Spec 013) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/013-tool-coursera-skip-extension-and-license-keygen/spec.md`.
+- [x] **Tạo Module Sinh License Key Chuẩn SHA-256**:
+  - `src/lib/coursera-keygen.ts`: Viết hàm sinh key 100% khớp thuật toán `admin_keygen.html` và cơ chế xác thực của `content.js` (`SECRET_SALT = "Coursera_Skip_VIP_2024_@XyZ_Secret_Key_999"`, format `CSR-PERM-0000-XXXX-XXXX-XXXX-XXXX`).
+- [x] **Bắt Buộc Nhập Email Tài Khoản Coursera Tại Checkout**:
+  - Cập nhật `CheckoutModal.tsx`: Bắt buộc khách nhập hoặc xác nhận email Coursera khi mua sản phẩm yêu cầu License Key.
+- [x] **Tự Động Sinh & Lưu License Key Khi Hoàn Tất Đơn Hàng**:
+  - Cập nhật SePay webhook `/api/webhooks/sepay/route.ts` & Admin order review `/api/orders/route.ts`: Tự động sinh key và lưu vào đơn hàng khi `status === 'completed'`.
+  - Cập nhật `src/lib/store.tsx`: Đồng bộ hóa state License Key local và backend.
+- [x] **Bàn Giao Bản Quyền Tại Vault & Chi Tiết Đơn Hàng**:
+  - `src/app/customer/vault/page.tsx`: Render thẻ License Key nổi bật với nút 1-click copy, link Google Drive, video YouTube embed (`qld1bT_U8AQ`) và tài liệu hướng dẫn kích hoạt.
+  - `src/components/store/OrderDetailModal.tsx`: Hiển thị License Key và link tài nguyên của Tool Coursera.
+- [x] **Đẩy Dữ Liệu Lên Supabase**:
+  - Tạo script `scripts/seed-tool-coursera.js` và nạp vào database `products` và `product_demos`.
+- [x] **Admin Portal Quản Trị Key**:
+  - Cập nhật `AdminOrdersPage` & `AdminOrderEditModal`: Hiển thị Email Coursera, License Key và cho phép copy/tái tạo key.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - Kiểm tra `npx tsc --noEmit` đạt 0 lỗi.
+  - Push code lên remote GitHub `origin/main`.

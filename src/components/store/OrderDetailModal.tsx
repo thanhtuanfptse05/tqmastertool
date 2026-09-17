@@ -23,7 +23,9 @@ import {
   Play,
   FolderDown,
   BookOpen,
+  Key,
 } from "lucide-react";
+import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -325,52 +327,119 @@ export default function OrderDetailModal({
           </div>
 
           {/* Tool Deliverables Quick Access — Khi đơn hàng Tool đã hoàn tất */}
-          {order.status === "completed" && isTool && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-400/40 shadow-sm space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5 uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  Tài Nguyên Tool Đã Mở Khóa:
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
-                  ĐÃ MỞ KHÓA
-                </span>
+          {order.status === "completed" && isTool && (() => {
+            const { licenseKey, courseraEmail } = extractOrderLicenseInfo(order);
+            const effectiveKey = licenseKey || order.license_key;
+            const isCoursera =
+              order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
+              Boolean(order.admin_notes && order.admin_notes.includes("CSR-PERM")) ||
+              products.find(
+                (p) =>
+                  (p.id === order.items?.[0]?.product_id || p.price === order.total_amount) &&
+                  p.title.toLowerCase().includes("coursera")
+              ) !== undefined;
+
+            const driveUrl = isCoursera
+              ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
+              : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing";
+
+            const videoUrl = isCoursera
+              ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
+              : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt";
+
+            return (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-400/40 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-emerald-950 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                    Tài Nguyên Tool Đã Mở Khóa:
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
+                    ĐÃ MỞ KHÓA
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Đơn hàng đã hoàn tất thành công! Bạn có thể truy cập ngay thư mục Google Drive tải tool, lấy mã License Key và xem video hướng dẫn của kênh Tuấn và Quân FPT.
+                </p>
+
+                {/* License Key Box if available */}
+                {effectiveKey && (
+                  <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-400 uppercase tracking-wider">
+                            <Key className="w-3.5 h-3.5" />
+                            License Key Bản Quyền
+                          </span>
+                          <span className="px-2 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-extrabold">
+                            Vĩnh Viễn
+                          </span>
+                        </div>
+                        <div className="font-mono text-xs sm:text-sm font-bold text-cyan-300 tracking-wider break-all select-all">
+                          {effectiveKey}
+                        </div>
+                        {(courseraEmail || order.user_email) && (
+                          <div className="text-[10px] text-slate-400">
+                            Email kích hoạt: <span className="text-slate-200 font-semibold">{courseraEmail || order.user_email}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => copyToClipboard(effectiveKey, "license_key")}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
+                      >
+                        {copiedField === "license_key" ? (
+                          <>
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Đã chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Sao chép Key</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <a
+                    href={driveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-95"
+                  >
+                    <FolderDown className="w-3.5 h-3.5" />
+                    Mở Google Drive Tải Tool
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <a
+                    href={videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm shadow-rose-500/20 transition-all hover:scale-[1.02] active:scale-95"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    Xem Video YouTube
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <a
+                    href="/customer/vault"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                    Vào Kho Tài Nguyên
+                  </a>
+                </div>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Đơn hàng đã hoàn tất thành công! Bạn có thể truy cập ngay thư mục Google Drive tải tool và xem video hướng dẫn của kênh Tuấn và Quân FPT.
-              </p>
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <a
-                  href="https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-95"
-                >
-                  <FolderDown className="w-3.5 h-3.5" />
-                  Mở Google Drive Tải Tool
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-                <a
-                  href="https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm shadow-rose-500/20 transition-all hover:scale-[1.02] active:scale-95"
-                >
-                  <Play className="w-3.5 h-3.5" />
-                  Xem Video YouTube
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-                <a
-                  href="/customer/vault"
-                  onClick={onClose}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-all"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-                  Vào Kho Tài Nguyên
-                </a>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Payment Proof Image — hiện khi đã nộp bill */}
           {(order.status === "pending_approval" || order.status === "completed" || order.status === "rejected") && order.payment_proof_image && (

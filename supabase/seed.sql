@@ -1875,6 +1875,54 @@ Bộ source code hoàn chỉnh môn LAB211 (Java Core & Lập trình hướng đ
       ARRAY['Java 8', 'OOP', 'NetBeans 17', 'MVC Pattern', 'Clean Code'],
       ARRAY['https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&q=80', 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80', 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80']
     );
+
+    -- --------------------------------------------------------
+    -- SẢN PHẨM: TOOL TỰ ĐỘNG COURSERA SKIP & QUIZ SOLVER
+    -- --------------------------------------------------------
+    INSERT INTO public.products (
+      id, category, title, slug, short_description, detailed_description,
+      price, original_price, thumbnail_url, status, deliverable_type,
+      storage_file_path, git_repo_url, access_instructions
+    ) VALUES (
+      'c0015e1a-c001-4c02-9a03-c00000010200'::uuid,
+      'tool',
+      'TOOL TỰ ĐỘNG COURSERA – AUTO SKIP VIDEO, READING & AI QUIZ SOLVER',
+      'tool-tu-dong-coursera-auto-skip-quiz',
+      'Tiện ích Chrome tự động hóa học Coursera đỉnh cao: Auto Skip Video, đánh dấu hoàn thành Reading và Tự động giải Quiz hỗ trợ AI thông minh. Tiết kiệm 95% thời gian học tập mà vẫn nắm chắc chứng chỉ.',
+      '### 🎯 GIẢI PHÁP TỰ ĐỘNG HÓA COURSERA HOÀN HẢO CHO SINH VIÊN & NGƯỜI ĐI LÀM
+- Auto Skip Video và đồng bộ tiến độ 100%.
+- Auto Reading & Auto Next module.
+- AI Quiz Solver giải trắc nghiệm thông minh.
+- Cấp License Key vĩnh viễn (CSR-PERM) gắn theo email đăng ký.',
+      149000,
+      299000,
+      'https://i.ytimg.com/vi/qld1bT_U8AQ/maxresdefault.jpg',
+      'published',
+      'license_key',
+      NULL,
+      'https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link',
+      'Sau khi thanh toán thành công và được Admin duyệt, truy cập Kho Tài Nguyên (Deliverables Vault) để lấy mã License Key kích hoạt vĩnh viễn và tải thư mục tiện ích từ Google Drive.'
+    ) ON CONFLICT (slug) DO UPDATE SET
+      title = EXCLUDED.title,
+      price = EXCLUDED.price,
+      git_repo_url = EXCLUDED.git_repo_url;
+
+    INSERT INTO public.product_demos (
+      product_id, live_demo_url, video_demo_url, demo_credentials,
+      code_preview_snippet, features_list, tech_stack_tags, gallery_images
+    ) VALUES (
+      'c0015e1a-c001-4c02-9a03-c00000010200'::uuid,
+      'https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link',
+      'https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U',
+      'Kênh hướng dẫn chính chủ: Tuấn và Quân FPT UNIVERSITY',
+      '// [CodeVault Studio] Coursera VIP Automation Engine\nconst license = "CSR-PERM-0000-XXXX-XXXX-XXXX-XXXX";',
+      ARRAY['Tự động tua và hoàn thành 100% video bài giảng Coursera', 'Tự động lướt và đánh dấu hoàn thành Reading', 'Hỗ trợ tự động giải bài kiểm tra trắc nghiệm (AI Quiz)', 'Tự động cấp key vĩnh viễn (CSR-PERM) gắn theo email', 'Tiện ích Chrome cài đặt trực quan dạng Load Unpacked', 'Kèm video YouTube hướng dẫn chi tiết từ kênh Tuấn và Quân FPT'],
+      ARRAY['Coursera Automation', 'Chrome Extension', 'Auto Skip Video', 'AI Quiz Solver', 'JavaScript', 'Tuấn và Quân FPT'],
+      ARRAY['https://i.ytimg.com/vi/qld1bT_U8AQ/maxresdefault.jpg', 'https://i.ytimg.com/vi/qld1bT_U8AQ/hqdefault.jpg']
+    ) ON CONFLICT (product_id) DO UPDATE SET
+      video_demo_url = EXCLUDED.video_demo_url,
+      live_demo_url = EXCLUDED.live_demo_url;
+
   END;
 
 

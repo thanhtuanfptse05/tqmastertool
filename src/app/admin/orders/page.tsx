@@ -26,8 +26,10 @@ import {
   RefreshCw,
   Ban,
   Filter,
+  Key,
 } from "lucide-react";
 import AdminOrderEditModal from "@/components/store/AdminOrderEditModal";
+import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
 
 export default function AdminOrdersPage() {
   const {
@@ -471,6 +473,43 @@ export default function AdminOrdersPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Coursera License Info if present */}
+              {(() => {
+                const { licenseKey, courseraEmail } = extractOrderLicenseInfo(activeReviewOrder);
+                const isCoursera =
+                  activeReviewOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
+                  Boolean(courseraEmail) ||
+                  Boolean(licenseKey);
+
+                if (!isCoursera && !licenseKey) return null;
+
+                return (
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-1.5">
+                    <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-[11px] uppercase tracking-wider">
+                      <Key className="w-3.5 h-3.5 text-indigo-600" />
+                      Thông tin License Tiện Ích Coursera:
+                    </div>
+                    <div className="text-xs text-slate-700 space-y-1">
+                      <div>
+                        Email Coursera đăng ký: <span className="font-bold text-slate-900">{courseraEmail || activeReviewOrder.user_email || "Chưa rõ"}</span>
+                      </div>
+                      {licenseKey ? (
+                        <div className="flex items-center gap-2">
+                          <span>Mã Key bản quyền:</span>
+                          <span className="font-mono font-black text-cyan-600 bg-white px-2 py-0.5 rounded border border-indigo-200 select-all">
+                            {licenseKey}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-amber-600 font-semibold italic">
+                          (Chưa tạo key. Hệ thống sẽ tự động tạo key CSR-PERM và lưu vào ghi chú khi bấm Duyệt Đơn)
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Bill proof view & Zoom Lightbox */}
               <div>

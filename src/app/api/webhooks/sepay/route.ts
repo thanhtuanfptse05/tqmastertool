@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import {
+  generateCourseraLicenseKey,
+  formatOrderNotesWithLicense,
+} from "@/lib/coursera-keygen";
 
 interface SePayWebhookBody {
   id: number | string;
@@ -214,13 +218,53 @@ export async function POST(req: NextRequest) {
     // -----------------------------------------------------------
     // 7. AUTO-APPROVE: SATISFIED ALL SECURITY CHECKS
     // -----------------------------------------------------------
+    let targetEmail = "";
+    const emailMatch = (order.admin_notes || "").match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
+    if (emailMatch && emailMatch[1]) {
+      targetEmail = emailMatch[1].trim().toLowerCase();
+    }
+
+    if (!targetEmail && order.user_id) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", order.user_id)
+          .maybeSingle();
+        if (profile?.email) {
+          targetEmail = profile.email.trim().toLowerCase();
+        }
+      } catch {}
+    }
+
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("product_title, product_category")
+      .eq("order_id", order.id);
+
+    const hasCourseraTool =
+      (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
+      order.total_amount === 149000;
+
+    let baseNotes = `✅ Tự động duyệt thành công qua SePay Webhook (${body.gateway} - GD: ${refCode}). Nhận đủ: ${transferAmount.toLocaleString()}đ.`;
+
+    if (hasCourseraTool && targetEmail) {
+      try {
+        const generatedKey = generateCourseraLicenseKey(targetEmail, "perm");
+        baseNotes = formatOrderNotesWithLicense(baseNotes, generatedKey, targetEmail);
+        console.log(`[SePay Webhook] 🔑 Auto-generated Coursera Key: ${generatedKey} for email: ${targetEmail}`);
+      } catch (keyErr) {
+        console.warn("[SePay Webhook] Could not generate Coursera key:", keyErr);
+      }
+    }
+
     const { error: updateError } = await supabase
       .from("orders")
       .update({
         status: "completed",
         transaction_ref: refCode,
         reviewed_at: new Date().toISOString(),
-        admin_notes: `✅ Tự động duyệt thành công qua SePay Webhook (${body.gateway} - GD: ${refCode}). Nhận đủ: ${transferAmount.toLocaleString()}đ.`,
+        admin_notes: baseNotes,
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);

@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, getAuthenticatedUser } from "@/lib/supabase-server";
+import {
+  generateCourseraLicenseKey,
+  formatOrderNotesWithLicense,
+} from "@/lib/coursera-keygen";
 
 export const dynamic = "force-dynamic";
 
@@ -268,6 +272,57 @@ export async function PATCH(req: NextRequest) {
           { error: "Trạng thái đơn hàng không hợp lệ đối với khách hàng." },
           { status: 403 }
         );
+      }
+    }
+
+    // Handle customer_email from checkout submission
+    if (body.customer_email) {
+      const email = String(body.customer_email).trim().toLowerCase();
+      if (email) {
+        if (!payload.admin_notes || !payload.admin_notes.includes("[COURSERA_EMAIL:")) {
+          payload.admin_notes = payload.admin_notes
+            ? `${payload.admin_notes} [COURSERA_EMAIL: ${email}]`
+            : `[COURSERA_EMAIL: ${email}]`;
+        }
+      }
+      delete payload.customer_email;
+    }
+
+    // Handle auto license key generation when order status becomes completed
+    if (payload.status === "completed") {
+      const currentNotes = payload.admin_notes || existingOrder.admin_notes || "";
+      let targetEmail = "";
+      const emailMatch = currentNotes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
+      if (emailMatch && emailMatch[1]) {
+        targetEmail = emailMatch[1].trim().toLowerCase();
+      } else if (existingOrder.user_id) {
+        try {
+          const { data: prof } = await supabaseAdmin
+            .from("profiles")
+            .select("email")
+            .eq("id", existingOrder.user_id)
+            .maybeSingle();
+          if (prof?.email) targetEmail = prof.email.trim().toLowerCase();
+        } catch {}
+      }
+
+      const { data: orderItems } = await supabaseAdmin
+        .from("order_items")
+        .select("product_title, product_category")
+        .eq("order_id", orderId);
+
+      const isCoursera =
+        (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
+        existingOrder.total_amount === 149000;
+
+      if (isCoursera && targetEmail && !currentNotes.includes("[KEY:")) {
+        try {
+          const key = generateCourseraLicenseKey(targetEmail, "perm");
+          payload.admin_notes = formatOrderNotesWithLicense(payload.admin_notes || existingOrder.admin_notes, key, targetEmail);
+          console.log(`[API /api/orders] 🔑 Auto-generated Coursera Key: ${key} for email: ${targetEmail}`);
+        } catch (err) {
+          console.warn("[API /api/orders] Keygen warning:", err);
+        }
       }
     }
 

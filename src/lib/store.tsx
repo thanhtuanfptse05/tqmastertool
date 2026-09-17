@@ -13,6 +13,11 @@ import {
 } from "@/types";
 import { INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_USERS } from "./mock-data";
 import { supabase, isSupabaseConfigured } from "./supabase";
+import {
+  generateCourseraLicenseKey,
+  extractOrderLicenseInfo,
+  formatOrderNotesWithLicense,
+} from "./coursera-keygen";
 
 interface StoreContextType {
   // Auth & Users
@@ -42,7 +47,7 @@ interface StoreContextType {
   clearCart: () => void;
   orders: Order[];
   createOrder: (product: Product) => Order;
-  submitPaymentProof: (orderId: string, proofUrl: string, transactionRef?: string) => void;
+  submitPaymentProof: (orderId: string, proofUrl: string, transactionRef?: string, customerEmail?: string) => void;
 
   // Admin Order Review & CRUD
   adminReviewOrder: (orderId: string, action: "approve" | "reject", adminNotes?: string) => void;
@@ -272,11 +277,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
+          const { licenseKey, courseraEmail } = extractOrderLicenseInfo(o);
+
           return {
             id: o.id,
             order_code: o.order_code,
             user_id: o.user_id,
-            user_email: o.user_email || "",
+            user_email: courseraEmail || o.user_email || "",
             user_name: o.user_name || "",
             items: resolvedItems,
             total_amount: Number(o.total_amount),
@@ -288,6 +295,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             reviewed_by_admin_id: o.reviewed_by_admin_id,
             reviewed_at: o.reviewed_at,
             admin_notes: o.admin_notes,
+            license_key: licenseKey || o.license_key,
             created_at: o.created_at,
             updated_at: o.updated_at,
           };
@@ -858,14 +866,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return newOrder;
   };
 
-  const submitPaymentProof = (orderId: string, proofUrl: string, transactionRef?: string) => {
+  const submitPaymentProof = (orderId: string, proofUrl: string, transactionRef?: string, customerEmail?: string) => {
+    const cleanEmail = customerEmail?.trim().toLowerCase();
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
+      const updatedNotes = cleanEmail
+        ? (o.admin_notes ? `${o.admin_notes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`)
+        : o.admin_notes;
       return {
         ...o,
         status: "pending_approval" as const,
         payment_proof_image: proofUrl,
         transaction_ref: transactionRef || `MB${Date.now()}`,
+        user_email: cleanEmail || o.user_email,
+        admin_notes: updatedNotes,
         updated_at: new Date().toISOString(),
       };
     });
@@ -877,6 +891,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: "pending_approval",
         payment_proof_image: proofUrl,
         transaction_ref: transactionRef,
+        user_email: cleanEmail || activeOrderForPayment.user_email,
       });
     }
     // NOTE: DB update is handled by the caller (CheckoutModal) via /api/orders PATCH
@@ -900,6 +915,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const adminReviewOrder = (orderId: string, action: "approve" | "reject", adminNotes?: string) => {
     const status = action === "approve" ? ("completed" as const) : ("rejected" as const);
+    const targetOrder = orders.find((o) => o.id === orderId);
+    let finalNotes = adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ.");
+    let generatedKey: string | undefined = undefined;
+
+    if (action === "approve" && targetOrder) {
+      const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 149000;
+      if (isCoursera && courseraEmail) {
+        try {
+          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, "perm");
+          finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
+        } catch (e) {
+          console.warn("adminReviewOrder keygen failed:", e);
+        }
+      }
+    }
+
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
       return {
@@ -907,7 +939,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status,
         reviewed_by_admin_id: currentUser?.id || "admin-lead",
         reviewed_at: new Date().toISOString(),
-        admin_notes: adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ."),
+        admin_notes: finalNotes,
+        license_key: generatedKey || o.license_key,
         updated_at: new Date().toISOString(),
       };
     });
@@ -924,7 +957,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             status,
             reviewed_by_admin_id: currentUser?.id,
             reviewed_at: new Date().toISOString(),
-            admin_notes: adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ."),
+            admin_notes: finalNotes,
           }),
         }).catch((e) => console.warn("Failed to call /api/orders in adminReviewOrder:", e));
       });
@@ -932,6 +965,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const adminUpdateOrderStatus = async (orderId: string, status: OrderStatus, notes?: string): Promise<boolean> => {
+    const targetOrder = orders.find((o) => o.id === orderId);
+    let finalNotes = notes !== undefined ? notes : targetOrder?.admin_notes;
+    let generatedKey: string | undefined = undefined;
+
+    if (status === "completed" && targetOrder) {
+      const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 149000;
+      if (isCoursera && courseraEmail) {
+        try {
+          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, "perm");
+          finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
+        } catch (e) {
+          console.warn("adminUpdateOrderStatus keygen failed:", e);
+        }
+      }
+    }
+
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
       return {
@@ -939,7 +989,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status,
         reviewed_by_admin_id: currentUser?.id || "admin-lead",
         reviewed_at: new Date().toISOString(),
-        admin_notes: notes !== undefined ? notes : o.admin_notes,
+        admin_notes: finalNotes,
+        license_key: generatedKey || o.license_key,
         updated_at: new Date().toISOString(),
       };
     });
@@ -955,7 +1006,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           body: JSON.stringify({
             orderId,
             status,
-            admin_notes: notes,
+            admin_notes: finalNotes,
             reviewed_by_admin_id: currentUser?.id,
             reviewed_at: new Date().toISOString(),
           }),
@@ -1086,6 +1137,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         // Order items already carry enough info (title, category, price).
         const product = products.find((p) => p.id === item.product_id);
 
+        const { licenseKey } = extractOrderLicenseInfo(order);
+        const isCoursera = item.product_title?.toLowerCase().includes("coursera") || product?.slug?.includes("coursera");
+
         deliverables.push({
           order_id: order.id,
           product_id: item.product_id,
@@ -1095,9 +1149,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ? `https://storage.codevault.io/deliverables/${product.storage_file_path}?token=sig_${Date.now()}`
             : undefined,
           git_repo_url: product?.git_repo_url,
-          license_key: product?.license_key_template
+          license_key: (isCoursera ? (licenseKey || order.license_key) : undefined) || order.license_key || (product?.license_key_template
             ? `CV-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
-            : undefined,
+            : undefined),
           instructions:
             product?.access_instructions ||
             "Bấm nút 'Xem Đề & Code' hoặc 'Vào Vault' bên dưới để truy cập mã nguồn và đề bài.",
