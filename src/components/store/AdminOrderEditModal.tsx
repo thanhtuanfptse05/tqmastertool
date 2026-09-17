@@ -65,8 +65,8 @@ export default function AdminOrderEditModal({
           order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
           Boolean(courseraEmail);
 
-        if (isCoursera && email && !finalAdminNotes.includes("CSR-PERM")) {
-          const key = generateCourseraLicenseKey(email);
+        if (isCoursera && email && !finalAdminNotes.includes("[KEY:")) {
+          const key = generateCourseraLicenseKey(email, 30);
           finalAdminNotes = formatOrderNotesWithLicense(finalAdminNotes, key, email);
         }
       }

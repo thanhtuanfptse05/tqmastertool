@@ -38,19 +38,19 @@
 ### Bảng `public.products`
 - `id`: `'c0015e1a-c001-4c02-9a03-c00000010200'` (UUID)
 - `category`: `'tool'`
-- `title`: `'TOOL TỰ ĐỘNG COURSERA – AUTO SKIP VIDEO, READING & AI QUIZ SOLVER'`
+- `title`: `'TOOL TỰ ĐỘNG COURSERA – AUTO SKIP VIDEO, READING & AI QUIZ (40K/THÁNG)'`
 - `slug`: `'tool-tu-dong-coursera-auto-skip-quiz'`
-- `short_description`: `'Bộ tiện ích mở rộng (Chrome Extension) tự động hoàn thành khóa học Coursera: tự động xem video, đánh dấu bài đọc, thảo luận và giải Quiz tự động bằng AI Gemini. Cấp License Key VIP vĩnh viễn theo email.'`
-- `price`: `149000` (149.000 VNĐ)
-- `original_price`: `299000` (299.000 VNĐ - Giảm 50%)
+- `short_description`: `'Bộ tiện ích mở rộng (Chrome Extension) tự động hoàn thành khóa học Coursera: tự động xem video, đánh dấu bài đọc, thảo luận và giải Quiz tự động bằng AI Gemini. Cấp License Key VIP 1 tháng (30 ngày) theo email Coursera của bạn.'`
+- `price`: `40000` (40.000 VNĐ / 1 tài khoản / 1 tháng)
+- `original_price`: `80000` (80.000 VNĐ - Giảm 50%)
 - `thumbnail_url`: `'https://i.ytimg.com/vi/qld1bT_U8AQ/maxresdefault.jpg'`
 - `status`: `'published'`
 - `deliverable_type`: `'license_key'`
-- `git_repo_url`: `'https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link'`
+- `git_repo_url`: `NULL` (BẢO MẬT: Tuyệt đối KHÔNG lưu link Google Drive tải tool ở đây để tránh lộ ra ngoài công khai)
 - `access_instructions`: 
   ```markdown
   ### 🚀 Hướng Dẫn Kích Hoạt & Cài Đặt Tool Coursera Auto Skip:
-  1. **Bước 1 — Tải Extension**: Nhấn nút **"Mở Thư Mục Google Drive"** bên trên để tải thư mục extension về máy tính và giải nén.
+  1. **Bước 1 — Tải Extension**: Nhấn nút **"Mở Google Drive"** trong Kho Tài Nguyên sau khi đơn hàng được duyệt để tải thư mục extension về máy tính và giải nén.
   2. **Bước 2 — Cài Đặt Vào Trình Duyệt**:
      - Mở trình duyệt (Chrome, Edge, Brave, Cốc Cốc) và truy cập đường dẫn: `chrome://extensions/`.
      - Bật chế độ nhà phát triển (**Developer mode**) ở góc phải trên.
@@ -58,7 +58,7 @@
   3. **Bước 3 — Xem Video Hướng Dẫn**: Mở video hướng dẫn YouTube của kênh **Tuấn và Quân FPT UNIVERSITY** đính kèm để xem chi tiết các bước.
   4. **Bước 4 — Nhập License Key**:
      - Bấm vào biểu tượng tiện ích Coursera Auto Skipper trên thanh công cụ trình duyệt.
-     - Dán mã **License Key** đã được cấp bên trên vào ô License Key. (Lưu ý: Key chỉ có hiệu lực với đúng email Coursera đã đăng ký).
+     - Dán mã **License Key** (Gói 30 ngày) đã được cấp bên trên vào ô License Key. (Lưu ý: Key chỉ có hiệu lực với đúng email Coursera đã đăng ký).
      - *(Tùy chọn)* Nhập Gemini API Key miễn phí từ Google AI Studio nếu muốn dùng tính năng AI tự động giải Quiz.
   5. **Bước 5 — Tận Hưởng**: Mở trang khóa học trên Coursera, bấm **"Bắt Đầu Tự Động Hóa"** và thư giãn.
   ```
@@ -66,23 +66,24 @@
 ### Bảng `public.product_demos`
 - `product_id`: `'c0015e1a-c001-4c02-9a03-c00000010200'`
 - `gallery_images`: `["https://i.ytimg.com/vi/qld1bT_U8AQ/maxresdefault.jpg", "https://i.ytimg.com/vi/qld1bT_U8AQ/hqdefault.jpg"]`
-- `live_demo_url`: `'https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link'`
+- `live_demo_url`: `NULL` (BẢO MẬT: KHÔNG để link Google Drive tải tool ở live_demo_url; khách chưa mua chỉ xem demo qua video YouTube)
 - `video_demo_url`: `'https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U'`
 - `demo_credentials`: `'Kênh hướng dẫn chính chủ: Tuấn và Quân FPT UNIVERSITY'`
 - `features_list`:
+  - "Gói bản quyền 1 tháng (30 ngày) dành cho 1 tài khoản Coursera giá chỉ 40.000 VNĐ"
   - "Auto Skip Video & Mark Completed mọi bài giảng trên Coursera siêu tốc"
   - "Auto Reading & Auto Next Module tự động tích xanh 100% tiến độ"
   - "Tự động hoàn thành Discussion Forums (diễn đàn thảo luận)"
   - "Tích hợp AI Gemini thông minh tự động giải bài tập trắc nghiệm / Quiz chuẩn xác"
-  - "Cấp License Key VIP Vĩnh Viễn gắn liền với Email tài khoản Coursera"
+  - "Tự động sinh License Key VIP 30 ngày gắn liền với Email tài khoản Coursera"
   - "Cơ chế chống phát hiện an toàn, tương thích mọi trình duyệt Chromium"
 - `tech_stack_tags`: `["Coursera Automation", "Chrome Extension", "Manifest V3", "Gemini AI", "Auto Quiz", "JavaScript"]`
 - `code_preview_snippet`:
   ```javascript
   // [CodeVault Studio] Coursera VIP Auto Skipper & AI Solver
-  // Tác giả: Tuấn và Quân FPT UNIVERSITY
+  // Tác giả: Tuấn và Quân FPT UNIVERSITY (Gói 40k/tháng)
   const courseraEngine = new CourseraSkipper({
-    licenseKey: "CSR-PERM-0000-XXXX-XXXX-XXXX-XXXX",
+    licenseKey: "CSR-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX", // Key 30 ngày (1 tháng)
     geminiApiKey: "AIzaSyD-YOUR-GEMINI-API-KEY",
     autoSkipVideo: true,
     autoMarkReadings: true,
@@ -165,27 +166,31 @@ export function generateCourseraLicenseKey(
    - Nếu đơn hàng chưa có `license_key` và thuộc sản phẩm license, tự động sinh và lưu `license_key`.
    - Store local (`store.tsx`) cũng đồng bộ cập nhật state.
 
-### 4.3. Bàn Giao Tài Nguyên Tại Kho Lưu Trữ (`/customer/vault`)
-1. Đối với Tool Coursera:
+### 4.3. Bàn Giao Tài Nguyên Tại Kho Lưu Trữ (`/customer/vault`) & Bảo Mật Link Drive
+1. **Rào chắn bảo mật link tải Tool (Drive Isolation)**:
+   - Link Google Drive tải tool (`https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link`) **TUYỆT ĐỐI KHÔNG ĐƯỢC XUẤT HIỆN** ở `live_demo_url` hay `git_repo_url` trên trang Catalog, Danh sách sản phẩm, Trang chi tiết sản phẩm `/products/[slug]` hay Modal `ProductDetailModal`.
+   - Link Google Drive tải tool **CHỈ ĐƯỢC PHÉP HIỂN THỊ** cho khách hàng đã có đơn hàng ở trạng thái **ĐÃ HOÀN TẤT (`status === 'completed'`)** tại:
+     - Kho Tài Nguyên Số (`/customer/vault`).
+     - Modal Chi Tiết Đơn Hàng (`OrderDetailModal.tsx`).
+2. **Đối với Tool Coursera trong Vault**:
    - Hiển thị khối **License Key** nổi bật với font Monospace, hiệu ứng gradient, nút Copy 1-Click (`Copy` / `Check`).
-   - Hiển thị thông tin email kích hoạt và thời hạn vĩnh viễn.
-   - Nút **"Mở Google Drive"** (`https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link`).
+   - Hiển thị thông tin email kích hoạt và thời hạn bản quyền: **Gói 1 Tháng (30 Ngày)**.
+   - Nút **"Mở Google Drive"** tải extension.
    - Nút **"Video Hướng Dẫn"** và trình phát video YouTube nhúng trực tiếp (`qld1bT_U8AQ`).
    - Hướng dẫn cài đặt và kích hoạt 5 bước chi tiết.
 
 ### 4.4. Chi Tiết Đơn Hàng (`OrderDetailModal.tsx`)
-- Khi đơn hàng hoàn thành, hiển thị thẻ License Key với nút Copy, link tải Google Drive và video YouTube tương ứng của từng sản phẩm Tool.
+- Khi đơn hàng hoàn thành, hiển thị thẻ License Key 30 ngày với nút Copy, link tải Google Drive và video YouTube tương ứng của Tool Coursera.
 
 ---
 
 ## 5. Acceptance Criteria (DoD)
 
-- [ ] Sản phẩm Tool Coursera được tạo và lưu vào Supabase (`products`, `product_demos`) qua seed script.
-- [ ] Hàm `generateCourseraLicenseKey` sinh ra License Key 100% tương thích với `admin_keygen.html` và `content.js`.
-- [ ] Checkout Modal bắt buộc nhập Email Coursera đối với sản phẩm Tool yêu cầu License Key.
-- [ ] Khi đơn hàng chuyển sang `completed` (cả qua SePay lẫn Admin duyệt), hệ thống tự động sinh và lưu License Key.
-- [ ] Giao diện Vault (`/customer/vault`) hiển thị License Key, nút Copy, link Drive, video YouTube embed và tài liệu hướng dẫn.
-- [ ] Giao diện `OrderDetailModal` hiển thị đầy đủ tài nguyên của Tool Coursera khi đơn hàng hoàn thành.
-- [ ] Admin Portal hiển thị License Key và Email Coursera trong chi tiết đơn hàng.
+- [ ] Sản phẩm Tool Coursera được tạo và lưu vào Supabase (`products`, `product_demos`) với giá **40.000 VNĐ** (gói 1 tháng / 1 tài khoản), `live_demo_url` là `NULL` và `git_repo_url` là `NULL`.
+- [ ] Link Google Drive tải tool tuyệt đối không bị lộ ra ngoài trang công khai (Catalog, Chi tiết sản phẩm).
+- [ ] Hàm `generateCourseraLicenseKey` sinh ra License Key 30 ngày chuẩn Base36 timestamp tương thích 100% với `admin_keygen.html` và `content.js`.
+- [ ] Checkout Modal bắt buộc nhập Email Coursera đối với sản phẩm Tool yêu cầu License Key, hiển thị đúng đơn giá 40.000đ.
+- [ ] Khi đơn hàng chuyển sang `completed` (cả qua SePay lẫn Admin duyệt), hệ thống tự động sinh và lưu License Key 30 ngày.
+- [ ] Giao diện Vault (`/customer/vault`) và `OrderDetailModal` hiển thị License Key 30 ngày kèm link tải Drive khi và chỉ khi đơn đã thanh toán.
 - [ ] Không có lỗi TypeScript (`tsc --noEmit`).
 - [ ] Tuyệt đối không can thiệp, sửa đổi file nào trong `Coursera_Skip_Extension_full`.

@@ -921,10 +921,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (action === "approve" && targetOrder) {
       const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 149000;
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
       if (isCoursera && courseraEmail) {
         try {
-          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, "perm");
+          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);
           finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
         } catch (e) {
           console.warn("adminReviewOrder keygen failed:", e);
@@ -971,10 +971,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "completed" && targetOrder) {
       const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 149000;
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
       if (isCoursera && courseraEmail) {
         try {
-          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, "perm");
+          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);
           finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
         } catch (e) {
           console.warn("adminUpdateOrderStatus keygen failed:", e);

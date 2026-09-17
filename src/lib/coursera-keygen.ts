@@ -5,12 +5,12 @@ export const COURSERA_SECRET_SALT = "Coursera_Skip_VIP_2024_@XyZ_Secret_Key_999"
 /**
  * Sinh License Key chuẩn Coursera Auto Skipper VIP
  * @param email Email tài khoản Coursera của khách hàng
- * @param duration "perm" (vĩnh viễn) hoặc số ngày hợp lệ
- * @returns Chuỗi License Key chuẩn 7 part: CSR-PERM-0000-XXXX-XXXX-XXXX-XXXX
+ * @param duration "perm" (vĩnh viễn) hoặc số ngày hợp lệ (mặc định 30 ngày / 1 tháng)
+ * @returns Chuỗi License Key chuẩn 7 part: CSR-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX
  */
 export function generateCourseraLicenseKey(
   email: string,
-  duration: "perm" | number = "perm"
+  duration: "perm" | number = 30
 ): string {
   const cleanEmail = (email || "").trim().toLowerCase();
   if (!cleanEmail) {
@@ -141,16 +141,60 @@ export function extractOrderLicenseInfo(order: {
   }
 
   // 3. Fallback: Nếu đơn hàng đã hoàn thành (completed) và có email hợp lệ
-  // tự động sinh key chuẩn xác theo thuật toán
+  // tự động sinh key chuẩn xác theo thuật toán (gói 30 ngày)
   if (!licenseKey && order.status === "completed" && courseraEmail) {
     try {
-      licenseKey = generateCourseraLicenseKey(courseraEmail, "perm");
+      licenseKey = generateCourseraLicenseKey(courseraEmail, 30);
     } catch (e) {
       console.warn("Could not auto-generate license key from email:", e);
     }
   }
 
   return { licenseKey, courseraEmail };
+}
+
+/**
+ * Đọc thông tin thời hạn từ License Key để hiển thị trực quan cho người dùng
+ */
+export function parseLicenseKeyDuration(key?: string | null): {
+  isPermanent: boolean;
+  isExpired: boolean;
+  expirationDate?: Date;
+  label: string;
+} {
+  const cleanKey = (key || "").trim();
+  if (!cleanKey) {
+    return { isPermanent: false, isExpired: false, label: "Gói 1 Tháng (30 Ngày)" };
+  }
+
+  const parts = cleanKey.split("-");
+  if (parts.length === 5) {
+    return { isPermanent: true, isExpired: false, label: "Vĩnh Viễn" };
+  }
+
+  if (parts.length === 7) {
+    const expFormatted = parts[1] + parts[2];
+    if (expFormatted === "PERM0000") {
+      return { isPermanent: true, isExpired: false, label: "Vĩnh Viễn" };
+    }
+
+    const expTimestampStr = expFormatted.replace(/^0+/, "") || "0";
+    const expTimestamp = parseInt(expTimestampStr, 36) * 1000;
+    if (!isNaN(expTimestamp)) {
+      const expDate = new Date(expTimestamp);
+      const isExpired = Date.now() > expTimestamp;
+      return {
+        isPermanent: false,
+        isExpired,
+        expirationDate: expDate,
+        label: isExpired
+          ? `Đã hết hạn (${expDate.toLocaleDateString("vi-VN")})`
+          : `Hết hạn: ${expDate.toLocaleDateString("vi-VN")}`,
+      };
+    }
+  }
+
+  return { isPermanent: false, isExpired: false, label: "Gói 1 Tháng (30 Ngày)" };
 }
 
 /**

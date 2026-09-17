@@ -503,7 +503,7 @@ export default function AdminOrdersPage() {
                         </div>
                       ) : (
                         <div className="text-[11px] text-amber-600 font-semibold italic">
-                          (Chưa tạo key. Hệ thống sẽ tự động tạo key CSR-PERM và lưu vào ghi chú khi bấm Duyệt Đơn)
+                          (Chưa tạo key. Hệ thống sẽ tự động tạo key 30 ngày và lưu vào ghi chú khi bấm Duyệt Đơn)
                         </div>
                       )}
                     </div>

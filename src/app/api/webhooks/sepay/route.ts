@@ -244,15 +244,16 @@ export async function POST(req: NextRequest) {
 
     const hasCourseraTool =
       (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
+      order.total_amount === 40000 ||
       order.total_amount === 149000;
 
     let baseNotes = `✅ Tự động duyệt thành công qua SePay Webhook (${body.gateway} - GD: ${refCode}). Nhận đủ: ${transferAmount.toLocaleString()}đ.`;
 
     if (hasCourseraTool && targetEmail) {
       try {
-        const generatedKey = generateCourseraLicenseKey(targetEmail, "perm");
+        const generatedKey = generateCourseraLicenseKey(targetEmail, 30);
         baseNotes = formatOrderNotesWithLicense(baseNotes, generatedKey, targetEmail);
-        console.log(`[SePay Webhook] 🔑 Auto-generated Coursera Key: ${generatedKey} for email: ${targetEmail}`);
+        console.log(`[SePay Webhook] 🔑 Auto-generated Coursera Key (30 days): ${generatedKey} for email: ${targetEmail}`);
       } catch (keyErr) {
         console.warn("[SePay Webhook] Could not generate Coursera key:", keyErr);
       }

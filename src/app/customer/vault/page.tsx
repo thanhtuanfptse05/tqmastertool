@@ -24,7 +24,7 @@ import {
   Key,
 } from "lucide-react";
 import LabDeliverableModal from "@/components/store/LabDeliverableModal";
-import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
+import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
 
 export default function DeliverableVaultPage() {
   const { currentUser, orders, products } = useStore();
@@ -215,12 +215,10 @@ export default function DeliverableVaultPage() {
 
             const isCoursera = item.product_title.toLowerCase().includes("coursera");
 
-            const toolDriveUrl =
-              item.product?.git_repo_url ||
-              item.product?.demo?.live_demo_url ||
-              (isCoursera
-                ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
-                : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing");
+            // Secure private download drive links — only unlocked for completed orders in vault
+            const toolDriveUrl = isCoursera
+              ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
+              : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing";
 
             const toolVideoUrl =
               item.product?.demo?.video_demo_url ||
@@ -348,48 +346,55 @@ export default function DeliverableVaultPage() {
                 </div>
 
                 {/* License Key Box if applicable */}
-                {item.license_key && (
-                  <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                            <Key className="w-3.5 h-3.5" />
-                            License Key Bản Quyền
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-extrabold">
-                            Vĩnh Viễn (PERM)
-                          </span>
-                        </div>
-                        <div className="font-mono text-sm sm:text-base font-bold text-cyan-300 tracking-wider break-all select-all">
-                          {item.license_key}
-                        </div>
-                        {item.coursera_email && (
-                          <div className="text-[11px] text-slate-400">
-                            Email kích hoạt Coursera: <span className="text-slate-200 font-semibold">{item.coursera_email}</span>
+                {item.license_key && (() => {
+                  const durationInfo = parseLicenseKeyDuration(item.license_key);
+                  return (
+                    <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                              <Key className="w-3.5 h-3.5" />
+                              License Key Bản Quyền
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                              durationInfo.isExpired
+                                ? "bg-rose-500/20 text-rose-400"
+                                : "bg-emerald-500/20 text-emerald-400"
+                            }`}>
+                              {durationInfo.label}
+                            </span>
                           </div>
-                        )}
-                      </div>
+                          <div className="font-mono text-sm sm:text-base font-bold text-cyan-300 tracking-wider break-all select-all">
+                            {item.license_key}
+                          </div>
+                          {item.coursera_email && (
+                            <div className="text-[11px] text-slate-400">
+                              Email kích hoạt Coursera: <span className="text-slate-200 font-semibold">{item.coursera_email}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      <button
-                        onClick={() => handleCopyKey(item.license_key!)}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
-                      >
-                        {copiedKey === item.license_key ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-slate-950" />
-                            <span>Đã sao chép</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5 text-slate-950" />
-                            <span>Sao chép Key</span>
-                          </>
-                        )}
-                      </button>
+                        <button
+                          onClick={() => handleCopyKey(item.license_key!)}
+                          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
+                        >
+                          {copiedKey === item.license_key ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-slate-950" />
+                              <span>Đã sao chép</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5 text-slate-950" />
+                              <span>Sao chép Key</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             );
           })}
@@ -473,48 +478,55 @@ export default function DeliverableVaultPage() {
               </div>
 
               {/* License Key in Modal if available */}
-              {activeToolModal.licenseKey && (
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
-                          <Key className="w-3.5 h-3.5" />
-                          License Key Kích Hoạt Của Bạn
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-extrabold">
-                          Vĩnh Viễn (PERM)
-                        </span>
-                      </div>
-                      <div className="font-mono text-base sm:text-lg font-black text-cyan-300 tracking-wider break-all select-all">
-                        {activeToolModal.licenseKey}
-                      </div>
-                      {activeToolModal.courseraEmail && (
-                        <div className="text-xs text-slate-300">
-                          Email Coursera kích hoạt: <span className="text-cyan-300 font-semibold">{activeToolModal.courseraEmail}</span>
+              {activeToolModal.licenseKey && (() => {
+                const modalDurationInfo = parseLicenseKeyDuration(activeToolModal.licenseKey);
+                return (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                            <Key className="w-3.5 h-3.5" />
+                            License Key Kích Hoạt Của Bạn
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                            modalDurationInfo.isExpired
+                              ? "bg-rose-500/20 text-rose-400"
+                              : "bg-emerald-500/20 text-emerald-400"
+                          }`}>
+                            {modalDurationInfo.label}
+                          </span>
                         </div>
-                      )}
-                    </div>
+                        <div className="font-mono text-base sm:text-lg font-black text-cyan-300 tracking-wider break-all select-all">
+                          {activeToolModal.licenseKey}
+                        </div>
+                        {activeToolModal.courseraEmail && (
+                          <div className="text-xs text-slate-300">
+                            Email Coursera kích hoạt: <span className="text-cyan-300 font-semibold">{activeToolModal.courseraEmail}</span>
+                          </div>
+                        )}
+                      </div>
 
-                    <button
-                      onClick={() => handleCopyKey(activeToolModal.licenseKey!)}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/25 shrink-0"
-                    >
-                      {copiedKey === activeToolModal.licenseKey ? (
-                        <>
-                          <Check className="w-4 h-4 text-slate-950" />
-                          <span>Đã sao chép</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4 text-slate-950" />
-                          <span>Sao chép Key</span>
-                        </>
-                      )}
-                    </button>
+                      <button
+                        onClick={() => handleCopyKey(activeToolModal.licenseKey!)}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/25 shrink-0"
+                      >
+                        {copiedKey === activeToolModal.licenseKey ? (
+                          <>
+                            <Check className="w-4 h-4 text-slate-950" />
+                            <span>Đã sao chép</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4 text-slate-950" />
+                            <span>Sao chép Key</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Action Buttons Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

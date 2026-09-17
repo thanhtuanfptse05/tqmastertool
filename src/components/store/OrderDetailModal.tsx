@@ -25,7 +25,7 @@ import {
   BookOpen,
   Key,
 } from "lucide-react";
-import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
+import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
 
 interface OrderDetailModalProps {
   order: Order | null;
@@ -364,48 +364,55 @@ export default function OrderDetailModal({
                 </p>
 
                 {/* License Key Box if available */}
-                {effectiveKey && (
-                  <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-400 uppercase tracking-wider">
-                            <Key className="w-3.5 h-3.5" />
-                            License Key Bản Quyền
-                          </span>
-                          <span className="px-2 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-extrabold">
-                            Vĩnh Viễn
-                          </span>
-                        </div>
-                        <div className="font-mono text-xs sm:text-sm font-bold text-cyan-300 tracking-wider break-all select-all">
-                          {effectiveKey}
-                        </div>
-                        {(courseraEmail || order.user_email) && (
-                          <div className="text-[10px] text-slate-400">
-                            Email kích hoạt: <span className="text-slate-200 font-semibold">{courseraEmail || order.user_email}</span>
+                {effectiveKey && (() => {
+                  const durationInfo = parseLicenseKeyDuration(effectiveKey);
+                  return (
+                    <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-400 uppercase tracking-wider">
+                              <Key className="w-3.5 h-3.5" />
+                              License Key Bản Quyền
+                            </span>
+                            <span className={`px-2 py-0.2 rounded text-[9px] font-extrabold ${
+                              durationInfo.isExpired
+                                ? "bg-rose-500/20 text-rose-400"
+                                : "bg-emerald-500/20 text-emerald-400"
+                            }`}>
+                              {durationInfo.label}
+                            </span>
                           </div>
-                        )}
-                      </div>
+                          <div className="font-mono text-xs sm:text-sm font-bold text-cyan-300 tracking-wider break-all select-all">
+                            {effectiveKey}
+                          </div>
+                          {(courseraEmail || order.user_email) && (
+                            <div className="text-[10px] text-slate-400">
+                              Email kích hoạt: <span className="text-slate-200 font-semibold">{courseraEmail || order.user_email}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      <button
-                        onClick={() => copyToClipboard(effectiveKey, "license_key")}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
-                      >
-                        {copiedField === "license_key" ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Đã chép</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Sao chép Key</span>
-                          </>
-                        )}
-                      </button>
+                        <button
+                          onClick={() => copyToClipboard(effectiveKey, "license_key")}
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
+                        >
+                          {copiedField === "license_key" ? (
+                            <>
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Đã chép</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Sao chép Key</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a

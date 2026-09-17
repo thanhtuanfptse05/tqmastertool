@@ -78,7 +78,7 @@ async function seed() {
     status: 'published',
     deliverable_type: 'download_file',
     storage_file_path: null,
-    git_repo_url: 'https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing',
+    git_repo_url: null,
     access_instructions: accessInstructions,
   };
 
@@ -89,7 +89,7 @@ async function seed() {
       'https://i.ytimg.com/vi/OxmUL2i8BX4/maxresdefault.jpg',
       'https://i.ytimg.com/vi/OxmUL2i8BX4/hqdefault.jpg',
     ],
-    live_demo_url: 'https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing',
+    live_demo_url: null,
     video_demo_url: 'https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt',
     demo_credentials: 'Kênh hướng dẫn chính chủ: Tuấn và Quân FPT UNIVERSITY',
     code_preview_snippet: [

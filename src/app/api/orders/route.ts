@@ -313,13 +313,14 @@ export async function PATCH(req: NextRequest) {
 
       const isCoursera =
         (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
+        existingOrder.total_amount === 40000 ||
         existingOrder.total_amount === 149000;
 
       if (isCoursera && targetEmail && !currentNotes.includes("[KEY:")) {
         try {
-          const key = generateCourseraLicenseKey(targetEmail, "perm");
+          const key = generateCourseraLicenseKey(targetEmail, 30);
           payload.admin_notes = formatOrderNotesWithLicense(payload.admin_notes || existingOrder.admin_notes, key, targetEmail);
-          console.log(`[API /api/orders] 🔑 Auto-generated Coursera Key: ${key} for email: ${targetEmail}`);
+          console.log(`[API /api/orders] 🔑 Auto-generated Coursera Key (30 days): ${key} for email: ${targetEmail}`);
         } catch (err) {
           console.warn("[API /api/orders] Keygen warning:", err);
         }
