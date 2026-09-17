@@ -221,4 +221,19 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Đẩy code lên GitHub `origin/main`.
 
+### [x] Giai Đoạn 16: Triệt Tiêu Default guest@codevault.io & Bắt Buộc Nhập Email Thật Tại Checkout (Spec-First) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/013-tool-coursera-skip-extension-and-license-keygen/spec.md`: Cập nhật mục 4.1 nghiêm cấm gán giá trị mặc định `guest@codevault.io`, bắt buộc ô nhập email phải để trống hoàn toàn đối với khách vãng lai, chặn không cho chuyển bước nếu chưa điền email Coursera thật.
+- [x] **Xóa Bỏ Fallback Giả Mạo Trong Store & Modal**:
+  - `src/lib/store.tsx`: Bỏ fallback `user_email: "guest@codevault.io"` trong `createOrder`, chỉ lấy email thật của `currentUser`.
+  - `src/components/store/CheckoutModal.tsx`:
+    - Chỉ tự động điền email nếu người dùng đã đăng nhập tài khoản thực (`!== 'guest@codevault.io'`).
+    - Đặt placeholder hướng dẫn rõ ràng: `Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)`.
+    - Chặn chặt chẽ tại `handleProceedToUpload` và `handleBillSubmit`: Nếu bỏ trống hoặc nhập `guest@codevault.io`, lập tức hiển thị cảnh báo đỏ và dừng lại ở Bước 1.
+    - Truyền `cleanEmail` vào `submitPaymentProof` để cập nhật đồng bộ vào local state và database.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - Chạy `npx tsc --noEmit` đạt 0 lỗi.
+  - Push commit lên remote GitHub `origin/main`.
+
+
 

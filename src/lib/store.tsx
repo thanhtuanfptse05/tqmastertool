@@ -877,7 +877,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       id: orderId,
       order_code: orderCode,
       user_id: currentUser?.id || "user-guest",
-      user_email: currentUser?.email || "guest@codevault.io",
+      user_email: (currentUser?.email && currentUser.email !== "guest@codevault.io") ? currentUser.email : "",
       user_name: currentUser?.full_name || "Khách Hàng",
       total_amount: product.price,
       status: "pending_payment",

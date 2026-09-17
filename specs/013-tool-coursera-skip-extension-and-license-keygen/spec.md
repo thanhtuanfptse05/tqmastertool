@@ -149,13 +149,16 @@ export function generateCourseraLicenseKey(
 
 ## 4. End-to-End User Flow & Integration Points
 
-### 4.1. Bắt Buộc Nhập Email Tài Khoản Coursera Khi Mua Hàng
+### 4.1. Bắt Buộc Nhập Email Tài Khoản Coursera Khi Mua Hàng & Chống Gán Mặc Định Giả Mạo
 1. Trong Modal Checkout (`CheckoutModal.tsx`), khi sản phẩm đặt mua có `deliverable_type === 'license_key'` hoặc category là `'tool'`:
-   - Hiển thị input bắt buộc: **"Email đăng nhập Coursera để kích hoạt bản quyền"**.
-   - Tự động điền email của `currentUser` nếu đã đăng nhập, cho phép sửa đổi nếu tài khoản Coursera dùng email khác.
-   - Hiển thị thông báo hướng dẫn: *"Tool sẽ được mã hóa theo email này. Vui lòng nhập chính xác email bạn dùng trên Coursera."*
-   - Validate định dạng email trước khi cho phép xác nhận đặt hàng.
-   - Lưu trữ email này vào `order.user_email` (hoặc `customer_license_email`).
+   - Hiển thị input bắt buộc: **"Email Coursera Kích Hoạt Key"**.
+   - **QUY TẮC BẢO MẬT & TRẢI NGHIỆM**:
+     - **CẤM TUYỆT ĐỐI** gán giá trị mặc định là `guest@codevault.io` hoặc bất kỳ email giả lập nào vào input.
+     - Nếu là khách vãng lai (chưa đăng nhập), ô nhập email **BẮT BUỘC PHẢI ĐỂ TRỐNG HOÀN TOÀN** (`""`) với placeholder `Ví dụ: yourname@gmail.com`.
+     - Chỉ tự động điền nếu người dùng đã đăng nhập tài khoản thực (`currentUser?.email` hợp lệ và khác `guest@codevault.io`).
+     - **Chặn chuyển bước**: Người dùng **không thể bấm tiếp tục** sang bước "Tôi đã chuyển khoản — Tải ảnh bill" nếu chưa nhập email hoặc email là `guest@codevault.io` hoặc email sai cú pháp regex.
+   - Hiển thị thông báo hướng dẫn: *"License Key sẽ được hệ thống mã hóa gắn liền với Email này. Vui lòng điền chính xác email bạn dùng trên Coursera."*
+   - Cập nhật chính xác email này vào `order.user_email` và `admin_notes: [COURSERA_EMAIL: {email}]` khi gửi thanh toán.
 
 ### 4.2. Tự Động Sinh Key Khi Đơn Hàng Hoàn Thành (`status === 'completed'`)
 1. **Luồng SePay Tự Động (`/api/webhooks/sepay`)**:

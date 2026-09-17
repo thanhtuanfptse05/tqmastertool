@@ -54,10 +54,15 @@ export default function CheckoutModal() {
   const [emailError, setEmailError] = useState<string | null>(null);
 
   React.useEffect(() => {
-    if (activeOrderForPayment?.user_email && !customerEmail) {
-      setCustomerEmail(activeOrderForPayment.user_email);
-    } else if (currentUser?.email && !customerEmail) {
-      setCustomerEmail(currentUser.email);
+    // Only prefill if it is a genuine user email and not a guest placeholder
+    const candidate = activeOrderForPayment?.user_email || currentUser?.email || "";
+    if (
+      candidate &&
+      candidate !== "guest@codevault.io" &&
+      !candidate.startsWith("guest@") &&
+      !customerEmail
+    ) {
+      setCustomerEmail(candidate);
     }
   }, [activeOrderForPayment, currentUser]);
 
@@ -119,6 +124,22 @@ export default function CheckoutModal() {
       setBillUploadError("Vui lòng tải ảnh biên lai chuyển khoản trước khi xác nhận.");
       return;
     }
+
+    if (isLicenseRequired) {
+      const trimmed = customerEmail.trim().toLowerCase();
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (
+        !trimmed ||
+        trimmed === "guest@codevault.io" ||
+        trimmed.startsWith("guest@") ||
+        !emailRegex.test(trimmed)
+      ) {
+        setStep("qr");
+        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera của bạn trước khi gửi bill!");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setBillUploadError(null);
 
@@ -154,7 +175,7 @@ export default function CheckoutModal() {
       }
 
       // 2. Cập nhật store local để UI phản ánh ngay
-      submitPaymentProof(order.id, billImage, ref);
+      submitPaymentProof(order.id, billImage, ref, cleanEmail);
 
       setStep("success");
 
@@ -180,8 +201,13 @@ export default function CheckoutModal() {
     if (isLicenseRequired) {
       const trimmed = customerEmail.trim().toLowerCase();
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!trimmed || !emailRegex.test(trimmed)) {
-        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera để hệ thống cấp License Key!");
+      if (
+        !trimmed ||
+        trimmed === "guest@codevault.io" ||
+        trimmed.startsWith("guest@") ||
+        !emailRegex.test(trimmed)
+      ) {
+        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera của bạn để hệ thống cấp License Key!");
         return;
       }
     }
@@ -273,8 +299,12 @@ export default function CheckoutModal() {
                         setCustomerEmail(e.target.value);
                         if (emailError) setEmailError(null);
                       }}
-                      placeholder="Nhập email đăng nhập Coursera của bạn..."
-                      className="w-full px-3.5 py-2 text-xs rounded-xl border border-indigo-300 focus:outline-none focus:border-indigo-600 bg-white font-mono font-bold text-slate-900 shadow-sm"
+                      placeholder="Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)"
+                      className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
+                        emailError
+                          ? "border-rose-400 bg-rose-50/30 ring-2 ring-rose-200"
+                          : "border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
+                      } focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all`}
                     />
 
                     <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
