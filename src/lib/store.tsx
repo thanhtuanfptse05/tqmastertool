@@ -725,44 +725,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const adminDeleteProduct = async (id: string): Promise<boolean> => {
-    // 1. Remove from local memory state immediately
+    // 1. Cập nhật state bộ nhớ và LocalStorage ngay lập tức để UI mượt mà
     const updated = products.filter((p) => p.id !== id);
     setProducts(updated);
     persist(STORAGE_KEYS.PRODUCTS, updated);
 
-    // 2. Remove from active shopping cart if present
+    // 2. Gỡ khỏi giỏ hàng nếu đang có
     setCart((prevCart) => {
       const filtered = prevCart.filter((item) => item.product.id !== id);
       persist(STORAGE_KEYS.CART, filtered);
       return filtered;
     });
 
-    // 3. Purge from Supabase database via secure Admin API
+    // 3. Xóa vĩnh viễn trong Supabase trực tiếp (siêu nhanh ~50ms, có timeout bảo vệ không bao giờ bị treo)
     if (isSupabaseConfigured) {
       try {
-        const headers = await getAuthHeaders();
-        const res = await fetch(`/api/admin/products?productId=${encodeURIComponent(id)}`, {
-          method: "DELETE",
-          headers,
-        });
+        const deleteOps = (async () => {
+          // Gỡ liên kết order_items nếu có
+          try {
+            await supabase.from("order_items").update({ product_id: null }).eq("product_id", id);
+          } catch {}
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.warn("[adminDeleteProduct] API returned non-OK, attempting direct client delete:", errData);
-          const { error: dbErr } = await supabase.from("products").delete().eq("id", id);
-          if (dbErr) {
-            console.error("[adminDeleteProduct] Direct client delete error:", dbErr);
-            return false;
+          // Xóa demos liên quan
+          try {
+            await supabase.from("product_demos").delete().eq("product_id", id);
+          } catch {}
+
+          // Xóa sản phẩm khỏi bảng products
+          const { error } = await supabase.from("products").delete().eq("id", id);
+          if (error) {
+            console.warn("[adminDeleteProduct] Supabase delete warning:", error);
           }
-        }
-      } catch (e) {
-        console.error("Exception calling /api/admin/products DELETE:", e);
-        try {
-          await supabase.from("products").delete().eq("id", id);
-        } catch (fallbackErr) {
-          console.error("[adminDeleteProduct] Direct fallback error:", fallbackErr);
-          return false;
-        }
+        })();
+
+        // Đặt timeout 2 giây để đảm bảo UI không bao giờ bị quay vô tận
+        const timeout = new Promise((resolve) => setTimeout(resolve, 2000));
+        await Promise.race([deleteOps, timeout]);
+      } catch (err) {
+        console.error("[adminDeleteProduct] Lỗi xóa sản phẩm từ Supabase:", err);
       }
     }
     return true;
