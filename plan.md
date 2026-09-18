@@ -229,13 +229,10 @@
 - [x] **Xóa Bỏ Fallback Giả Mạo Trong Store & Modal**:
   - `src/lib/store.tsx`: Bỏ fallback `user_email: "guest@codevault.io"` trong `createOrder`, chỉ lấy email thật của `currentUser`.
   - `src/components/store/CheckoutModal.tsx`:
-    - Chỉ tự động điền email nếu người dùng đã đăng nhập tài khoản thực (`!== 'guest@codevault.io'`).
-    - Đặt placeholder hướng dẫn rõ ràng: `Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)`.
-    - Chặn chặt chẽ tại `handleProceedToUpload` và `handleBillSubmit`: Nếu bỏ trống hoặc nhập `guest@codevault.io`, lập tức hiển thị cảnh báo đỏ và dừng lại ở Bước 1.
+    - CẤM TUYỆT ĐỐI tự động điền email (`customerEmail` luôn bắt đầu là `""`), không lấy `currentUser?.email` hay `order.user_email`.
+    - Đặt placeholder hướng dẫn rõ ràng: `Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)` và thêm `autoComplete="off"`.
+    - Chặn chặt chẽ tại `handleProceedToUpload` và `handleBillSubmit`: Bắt buộc người dùng phải tự tay nhập email hợp lệ.
     - Truyền `cleanEmail` vào `submitPaymentProof` để cập nhật đồng bộ vào local state và database.
 - [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Push commit lên remote GitHub `origin/main`.
-
-
-

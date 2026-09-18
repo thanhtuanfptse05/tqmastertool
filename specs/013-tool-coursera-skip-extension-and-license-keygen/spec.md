@@ -149,14 +149,14 @@ export function generateCourseraLicenseKey(
 
 ## 4. End-to-End User Flow & Integration Points
 
-### 4.1. Bắt Buộc Nhập Email Tài Khoản Coursera Khi Mua Hàng & Chống Gán Mặc Định Giả Mạo
+### 4.1. Bắt Buộc Tự Nhập Email Tài Khoản Coursera — CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN (STRICT NO AUTO-FILL)
 1. Trong Modal Checkout (`CheckoutModal.tsx`), khi sản phẩm đặt mua có `deliverable_type === 'license_key'` hoặc category là `'tool'`:
    - Hiển thị input bắt buộc: **"Email Coursera Kích Hoạt Key"**.
-   - **QUY TẮC BẢO MẬT & TRẢI NGHIỆM**:
-     - **CẤM TUYỆT ĐỐI** gán giá trị mặc định là `guest@codevault.io` hoặc bất kỳ email giả lập nào vào input.
-     - Nếu là khách vãng lai (chưa đăng nhập), ô nhập email **BẮT BUỘC PHẢI ĐỂ TRỐNG HOÀN TOÀN** (`""`) với placeholder `Ví dụ: yourname@gmail.com`.
-     - Chỉ tự động điền nếu người dùng đã đăng nhập tài khoản thực (`currentUser?.email` hợp lệ và khác `guest@codevault.io`).
-     - **Chặn chuyển bước**: Người dùng **không thể bấm tiếp tục** sang bước "Tôi đã chuyển khoản — Tải ảnh bill" nếu chưa nhập email hoặc email là `guest@codevault.io` hoặc email sai cú pháp regex.
+   - **QUY TẮC BẢO MẬT & TRẢI NGHIỆM TỐI THƯỢNG (STRICT NO AUTO-FILL RULE)**:
+     - **CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL**: Bất kể người dùng đã đăng nhập hay chưa, dù là Admin hay Khách hàng, ô nhập email Coursera **BẮT BUỘC LUÔN PHẢI BẮT ĐẦU TRỐNG HOÀN TOÀN (`""`)**.
+     - **TUYỆT ĐỐI KHÔNG** lấy `currentUser?.email` hay `order.user_email` để tự động điền sẵn. Khách hàng/sinh viên phải tự tay nhập đúng email tài khoản Coursera của họ (vì tài khoản Coursera rất thường khác với email đăng nhập website hoặc tài khoản Google cá nhân).
+     - Thêm các thuộc tính `autoComplete="off"`, `autoCorrect="off"`, `spellCheck={false}` để ngăn trình duyệt tự điền cache.
+     - **Chặn chuyển bước**: Người dùng **không thể bấm tiếp tục** sang bước "Tôi đã chuyển khoản — Tải ảnh bill" nếu chưa tự tay nhập email hoặc email chứa `guest@` hoặc email sai định dạng regex.
    - Hiển thị thông báo hướng dẫn: *"License Key sẽ được hệ thống mã hóa gắn liền với Email này. Vui lòng điền chính xác email bạn dùng trên Coursera."*
    - Cập nhật chính xác email này vào `order.user_email` và `admin_notes: [COURSERA_EMAIL: {email}]` khi gửi thanh toán.
 

@@ -56,18 +56,16 @@ export default function CheckoutModal() {
   const [generatedLicenseKey, setGeneratedLicenseKey] = useState<string | null>(null);
   const [copiedLicense, setCopiedLicense] = useState(false);
 
+  // CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL:
+  // Luôn reset ô nhập email về rỗng khi mở sản phẩm, khách bắt buộc phải tự tay điền email Coursera
   React.useEffect(() => {
-    // Only prefill if it is a genuine user email and not a guest placeholder
-    const candidate = activeOrderForPayment?.user_email || currentUser?.email || "";
-    if (
-      candidate &&
-      candidate !== "guest@codevault.io" &&
-      !candidate.startsWith("guest@") &&
-      !customerEmail
-    ) {
-      setCustomerEmail(candidate);
-    }
-  }, [activeOrderForPayment, currentUser]);
+    setCustomerEmail("");
+    setEmailError(null);
+    setStep("qr");
+    setBillImage("");
+    setTransactionRef("");
+    setBillUploadError(null);
+  }, [checkoutProduct?.id]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -235,6 +233,18 @@ export default function CheckoutModal() {
         setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera của bạn để hệ thống cấp License Key!");
         return;
       }
+
+      // Lưu ngay Coursera Email vào order phía server để SePay Webhook nhận diện được nếu quét QR thanh toán tức thì
+      if (order?.id) {
+        fetch("/api/orders", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: order.id,
+            customer_email: trimmed,
+          }),
+        }).catch(() => {});
+      }
     }
     setStep("upload");
   };
@@ -319,10 +329,27 @@ export default function CheckoutModal() {
 
                     <input
                       type="email"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
                       value={customerEmail}
                       onChange={(e) => {
                         setCustomerEmail(e.target.value);
                         if (emailError) setEmailError(null);
+                      }}
+                      onBlur={() => {
+                        const trimmed = customerEmail.trim().toLowerCase();
+                        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                        if (trimmed && emailRegex.test(trimmed) && order?.id) {
+                          fetch("/api/orders", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              orderId: order.id,
+                              customer_email: trimmed,
+                            }),
+                          }).catch(() => {});
+                        }
                       }}
                       placeholder="Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)"
                       className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
