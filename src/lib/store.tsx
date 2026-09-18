@@ -31,8 +31,10 @@ interface StoreContextType {
     password?: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  adminResetPassword: (userId: string) => boolean;
-  adminUpdateRole: (userId: string, role: UserRole) => void;
+  adminResetPassword: (userId: string, newPassword?: string) => Promise<boolean>;
+  adminUpdateRole: (userId: string, role: UserRole) => Promise<boolean>;
+  adminDeleteUser: (userId: string) => Promise<boolean>;
+  refreshUsers: () => Promise<void>;
 
   // Products
   products: Product[];
@@ -317,6 +319,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Fetch live users from Supabase database (Admin only)
+  const fetchUsersFromDB = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+
+      const res = await fetch("/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.users)) {
+          setUsers(data.users);
+          persist(STORAGE_KEYS.USERS, data.users);
+          console.log(`[fetchUsersFromDB] Loaded ${data.users.length} live users from database.`);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not query users from Supabase API:", e);
+    }
+  }, []);
+
   // Hydrate from localStorage & Database
   useEffect(() => {
     let active = true;
@@ -328,7 +354,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-      if (savedUsers) setUsers(JSON.parse(savedUsers));
+      if (savedUsers) {
+        const parsedUsers = JSON.parse(savedUsers);
+        // Purge mock users
+        const hasMock = Array.isArray(parsedUsers) && parsedUsers.some((u: any) => u.id?.startsWith("user-") || u.id?.startsWith("usr-"));
+        if (!hasMock) {
+          setUsers(parsedUsers);
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.USERS);
+          setUsers([]);
+        }
+      }
 
       const savedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (savedProducts) {
@@ -397,6 +433,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 };
                 setCurrentUser(userObj);
                 persist(STORAGE_KEYS.USER, userObj);
+                if (isAdmin) {
+                  fetchUsersFromDB();
+                }
               }
               setIsAuthLoading(false);
             });
@@ -430,9 +469,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                 };
                 setCurrentUser(userObj);
                 persist(STORAGE_KEYS.USER, userObj);
+
+                if (isAdmin) {
+                  fetchUsersFromDB();
+                }
               }
-              // ✅ CRITICAL FIX: Re-fetch all orders after login so vault & order list
-              // populate immediately without needing a page refresh.
               fetchOrdersFromDB();
             });
         } else if (event === "SIGNED_OUT") {
@@ -623,13 +664,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const adminResetPassword = (userId: string): boolean => {
-    const user = users.find((u) => u.id === userId);
-    if (!user) return false;
-    return true;
+  const adminResetPassword = async (userId: string, newPassword?: string): Promise<boolean> => {
+    if (!newPassword || newPassword.length < 6) return false;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: "reset_password", userId, newPassword }),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Không thể đặt lại mật khẩu");
+      }
+      return true;
+    } catch (err: any) {
+      console.error("[adminResetPassword] Error:", err);
+      throw err;
+    }
   };
 
-  const adminUpdateRole = (userId: string, role: UserRole) => {
+  const adminUpdateRole = async (userId: string, role: UserRole): Promise<boolean> => {
+    // 1. Optimistic UI update
     const updated = users.map((u) => (u.id === userId ? { ...u, role } : u));
     setUsers(updated);
     persist(STORAGE_KEYS.USERS, updated);
@@ -638,8 +698,56 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setCurrentUser(updatedCurrent);
       persist(STORAGE_KEYS.USER, updatedCurrent);
     }
+
+    // 2. Call Server API
     if (isSupabaseConfigured) {
-      supabase.from("profiles").update({ role }).eq("id", userId);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        const res = await fetch("/api/admin/users", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ action: "update_role", userId, role }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[adminUpdateRole] API error:", err);
+          return false;
+        }
+        await fetchUsersFromDB();
+        return true;
+      } catch (err) {
+        console.error("[adminUpdateRole] Error:", err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const adminDeleteUser = async (userId: string): Promise<boolean> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ action: "delete_user", userId }),
+      });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        persist(STORAGE_KEYS.USERS, users.filter((u) => u.id !== userId));
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("[adminDeleteUser] Error:", err);
+      return false;
     }
   };
 
@@ -1291,6 +1399,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         logout,
         adminResetPassword,
         adminUpdateRole,
+        adminDeleteUser,
+        refreshUsers: fetchUsersFromDB,
         products,
         getProductBySlug,
         getProductById,

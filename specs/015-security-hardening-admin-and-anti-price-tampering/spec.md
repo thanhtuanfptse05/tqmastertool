@@ -92,18 +92,67 @@
   }
   ```
 
+### User Story 4: Quản Lý Người Dùng Thực Tế Từ Cơ Sở Dữ Liệu (Real-Time Admin User Management)
+- **Là** Quản trị viên CodeVault,
+- **Tôi muốn** trang Quản lý người dùng phải hiển thị toàn bộ người dùng thực tế đang có trong cơ sở dữ liệu Supabase,
+- **Để** không bao giờ bị mất danh sách người dùng khi đổi trình duyệt hay xóa cache, và tài khoản Admin phải hiển thị đúng vai trò Quản Trị Viên chứ không bị gán thành Khách Hàng.
+
+**Acceptance Criteria:**
+1. Endpoint `GET /api/admin/users` được bảo vệ bởi xác thực Admin, truy vấn trực tiếp từ `public.profiles` và đồng bộ với `auth.users` của Supabase.
+2. Trang `/admin/users` tải dữ liệu trực tiếp từ API server, loại bỏ việc phụ thuộc vào dữ liệu tạm trong `localStorage`.
+3. Khi Admin bấm "Đổi Role: Admin/Customer", hệ thống gửi yêu cầu tới `PATCH /api/admin/users` để cập nhật cột `role` trong cơ sở dữ liệu bằng Supabase Service Role.
+4. Khi Admin bấm "Đặt lại MK", hệ thống gọi API `PATCH /api/admin/users` cập nhật mật khẩu mới qua `auth.admin.updateUserById`.
+5. Danh sách Master Admin Whitelist bao gồm: `admin@gmail.com`, `caotuan01122005@gmail.com`, `caothanhtuan576@gmail.com`, `lequan12305@gmail.com`, `admin@codevault.io` và các email trong `process.env.ADMIN_EMAILS`. Các tài khoản này luôn giữ vai trò `admin` chuẩn xác.
+
+---
+
+## 3. THIẾT KẾ KỸ THUẬT (TECHNICAL SPECIFICATION)
+
+### 3.1. API Endpoints
+
+#### `POST /api/orders`
+- **Mô tả:** Khởi tạo đơn hàng mới với giá trị được chốt từ server.
+
 #### `POST /api/webhooks/sepay` (Hardened)
-- **Bổ sung bước đối soát giá DB 2 lớp:**
-  - Lấy toàn bộ `order_items` trong đơn hàng.
-  - Lấy giá gốc từ bảng `products` tính `expectedRealTotal`.
-  - Nếu `transferAmount < expectedRealTotal` hoặc `order.total_amount < expectedRealTotal`:
-    - Chặn duyệt ngay lập tức, gắn nhãn `[FRAUD_PRICE_TAMPERING_DETECTED]`.
+- **Mô tả:** Đối soát giá DB 2 lớp, chống sửa giá đơn hàng về 0 và chặn chuyển 1k.
+
+#### `GET /api/admin/users`
+- **Mô tả:** Lấy toàn bộ danh sách tài khoản người dùng từ Supabase `profiles` và `auth.users`.
+- **Bảo mật:** Yêu cầu quyền Admin (kiểm tra qua `getAuthenticatedUser`).
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "users": [
+      {
+        "id": "UUID",
+        "email": "string",
+        "full_name": "string",
+        "role": "admin" | "customer",
+        "avatar_url": "string",
+        "created_at": "ISO string"
+      }
+    ]
+  }
+  ```
+
+#### `PATCH /api/admin/users`
+- **Mô tả:** Thực hiện đổi vai trò người dùng (role) hoặc đặt lại mật khẩu mới (reset password).
+- **Request Body (Role Update):**
+  ```json
+  { "action": "update_role", "userId": "UUID", "role": "admin" | "customer" }
+  ```
+- **Request Body (Reset Password):**
+  ```json
+  { "action": "reset_password", "userId": "UUID", "newPassword": "string (min 6 chars)" }
+  ```
 
 ---
 
 ## 4. CHECKLIST TRIỂN KHAI (DEFINITION OF DONE)
-- [x] Tạo tài liệu đặc tả kỹ thuật `spec.md`.
-- [x] Cập nhật file `implementation_plan.md` xin phê duyệt của User.
-- [ ] Thực hiện viết mã nguồn theo đúng Spec.
+- [x] Cập nhật tài liệu đặc tả kỹ thuật `spec.md`.
+- [ ] Triển khai `src/app/api/admin/users/route.ts`.
+- [ ] Cập nhật `src/lib/supabase-server.ts` bổ sung whitelist master admins.
+- [ ] Cập nhật `src/lib/store.tsx` và `src/app/admin/users/page.tsx` fetch và quản trị người dùng từ DB.
 - [ ] Kiểm tra typecheck TypeScript (`tsc --noEmit`).
-- [ ] Commit & Push lên GitHub theo đúng quy chế.
+- [ ] Push code lên GitHub.

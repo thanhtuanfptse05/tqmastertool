@@ -15,6 +15,9 @@ export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 
 export const ADMIN_WHITELIST_EMAILS = [
   "lequan12305@gmail.com",
+  "caotuan01122005@gmail.com",
+  "caothanhtuan576@gmail.com",
+  "admin@gmail.com",
   "admin@codevault.io",
 ];
 
@@ -46,11 +49,11 @@ export function isStrictAdminEmail(email?: string | null): boolean {
  * Extracts and verifies the authenticated user from a NextRequest.
  * Checks Authorization header: Bearer <token> or Supabase cookies.
  * 
- * SECURITY GATE (DUAL-FACTOR ADMIN CHECK):
- * A user is ONLY recognized as an Admin if:
- * 1. Their email is strictly validated in the Server Admin Whitelist (isStrictAdminEmail).
- * 2. Any arbitrary database modifications made to profiles.role by unauthorized users
- *    will NEVER grant administrative privileges.
+ * SECURITY GATE:
+ * A user is recognized as Admin if:
+ * 1. Their email is in the Master Admin Whitelist (isStrictAdminEmail), OR
+ * 2. Their profile has role === 'admin' in PostgreSQL.
+ * If a master admin email is detected, the database role is automatically healed to 'admin'.
  */
 export async function getAuthenticatedUser(
   req: NextRequest
@@ -111,23 +114,31 @@ export async function getAuthenticatedUser(
       return { user: null, isAdmin: false };
     }
 
-    // 1. Mandatory Pre-Check: Is the user's email authorized in Admin Whitelist?
+    // 1. Check Master Admin Whitelist
     const isEmailAdmin = isStrictAdminEmail(user.email);
-    if (!isEmailAdmin) {
-      // User is authenticated, but STRICTLY NOT an admin.
-      // Even if profiles.role was tampered with in Postgres, access is DENIED.
-      return { user, isAdmin: false };
-    }
 
-    // 2. Secondary check: verify database profile record exists
+    // 2. Check Database Profile role
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
 
-    // If profile has role admin, or if email is verified whitelist admin
-    const isAdmin = profile?.role === "admin" || isEmailAdmin;
+    const isRoleAdmin = profile?.role === "admin";
+    const isAdmin = isEmailAdmin || isRoleAdmin;
+
+    // Auto-heal: If user is in Master Admin Whitelist, ensure profile.role in DB is 'admin'
+    if (isEmailAdmin && profile && profile.role !== "admin") {
+      try {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ role: "admin", updated_at: new Date().toISOString() })
+          .eq("id", user.id);
+        console.log(`[Auth Helper] 🔄 Auto-promoted master admin ${user.email} to 'admin' in profiles table.`);
+      } catch (syncErr) {
+        console.warn("[Auth Helper] Could not auto-promote master admin:", syncErr);
+      }
+    }
 
     return { user, isAdmin };
   } catch (err) {
@@ -135,4 +146,5 @@ export async function getAuthenticatedUser(
     return { user: null, isAdmin: false };
   }
 }
+
 
