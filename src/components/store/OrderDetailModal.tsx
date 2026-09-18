@@ -333,8 +333,11 @@ export default function OrderDetailModal({
 
           {/* Tool Deliverables Quick Access — Khi đơn hàng Tool đã hoàn tất */}
           {order.status === "completed" && isTool && (() => {
-            const { licenseKey, courseraEmail } = extractOrderLicenseInfo(order);
+            const { licenseKey, courseraEmail, licenses, emails } = extractOrderLicenseInfo(order);
             const effectiveKey = licenseKey || order.license_key;
+            const effectiveLicenses = licenses.length > 0
+              ? licenses
+              : (effectiveKey ? [{ email: courseraEmail || order.user_email, key: effectiveKey }] : []);
             const matchedItem = order.items?.find((i) => i.git_repo_url);
             const matchedProduct = products.find(
               (p) =>
@@ -360,6 +363,13 @@ export default function OrderDetailModal({
                 ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
                 : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt");
 
+            const handleCopyAllKeys = () => {
+              const allText = effectiveLicenses
+                .map((item, idx) => `Tài khoản ${idx + 1} (${item.email}): ${item.key}`)
+                .join("\n");
+              copyToClipboard(allText, "all_keys");
+            };
+
             return (
               <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-400/40 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
@@ -376,9 +386,85 @@ export default function OrderDetailModal({
                   Đơn hàng đã hoàn tất thành công! Bạn có thể truy cập ngay thư mục Google Drive tải tool, lấy mã License Key và xem video hướng dẫn của kênh Tuấn và Quân FPT.
                 </p>
 
-                {/* License Key Box if available */}
-                {effectiveKey && (() => {
-                  const durationInfo = parseLicenseKeyDuration(effectiveKey);
+                {/* Multi-license Keys Rendering */}
+                {effectiveLicenses.length > 1 ? (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-900">
+                        <Key className="w-4 h-4 text-amber-500" />
+                        <span>Danh Sách License Keys ({effectiveLicenses.length} tài khoản):</span>
+                      </div>
+                      <button
+                        onClick={handleCopyAllKeys}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-400 text-[11px] font-bold transition-colors"
+                      >
+                        {copiedField === "all_keys" ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Đã sao chép tất cả</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Sao chép tất cả</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {effectiveLicenses.map((lic, idx) => {
+                        const durationInfo = parseLicenseKeyDuration(lic.key);
+                        return (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-inner"
+                          >
+                            <div className="min-w-0 space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-extrabold text-amber-400 uppercase">
+                                  TK #{idx + 1}:
+                                </span>
+                                <span className="text-xs font-semibold text-slate-200 truncate">
+                                  {lic.email}
+                                </span>
+                                <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                                  durationInfo.isExpired
+                                    ? "bg-rose-500/20 text-rose-400"
+                                    : "bg-emerald-500/20 text-emerald-400"
+                                }`}>
+                                  {durationInfo.label}
+                                </span>
+                              </div>
+                              <div className="font-mono text-xs font-bold text-cyan-300 tracking-wider break-all select-all">
+                                {lic.key}
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => copyToClipboard(lic.key, `key_${idx}`)}
+                              className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-[11px] transition-all active:scale-95 shrink-0"
+                            >
+                              {copiedField === `key_${idx}` ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  <span>Đã chép</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Chép key</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : effectiveLicenses.length === 1 ? (() => {
+                  const singleLic = effectiveLicenses[0];
+                  const durationInfo = parseLicenseKeyDuration(singleLic.key);
                   return (
                     <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -397,17 +483,17 @@ export default function OrderDetailModal({
                             </span>
                           </div>
                           <div className="font-mono text-xs sm:text-sm font-bold text-cyan-300 tracking-wider break-all select-all">
-                            {effectiveKey}
+                            {singleLic.key}
                           </div>
-                          {(courseraEmail || order.user_email) && (
+                          {singleLic.email && (
                             <div className="text-[10px] text-slate-400">
-                              Email kích hoạt: <span className="text-slate-200 font-semibold">{courseraEmail || order.user_email}</span>
+                              Email kích hoạt: <span className="text-slate-200 font-semibold">{singleLic.email}</span>
                             </div>
                           )}
                         </div>
 
                         <button
-                          onClick={() => copyToClipboard(effectiveKey, "license_key")}
+                          onClick={() => copyToClipboard(singleLic.key, "license_key")}
                           className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
                         >
                           {copiedField === "license_key" ? (
@@ -425,7 +511,7 @@ export default function OrderDetailModal({
                       </div>
                     </div>
                   );
-                })()}
+                })() : null}
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a

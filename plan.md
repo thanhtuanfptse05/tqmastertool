@@ -270,15 +270,30 @@
 - [x] **Spec-First Protocol**:
   - `specs/015-security-hardening-admin-and-anti-price-tampering/spec.md`: Bổ sung Acceptance Criteria 7 (User Story 4) về tối ưu song song và Fast-Path Admin Check.
 - [ ] **Tối Ưu Server API & Fast-Path Auth**:
+- [x] **Tối Ưu Server API & Fast-Path Auth**:
   - `src/lib/supabase-server.ts`: Áp dụng Fast-Path cho root admin email (`isStrictAdminEmail`), bỏ round-trip query `profiles` không cần thiết.
   - `src/app/api/admin/users/route.ts`: Chuyển truy vấn `profiles` và `auth.admin.listUsers` sang chạy song song với `Promise.all`, giảm độ trễ từ 3s xuống dưới 1s.
-- [ ] **Tối Ưu Client Refresh & Chống Kẹt Loading**:
+- [x] **Tối Ưu Client Refresh & Chống Kẹt Loading**:
   - `src/lib/store.tsx`: Bổ sung `AbortController` timeout cho `fetchUsersFromDB` (tối đa 6 giây).
   - `src/app/admin/users/page.tsx`: Thêm timeout bảo vệ trong `handleManualRefresh` (tối đa 3 giây) đảm bảo nút "Đang đồng bộ..." lập tức chuyển về "Làm Mới" và báo thành công, không để người dùng chờ đợi.
-- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - `npx tsc --noEmit` đạt 0 lỗi.
   - `npm run build` đạt 0 lỗi.
   - Push lên GitHub `origin/main`.
 
-
-
+### [ ] Giai Đoạn 20: Tool Coursera Multi-Quantity & Tự Động Sinh Nhiều License Key (Spec 016) — ĐANG TIẾN HÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/016-coursera-multi-quantity-and-bulk-keygen/spec.md`.
+- [ ] **Engine Keygen & Quản Lý Nhiều License**:
+  - `src/lib/coursera-keygen.ts`: Viết hàm xử lý danh sách nhiều email `[COURSERA_EMAILS: ...]`, tự động sinh nhiều key `[LICENSES: email:key | ...]`, trích xuất `licenses: CourseraLicenseItem[]` tương thích ngược 100%.
+- [ ] **Bảo Mật Máy Chủ & Chống Gian Lận Giá (Anti-Price-Tampering)**:
+  - `src/app/api/orders/route.ts`: Nhận `quantity` (1-20), tính `total_amount = officialPrice * quantity` cố định từ DB, chèn đúng `quantity` bản ghi vào `order_items`.
+  - `src/app/api/webhooks/sepay/route.ts`: Đối soát `expectedRealTotal` theo `quantity`, tự động sinh N license keys cho N emails khi nhận đủ tiền.
+  - `PATCH /api/orders`: Tự động sinh N license keys cho N emails khi Admin duyệt `completed`.
+- [ ] **Giao Diện Chọn Số Lượng & Nhập N Email Không Trùng Lặp**:
+  - `CheckoutModal.tsx`: Cho phép chọn số lượng, hiển thị N ô nhập email kèm validate không rỗng, đúng định dạng, không trùng lặp. Hiển thị đủ N keys kèm nút sao chép từng key và sao chép tất cả.
+  - `ProductDetailModal.tsx` & `/products/[slug]`: Thêm bộ chọn số lượng `[-] [ 1 ] [+]` cập nhật tổng tiền trước khi mở checkout.
+  - `OrderDetailModal.tsx` & `/customer/vault`: Hiển thị danh sách đầy đủ N license keys và email của đơn hàng.
+  - `AdminOrdersPage` & `AdminOrderEditModal`: Hiển thị số lượng, danh sách email và danh sách key.
+- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên GitHub `origin/main`.

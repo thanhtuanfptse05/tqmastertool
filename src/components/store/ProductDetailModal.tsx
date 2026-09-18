@@ -17,6 +17,9 @@ import {
   ChevronRight,
   ShoppingBag,
   Terminal,
+  Key,
+  Plus,
+  Minus,
 } from "lucide-react";
 import ProductDescriptionRenderer from "./ProductDescriptionRenderer";
 import NetBeansConsoleSimulator from "./NetBeansConsoleSimulator";
@@ -31,6 +34,11 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "code" | "demo">("overview");
+  const [quantity, setQuantity] = useState(1);
+
+  React.useEffect(() => {
+    setQuantity(1);
+  }, [product?.id]);
 
   if (!product) return null;
 
@@ -45,6 +53,8 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
+
+  const isCoursera = product.slug.includes("coursera") || product.title.toLowerCase().includes("coursera");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/70 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200">
@@ -81,11 +91,16 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
 
             <div className="shrink-0 text-left md:text-right">
               <div className="text-2xl font-black text-blue-600">
-                {formatVND(product.price)}
+                {formatVND(product.price * (isCoursera ? quantity : 1))}
               </div>
+              {isCoursera && quantity > 1 && (
+                <div className="text-[11px] font-bold text-blue-500">
+                  {formatVND(product.price)} / 1 tài khoản x {quantity} TK
+                </div>
+              )}
               {product.original_price && (
                 <div className="text-xs text-slate-400 line-through">
-                  Giá niêm yết: {formatVND(product.original_price)}
+                  Giá niêm yết: {formatVND(product.original_price * (isCoursera ? quantity : 1))}
                 </div>
               )}
             </div>
@@ -297,29 +312,56 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
         </div>
 
         {/* Sticky Modal Footer CTA */}
-        <div className="p-4 sm:px-6 bg-white border-t border-slate-100 flex items-center justify-between gap-4">
+        <div className="p-4 sm:px-6 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
             <span>Thanh toán VietQR Napas • Mở kho sau khi duyệt</span>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors"
-            >
-              Đóng
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                openCheckout(product);
-              }}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/30 transition-all active:scale-95"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              Đặt Mua Ngay ({formatVND(product.price)})
-            </button>
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+            {isCoursera && (
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <span className="text-[11px] font-bold text-slate-500 px-2">Số lượng:</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 transition-colors"
+                  title="Giảm số lượng"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-7 text-center text-xs font-black text-slate-900">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.min(20, quantity + 1))}
+                  disabled={quantity >= 20}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-white border border-slate-200 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 transition-colors"
+                  title="Tăng số lượng"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors"
+              >
+                Đóng
+              </button>
+              <button
+                onClick={() => {
+                  onClose();
+                  openCheckout(product, isCoursera ? quantity : 1);
+                }}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-500/30 transition-all active:scale-95"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Đặt Mua Ngay ({formatVND(product.price * (isCoursera ? quantity : 1))})
+              </button>
+            </div>
           </div>
         </div>
       </div>

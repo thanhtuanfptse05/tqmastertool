@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   generateCourseraLicenseKey,
   formatOrderNotesWithLicense,
+  formatOrderNotesWithMultipleLicenses,
+  extractOrderLicenseInfo,
 } from "@/lib/coursera-keygen";
 
 export const dynamic = "force-dynamic";
@@ -307,29 +309,6 @@ export async function POST(req: NextRequest) {
     // -----------------------------------------------------------
     // 7. AUTO-APPROVE: SATISFIED ALL SECURITY CHECKS
     // -----------------------------------------------------------
-    let targetEmail = "";
-    const emailMatch = (order.admin_notes || "").match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
-    if (emailMatch && emailMatch[1]) {
-      targetEmail = emailMatch[1].trim().toLowerCase();
-    }
-
-    if (!targetEmail && order.user_id) {
-      try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", order.user_id)
-          .maybeSingle();
-        if (profile?.email) {
-          targetEmail = profile.email.trim().toLowerCase();
-        }
-      } catch {}
-    }
-
-    if (!targetEmail && order.user_email && !order.user_email.startsWith("guest@") && order.user_email.includes("@")) {
-      targetEmail = order.user_email.trim().toLowerCase();
-    }
-
     const { data: items } = await supabase
       .from("order_items")
       .select("product_title, product_category")
@@ -337,18 +316,47 @@ export async function POST(req: NextRequest) {
 
     const hasCourseraTool =
       (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
-      order.total_amount === 40000 ||
+      (order.total_amount && order.total_amount % 40000 === 0 && order.total_amount >= 40000) ||
       order.total_amount === 149000;
 
     let baseNotes = `✅ Tự động duyệt thành công qua SePay Webhook (${body.gateway} - GD: ${refCode}). Nhận đủ: ${transferAmount.toLocaleString()}đ.`;
 
-    if (hasCourseraTool && targetEmail) {
-      try {
-        const generatedKey = generateCourseraLicenseKey(targetEmail, 30);
-        baseNotes = formatOrderNotesWithLicense(baseNotes, generatedKey, targetEmail);
-        console.log(`[SePay Webhook] 🔑 Auto-generated Coursera Key (30 days): ${generatedKey} for email: ${targetEmail}`);
-      } catch (keyErr) {
-        console.warn("[SePay Webhook] Could not generate Coursera key:", keyErr);
+    if (hasCourseraTool) {
+      const licenseInfo = extractOrderLicenseInfo({
+        ...order,
+        status: "completed",
+      });
+
+      let targetEmails = licenseInfo.emails;
+      if (targetEmails.length === 0 && order.user_id) {
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("id", order.user_id)
+            .maybeSingle();
+          if (profile?.email && profile.email.includes("@") && !profile.email.startsWith("guest@")) {
+            targetEmails = [profile.email.trim().toLowerCase()];
+          }
+        } catch {}
+      }
+
+      if (targetEmails.length === 0 && order.user_email && !order.user_email.startsWith("guest@") && order.user_email.includes("@")) {
+        targetEmails = [order.user_email.trim().toLowerCase()];
+      }
+
+      if (targetEmails.length > 0) {
+        try {
+          const licensesToSave = targetEmails.map((email) => {
+            const existing = licenseInfo.licenses.find((l) => l.email === email);
+            const key = existing?.key || generateCourseraLicenseKey(email, 30);
+            return { email, key };
+          });
+          baseNotes = formatOrderNotesWithMultipleLicenses(baseNotes, licensesToSave);
+          console.log(`[SePay Webhook] 🔑 Auto-generated ${licensesToSave.length} Coursera Keys (30 days) for emails:`, targetEmails);
+        } catch (keyErr) {
+          console.warn("[SePay Webhook] Could not generate Coursera keys:", keyErr);
+        }
       }
     }
 

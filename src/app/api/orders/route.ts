@@ -3,6 +3,9 @@ import { supabaseAdmin, getAuthenticatedUser } from "@/lib/supabase-server";
 import {
   generateCourseraLicenseKey,
   formatOrderNotesWithLicense,
+  formatOrderNotesWithEmails,
+  formatOrderNotesWithMultipleLicenses,
+  extractOrderLicenseInfo,
 } from "@/lib/coursera-keygen";
 
 export const dynamic = "force-dynamic";
@@ -278,9 +281,13 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Handle customer_email from checkout submission (customer_email is not a DB column)
+    // Handle customer_email / customer_emails from checkout submission
     delete payload.customer_email;
+    delete payload.customer_emails;
     const rawCustomerEmail = body.customer_email ? String(body.customer_email).trim().toLowerCase() : "";
+    const rawCustomerEmails: string[] = Array.isArray(body.customer_emails)
+      ? body.customer_emails.map((e: any) => String(e).trim().toLowerCase()).filter((e: string) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io")
+      : (rawCustomerEmail && rawCustomerEmail.includes("@") && !rawCustomerEmail.startsWith("guest@") && rawCustomerEmail !== "guest@codevault.io" ? [rawCustomerEmail] : []);
 
     const { data: orderItems } = await supabaseAdmin
       .from("order_items")
@@ -289,44 +296,49 @@ export async function PATCH(req: NextRequest) {
 
     const isCoursera =
       (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
-      existingOrder.total_amount === 40000 ||
+      (existingOrder.total_amount && existingOrder.total_amount % 40000 === 0 && existingOrder.total_amount >= 40000) ||
       existingOrder.total_amount === 149000;
 
-    if (isCoursera && rawCustomerEmail && rawCustomerEmail !== "guest@codevault.io" && !rawCustomerEmail.startsWith("guest@")) {
-      const baseNotes = payload.admin_notes || existingOrder.admin_notes || "";
-      if (!baseNotes.includes("[COURSERA_EMAIL:")) {
-        payload.admin_notes = baseNotes
-          ? `${baseNotes} [COURSERA_EMAIL: ${rawCustomerEmail}]`
-          : `[COURSERA_EMAIL: ${rawCustomerEmail}]`;
-      }
+    if (isCoursera && rawCustomerEmails.length > 0) {
+      payload.admin_notes = formatOrderNotesWithEmails(payload.admin_notes || existingOrder.admin_notes, rawCustomerEmails);
     }
 
     // Handle auto license key generation when order status is completed (or was already completed by SePay)
     const isOrderCompleted = payload.status === "completed" || existingOrder.status === "completed";
     if (isOrderCompleted && isCoursera) {
       const currentNotes = payload.admin_notes || existingOrder.admin_notes || "";
-      let targetEmail = "";
-      const emailMatch = currentNotes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
-      if (emailMatch && emailMatch[1]) {
-        targetEmail = emailMatch[1].trim().toLowerCase();
-      } else if (rawCustomerEmail) {
-        targetEmail = rawCustomerEmail;
-      } else if (existingOrder.user_id) {
+      const licenseInfo = extractOrderLicenseInfo({
+        ...existingOrder,
+        admin_notes: currentNotes,
+        status: "completed",
+      });
+
+      let targetEmails = licenseInfo.emails;
+      if (targetEmails.length === 0 && rawCustomerEmails.length > 0) {
+        targetEmails = rawCustomerEmails;
+      }
+      if (targetEmails.length === 0 && existingOrder.user_id) {
         try {
           const { data: prof } = await supabaseAdmin
             .from("profiles")
             .select("email")
             .eq("id", existingOrder.user_id)
             .maybeSingle();
-          if (prof?.email) targetEmail = prof.email.trim().toLowerCase();
+          if (prof?.email && prof.email.includes("@") && !prof.email.startsWith("guest@")) {
+            targetEmails = [prof.email.trim().toLowerCase()];
+          }
         } catch {}
       }
 
-      if (targetEmail && !currentNotes.includes("[KEY:")) {
+      if (targetEmails.length > 0) {
         try {
-          const key = generateCourseraLicenseKey(targetEmail, 30);
-          payload.admin_notes = formatOrderNotesWithLicense(payload.admin_notes || existingOrder.admin_notes, key, targetEmail);
-          console.log(`[API /api/orders] 🔑 Auto-generated Coursera Key (30 days): ${key} for email: ${targetEmail}`);
+          const licensesToSave = targetEmails.map((email) => {
+            const existing = licenseInfo.licenses.find((l) => l.email === email);
+            const key = existing?.key || generateCourseraLicenseKey(email, 30);
+            return { email, key };
+          });
+          payload.admin_notes = formatOrderNotesWithMultipleLicenses(currentNotes, licensesToSave);
+          console.log(`[API /api/orders] 🔑 Auto-generated ${licensesToSave.length} Coursera Keys (30 days) for emails:`, targetEmails);
         } catch (err) {
           console.warn("[API /api/orders] Keygen warning:", err);
         }
@@ -429,7 +441,7 @@ export async function PATCH(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { productId, customerEmail, customerName } = body;
+    const { productId, quantity = 1, customerEmail, customerEmails, customerName } = body;
 
     if (!productId) {
       return NextResponse.json(
@@ -437,6 +449,8 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const parsedQty = Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1)));
 
     // 1. Authenticate user if session exists
     const { user } = await getAuthenticatedUser(req);
@@ -480,6 +494,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const totalAmount = officialPrice * parsedQty;
+
     // 3. Generate unique order numbers
     const orderNum = Math.floor(1000 + Math.random() * 9000);
     const orderCode = `TQ-2026-${orderNum}`;
@@ -496,19 +512,25 @@ export async function POST(req: NextRequest) {
       Boolean(product.slug && String(product.slug).toLowerCase().includes("coursera"));
 
     let adminNotes = "";
-    // Only Coursera tools require coursera email in adminNotes, and ONLY if customer explicitly entered it
-    if (isCourseraProduct && customerEmail) {
-      const explicitEmail = customerEmail.trim().toLowerCase();
-      if (explicitEmail && explicitEmail !== "guest@codevault.io" && !explicitEmail.startsWith("guest@")) {
-        adminNotes = `[COURSERA_EMAIL: ${explicitEmail}]`;
+    // Collect customer emails for Coursera
+    if (isCourseraProduct) {
+      const emailList: string[] = Array.isArray(customerEmails)
+        ? customerEmails
+        : (customerEmail ? [customerEmail] : []);
+      const cleanEmails = emailList
+        .map((e) => String(e).trim().toLowerCase())
+        .filter((e) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io");
+
+      if (cleanEmails.length > 0) {
+        adminNotes = formatOrderNotesWithEmails("", cleanEmails);
       }
     }
 
-    // 4. Insert order via Supabase Service Role (Total amount strictly locked to DB price)
+    // 4. Insert order via Supabase Service Role (Total amount strictly locked to DB price * quantity)
     const orderPayload: any = {
       id: orderId,
       order_code: orderCode,
-      total_amount: officialPrice, // IMMUTABLE: Enforced directly from DB
+      total_amount: totalAmount, // IMMUTABLE: Enforced directly from DB * quantity
       status: "pending_payment",
       payment_method: "vietqr",
       vietqr_content: cleanMemo,
@@ -535,42 +557,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Insert order items
-    const itemId = typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `item-${Date.now()}`;
+    // 5. Insert order items (one row per unit quantity to maintain SePay reconciliation accuracy)
+    const itemRows = Array.from({ length: parsedQty }).map((_, index) => ({
+      id: typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `item-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`,
+      order_id: orderId,
+      product_id: product.id,
+      unit_price: officialPrice,
+      product_title: product.title,
+      product_category: product.category,
+      created_at: new Date().toISOString(),
+    }));
 
     const { error: itemErr } = await supabaseAdmin
       .from("order_items")
-      .insert({
-        id: itemId,
-        order_id: orderId,
-        product_id: product.id,
-        unit_price: officialPrice,
-        product_title: product.title,
-        product_category: product.category,
-        created_at: new Date().toISOString(),
-      });
+      .insert(itemRows);
 
     if (itemErr) {
       console.warn("[API /api/orders POST] Order items insert warning:", itemErr);
     }
 
-    const items = [
-      {
-        id: itemId,
-        order_id: orderId,
-        product_id: product.id,
-        unit_price: officialPrice,
-        product_title: product.title,
-        product_category: product.category,
-        product_thumbnail: product.thumbnail_url || "",
-        created_at: newOrder.created_at,
-      },
-    ];
+    const items = itemRows.map((r) => ({
+      id: r.id,
+      order_id: orderId,
+      product_id: product.id,
+      unit_price: officialPrice,
+      product_title: product.title,
+      product_category: product.category,
+      product_thumbnail: product.thumbnail_url || "",
+      created_at: newOrder.created_at,
+    }));
 
     console.log(
-      `[API /api/orders POST] ✅ Order ${orderCode} created securely. Product: "${product.title}" - Locked Price: ${officialPrice.toLocaleString()}đ`
+      `[API /api/orders POST] ✅ Order ${orderCode} created securely. Product: "${product.title}" - Qty: ${parsedQty} - Total: ${totalAmount.toLocaleString()}đ`
     );
 
     return NextResponse.json({

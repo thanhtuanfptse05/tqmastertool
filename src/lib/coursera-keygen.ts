@@ -110,47 +110,157 @@ export function verifyCourseraLicenseKey(
   return { valid: false, error: "License Key không hợp lệ hoặc không khớp với email này." };
 }
 
+export interface CourseraLicenseItem {
+  email: string;
+  key: string;
+  durationLabel: string;
+  isExpired: boolean;
+  expirationDate?: Date;
+}
+
 /**
- * Trích xuất License Key và Coursera Email từ thông tin đơn hàng
+ * Sinh danh sách nhiều License Key cho nhiều Email Coursera
+ */
+export function generateMultipleCourseraKeys(
+  emails: string[],
+  duration: "perm" | number = 30
+): CourseraLicenseItem[] {
+  return emails
+    .map((e) => (e || "").trim().toLowerCase())
+    .filter(Boolean)
+    .map((cleanEmail) => {
+      const key = generateCourseraLicenseKey(cleanEmail, duration);
+      const dur = parseLicenseKeyDuration(key);
+      return {
+        email: cleanEmail,
+        key,
+        durationLabel: dur.label,
+        isExpired: dur.isExpired,
+        expirationDate: dur.expirationDate,
+      };
+    });
+}
+
+/**
+ * Trích xuất danh sách License Keys và Coursera Emails từ thông tin đơn hàng
+ * Tương thích ngược 100% với các đơn hàng chỉ có 1 key hoặc 1 email
  */
 export function extractOrderLicenseInfo(order: {
   admin_notes?: string | null;
   license_key?: string | null;
   user_email?: string | null;
   status?: string | null;
-}): { licenseKey?: string; courseraEmail?: string } {
-  let licenseKey = (order.license_key || "").trim() || undefined;
-  let courseraEmail: string | undefined = undefined;
+  items?: any[];
+}): {
+  licenseKey?: string;
+  courseraEmail?: string;
+  licenses: CourseraLicenseItem[];
+  emails: string[];
+} {
+  let fallbackKey = (order.license_key || "").trim() || undefined;
+  let fallbackEmail: string | undefined = undefined;
+  const licenses: CourseraLicenseItem[] = [];
+  const emailsSet = new Set<string>();
 
   const notes = order.admin_notes || "";
 
-  // 1. Trích xuất Coursera Email từ ghi chú (nếu có tag [COURSERA_EMAIL: ...])
-  const emailMatch = notes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
-  if (emailMatch && emailMatch[1]) {
-    courseraEmail = emailMatch[1].trim().toLowerCase();
-  } else if (order.user_email && order.user_email.includes("@")) {
-    courseraEmail = order.user_email.trim().toLowerCase();
+  // 1. Phân tích danh sách [LICENSES: email1:key1 | email2:key2 | ...]
+  const licensesMatch = notes.match(/\[(?:LICENSES|COURSERA_LICENSES):\s*([^\]]+)\]/i);
+  if (licensesMatch && licensesMatch[1]) {
+    const rawPairs = licensesMatch[1].split(/[|]/).map((p) => p.trim()).filter(Boolean);
+    for (const pair of rawPairs) {
+      const separatorIdx = pair.indexOf(":");
+      if (separatorIdx > 0) {
+        const email = pair.substring(0, separatorIdx).trim().toLowerCase();
+        const key = pair.substring(separatorIdx + 1).trim().toUpperCase();
+        if (email && key.startsWith("CSR-")) {
+          emailsSet.add(email);
+          const dur = parseLicenseKeyDuration(key);
+          licenses.push({
+            email,
+            key,
+            durationLabel: dur.label,
+            isExpired: dur.isExpired,
+            expirationDate: dur.expirationDate,
+          });
+        }
+      }
+    }
   }
 
-  // 2. Trích xuất License Key từ ghi chú (nếu có tag [KEY: CSR-...])
-  if (!licenseKey) {
+  // 2. Phân tích danh sách [COURSERA_EMAILS: email1, email2, ...]
+  const emailsMatch = notes.match(/\[(?:COURSERA_EMAILS|EMAILS_COURSERA):\s*([^\]]+)\]/i);
+  if (emailsMatch && emailsMatch[1]) {
+    const parsedEmails = emailsMatch[1]
+      .split(/[,;|]/)
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io");
+    parsedEmails.forEach((e) => emailsSet.add(e));
+  }
+
+  // 3. Phân tích email đơn lẻ [COURSERA_EMAIL: ...]
+  const singleEmailMatch = notes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
+  if (singleEmailMatch && singleEmailMatch[1]) {
+    const em = singleEmailMatch[1].trim().toLowerCase();
+    fallbackEmail = em;
+    emailsSet.add(em);
+  } else if (order.user_email && order.user_email.includes("@") && !order.user_email.startsWith("guest@")) {
+    fallbackEmail = order.user_email.trim().toLowerCase();
+    emailsSet.add(fallbackEmail);
+  }
+
+  // 4. Phân tích key đơn lẻ [KEY: CSR-...]
+  if (!fallbackKey) {
     const keyMatch = notes.match(/\[(?:KEY|LICENSE_KEY):\s*(CSR-[A-Z0-9-]+)\]/i);
     if (keyMatch && keyMatch[1]) {
-      licenseKey = keyMatch[1].trim().toUpperCase();
+      fallbackKey = keyMatch[1].trim().toUpperCase();
     }
   }
 
-  // 3. Fallback: Nếu đơn hàng đã hoàn thành (completed) và có email hợp lệ
-  // tự động sinh key chuẩn xác theo thuật toán (gói 30 ngày)
-  if (!licenseKey && order.status === "completed" && courseraEmail) {
-    try {
-      licenseKey = generateCourseraLicenseKey(courseraEmail, 30);
-    } catch (e) {
-      console.warn("Could not auto-generate license key from email:", e);
+  // 5. Nếu đơn hàng đã hoàn tất (status === 'completed'):
+  // Đảm bảo mỗi email trong danh sách emailsSet đều có 1 license key tương ứng
+  const allEmails = Array.from(emailsSet);
+  if (order.status === "completed" && allEmails.length > 0) {
+    for (const email of allEmails) {
+      const existing = licenses.find((l) => l.email === email);
+      if (!existing) {
+        try {
+          const generatedKey = (allEmails.length === 1 && fallbackKey)
+            ? fallbackKey
+            : generateCourseraLicenseKey(email, 30);
+          const dur = parseLicenseKeyDuration(generatedKey);
+          licenses.push({
+            email,
+            key: generatedKey,
+            durationLabel: dur.label,
+            isExpired: dur.isExpired,
+            expirationDate: dur.expirationDate,
+          });
+        } catch (err) {
+          console.warn(`[extractOrderLicenseInfo] Could not generate key for ${email}:`, err);
+        }
+      }
     }
   }
 
-  return { licenseKey, courseraEmail };
+  // Fallback đơn lẻ nếu licenses vẫn rỗng nhưng có fallbackKey & fallbackEmail
+  if (licenses.length === 0 && fallbackKey) {
+    const dur = parseLicenseKeyDuration(fallbackKey);
+    licenses.push({
+      email: fallbackEmail || "user@coursera.org",
+      key: fallbackKey,
+      durationLabel: dur.label,
+      isExpired: dur.isExpired,
+      expirationDate: dur.expirationDate,
+    });
+  }
+
+  return {
+    licenseKey: licenses[0]?.key || fallbackKey,
+    courseraEmail: licenses[0]?.email || fallbackEmail,
+    licenses,
+    emails: allEmails.length > 0 ? allEmails : (fallbackEmail ? [fallbackEmail] : []),
+  };
 }
 
 /**
@@ -198,7 +308,7 @@ export function parseLicenseKeyDuration(key?: string | null): {
 }
 
 /**
- * Gắn tag [KEY: ...] và [COURSERA_EMAIL: ...] vào chuỗi ghi chú của đơn hàng
+ * Gắn tag [KEY: ...] và [COURSERA_EMAIL: ...] vào chuỗi ghi chú của đơn hàng (Đơn lẻ)
  */
 export function formatOrderNotesWithLicense(
   existingNotes: string | null | undefined,
@@ -218,4 +328,73 @@ export function formatOrderNotesWithLicense(
 
   return notes ? `${notes} ${keyTag} ${emailTag}` : `${keyTag} ${emailTag}`;
 }
+
+/**
+ * Gắn tag danh sách nhiều License Key & Email vào chuỗi ghi chú của đơn hàng
+ */
+export function formatOrderNotesWithMultipleLicenses(
+  existingNotes: string | null | undefined,
+  licenses: Array<{ email: string; key: string }>
+): string {
+  let notes = (existingNotes || "").trim();
+
+  // Xóa các tag cũ
+  notes = notes
+    .replace(/\[(?:LICENSES|COURSERA_LICENSES):[^\]]+\]/gi, "")
+    .replace(/\[(?:KEY|LICENSE_KEY):[^\]]+\]/gi, "")
+    .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+    .replace(/\[(?:COURSERA_EMAILS|EMAILS_COURSERA):[^\]]+\]/gi, "")
+    .trim();
+
+  if (!licenses || licenses.length === 0) return notes;
+
+  const cleanLicenses = licenses
+    .map((l) => ({
+      email: (l.email || "").trim().toLowerCase(),
+      key: (l.key || "").trim().toUpperCase(),
+    }))
+    .filter((l) => l.email && l.key);
+
+  if (cleanLicenses.length === 0) return notes;
+
+  const pairsStr = cleanLicenses.map((l) => `${l.email}:${l.key}`).join(" | ");
+  const emailsStr = cleanLicenses.map((l) => l.email).join(", ");
+  const firstKey = cleanLicenses[0].key;
+  const firstEmail = cleanLicenses[0].email;
+
+  const licensesTag = `[LICENSES: ${pairsStr}]`;
+  const emailsTag = `[COURSERA_EMAILS: ${emailsStr}]`;
+  const legacyKeyTag = `[KEY: ${firstKey}]`;
+  const legacyEmailTag = `[COURSERA_EMAIL: ${firstEmail}]`;
+
+  const newTags = `${licensesTag} ${emailsTag} ${legacyKeyTag} ${legacyEmailTag}`;
+  return notes ? `${notes} ${newTags}` : newTags;
+}
+
+/**
+ * Gắn tag danh sách email khi khách tạo đơn hoặc lưu trước khi thanh toán
+ */
+export function formatOrderNotesWithEmails(
+  existingNotes: string | null | undefined,
+  emails: string[]
+): string {
+  let notes = (existingNotes || "").trim();
+  const cleanEmails = emails
+    .map((e) => (e || "").trim().toLowerCase())
+    .filter((e) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io");
+
+  if (cleanEmails.length === 0) return notes;
+
+  notes = notes
+    .replace(/\[(?:COURSERA_EMAILS|EMAILS_COURSERA):[^\]]+\]/gi, "")
+    .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+    .trim();
+
+  const emailsTag = `[COURSERA_EMAILS: ${cleanEmails.join(", ")}]`;
+  const legacyEmailTag = `[COURSERA_EMAIL: ${cleanEmails[0]}]`;
+
+  const newTags = `${emailsTag} ${legacyEmailTag}`;
+  return notes ? `${notes} ${newTags}` : newTags;
+}
+
 

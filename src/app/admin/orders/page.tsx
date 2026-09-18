@@ -476,37 +476,66 @@ export default function AdminOrdersPage() {
 
               {/* Coursera License Info if present */}
               {(() => {
-                const { licenseKey, courseraEmail } = extractOrderLicenseInfo(activeReviewOrder);
+                const { licenseKey, courseraEmail, licenses, emails } = extractOrderLicenseInfo(activeReviewOrder);
                 const isCoursera =
                   activeReviewOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
                   Boolean(courseraEmail) ||
-                  Boolean(licenseKey);
+                  Boolean(licenseKey) ||
+                  emails.length > 0 ||
+                  licenses.length > 0;
 
                 if (!isCoursera && !licenseKey) return null;
 
+                const effectiveLicenses = licenses.length > 0
+                  ? licenses
+                  : (licenseKey ? [{ email: courseraEmail || activeReviewOrder.user_email, key: licenseKey }] : []);
+                const effectiveEmails = emails.length > 0
+                  ? emails
+                  : (courseraEmail ? [courseraEmail] : [activeReviewOrder.user_email]);
+
                 return (
-                  <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-1.5">
-                    <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-[11px] uppercase tracking-wider">
-                      <Key className="w-3.5 h-3.5 text-indigo-600" />
-                      Thông tin License Tiện Ích Coursera:
-                    </div>
-                    <div className="text-xs text-slate-700 space-y-1">
-                      <div>
-                        Email Coursera đăng ký: <span className="font-bold text-slate-900">{courseraEmail || activeReviewOrder.user_email || "Chưa rõ"}</span>
+                  <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-[11px] uppercase tracking-wider">
+                        <Key className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Thông tin License Tiện Ích Coursera ({effectiveEmails.length} TK):</span>
                       </div>
-                      {licenseKey ? (
-                        <div className="flex items-center gap-2">
-                          <span>Mã Key bản quyền:</span>
-                          <span className="font-mono font-black text-cyan-600 bg-white px-2 py-0.5 rounded border border-indigo-200 select-all">
-                            {licenseKey}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="text-[11px] text-amber-600 font-semibold italic">
-                          (Chưa tạo key. Hệ thống sẽ tự động tạo key 30 ngày và lưu vào ghi chú khi bấm Duyệt Đơn)
-                        </div>
-                      )}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">
+                        {effectiveLicenses.length > 0 ? `Đã gen ${effectiveLicenses.length} key` : "Chờ duyệt cấp key"}
+                      </span>
                     </div>
+
+                    {effectiveLicenses.length > 0 ? (
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {effectiveLicenses.map((lic, licIdx) => (
+                          <div key={licIdx} className="p-2 rounded-xl bg-white border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="font-bold text-indigo-900 shrink-0">#{licIdx + 1}:</span>
+                              <span className="text-slate-700 truncate">{lic.email}</span>
+                            </div>
+                            <span className="font-mono font-black text-cyan-600 bg-slate-50 px-2 py-0.5 rounded border border-indigo-200 select-all shrink-0">
+                              {lic.key}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="text-xs text-slate-700">
+                          <span className="font-bold text-slate-900">Danh sách email Coursera ({effectiveEmails.length} TK):</span>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {effectiveEmails.map((em, idx) => (
+                              <span key={idx} className="px-2 py-0.5 rounded-lg bg-white border border-indigo-200 text-slate-800 text-[11px] font-medium font-mono">
+                                #{idx + 1}: {em}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-amber-600 font-semibold italic">
+                          (Hệ thống sẽ tự động tạo đúng {effectiveEmails.length} License Keys 30 ngày cho các email này khi bấm Duyệt Đơn)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })()}

@@ -23,7 +23,13 @@ import {
   Loader2,
   Mail,
   Key,
+  Plus,
+  Minus,
 } from "lucide-react";
+import {
+  extractOrderLicenseInfo,
+  CourseraLicenseItem,
+} from "@/lib/coursera-keygen";
 
 export default function CheckoutModal() {
   const {
@@ -34,6 +40,7 @@ export default function CheckoutModal() {
     activeOrderForPayment,
     currentUser,
     openAuthModal,
+    checkoutQuantity,
   } = useStore();
 
   const [step, setStep] = useState<"qr" | "upload" | "success">("qr");
@@ -50,22 +57,30 @@ export default function CheckoutModal() {
     checkoutProduct?.slug.toLowerCase().includes("coursera") ||
     checkoutProduct?.title.toLowerCase().includes("coursera");
 
-  const [customerEmail, setCustomerEmail] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [customerEmails, setCustomerEmails] = useState<string[]>([""]);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isAutoApproved, setIsAutoApproved] = useState(false);
   const [generatedLicenseKey, setGeneratedLicenseKey] = useState<string | null>(null);
+  const [generatedLicenses, setGeneratedLicenses] = useState<CourseraLicenseItem[]>([]);
   const [copiedLicense, setCopiedLicense] = useState(false);
+  const [copiedKeyIndex, setCopiedKeyIndex] = useState<number | null>(null);
+  const [copiedAllKeys, setCopiedAllKeys] = useState(false);
 
   // CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL:
   // Luôn reset ô nhập email về rỗng khi mở sản phẩm, khách bắt buộc phải tự tay điền email Coursera
   React.useEffect(() => {
-    setCustomerEmail("");
+    const initQty = Math.max(1, Math.min(20, checkoutQuantity || 1));
+    setQuantity(initQty);
+    setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
     setEmailError(null);
     setStep("qr");
     setBillImage("");
     setTransactionRef("");
     setBillUploadError(null);
-  }, [checkoutProduct?.id]);
+    setGeneratedLicenseKey(null);
+    setGeneratedLicenses([]);
+  }, [checkoutProduct?.id, checkoutQuantity]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -100,9 +115,9 @@ export default function CheckoutModal() {
   // If there's a checkout product and no active order yet, create one
   React.useEffect(() => {
     if (checkoutProduct && !activeOrderForPayment) {
-      createOrder(checkoutProduct);
+      createOrder(checkoutProduct, quantity);
     }
-  }, [checkoutProduct, activeOrderForPayment]);
+  }, [checkoutProduct, activeOrderForPayment, quantity]);
 
   if (!checkoutProduct || !activeOrderForPayment) return null;
 
@@ -119,6 +134,57 @@ export default function CheckoutModal() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const handleQuantityChange = (newQty: number) => {
+    const clampedQty = Math.max(1, Math.min(20, newQty));
+    setQuantity(clampedQty);
+    setCustomerEmails((prev) => {
+      const next = [...prev];
+      while (next.length < clampedQty) next.push("");
+      return next.slice(0, clampedQty);
+    });
+    if (checkoutProduct) {
+      const cleanEmails = customerEmails.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
+      createOrder(checkoutProduct, clampedQty, cleanEmails);
+    }
+  };
+
+  const handleEmailChange = (index: number, val: string) => {
+    setCustomerEmails((prev) => {
+      const next = [...prev];
+      next[index] = val;
+      return next;
+    });
+    if (emailError) setEmailError(null);
+  };
+
+  const validateEmails = (): boolean => {
+    if (!isLicenseRequired) return true;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const trimmedList = customerEmails.map((e) => e.trim().toLowerCase());
+
+    for (let i = 0; i < quantity; i++) {
+      const em = trimmedList[i] || "";
+      if (!em) {
+        setEmailError(`Vui lòng nhập đầy đủ Email Coursera cho Tài khoản #${i + 1}`);
+        return false;
+      }
+      if (!emailRegex.test(em) || em.startsWith("guest@") || em === "guest@codevault.io") {
+        setEmailError(`Email "${em}" tại Tài khoản #${i + 1} không hợp lệ. Vui lòng nhập email thật dùng trên Coursera.`);
+        return false;
+      }
+    }
+
+    // Check duplicate emails
+    const unique = new Set(trimmedList.slice(0, quantity));
+    if (unique.size !== quantity) {
+      setEmailError("Các Email Coursera không được trùng lặp nhau. Mỗi tài khoản cần 1 email riêng biệt để kích hoạt bản quyền.");
+      return false;
+    }
+
+    setEmailError(null);
+    return true;
+  };
+
   const handleBillSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!billImage) {
@@ -127,16 +193,8 @@ export default function CheckoutModal() {
     }
 
     if (isLicenseRequired) {
-      const trimmed = customerEmail.trim().toLowerCase();
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (
-        !trimmed ||
-        trimmed === "guest@codevault.io" ||
-        trimmed.startsWith("guest@") ||
-        !emailRegex.test(trimmed)
-      ) {
+      if (!validateEmails()) {
         setStep("qr");
-        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera của bạn trước khi gửi bill!");
         return;
       }
     }
@@ -156,7 +214,7 @@ export default function CheckoutModal() {
         }
       } catch {}
 
-      const cleanEmail = customerEmail.trim().toLowerCase();
+      const cleanEmails = customerEmails.map((e) => e.trim().toLowerCase()).slice(0, quantity);
       const res = await fetch("/api/orders", {
         method: "PATCH",
         headers,
@@ -165,8 +223,8 @@ export default function CheckoutModal() {
           status: "pending_approval",
           payment_proof_image: billImage,
           transaction_ref: ref,
-          customer_email: isLicenseRequired ? (cleanEmail || undefined) : undefined,
-          admin_notes: (isLicenseRequired && cleanEmail) ? `[COURSERA_EMAIL: ${cleanEmail}]` : undefined,
+          customer_emails: isLicenseRequired ? cleanEmails : undefined,
+          customer_email: isLicenseRequired ? cleanEmails[0] : undefined,
         }),
       });
 
@@ -179,12 +237,16 @@ export default function CheckoutModal() {
       const orderData = resData.data || {};
       const autoApproved = Boolean(resData.isAutoApproved || orderData.status === "completed");
 
-      let licenseKey: string | undefined = undefined;
       const combinedNotes = `${orderData.admin_notes || ""} ${activeOrderForPayment.admin_notes || ""}`;
-      const keyMatch = combinedNotes.match(/\[KEY:\s*([^\]]+)\]/i);
-      if (keyMatch) {
-        licenseKey = keyMatch[1].trim();
-        setGeneratedLicenseKey(licenseKey);
+      const licenseInfo = extractOrderLicenseInfo({
+        ...orderData,
+        admin_notes: combinedNotes,
+        status: autoApproved ? "completed" : orderData.status,
+      });
+
+      if (licenseInfo.licenses.length > 0) {
+        setGeneratedLicenses(licenseInfo.licenses);
+        setGeneratedLicenseKey(licenseInfo.licenseKey || licenseInfo.licenses[0]?.key || null);
       }
 
       setIsAutoApproved(autoApproved);
@@ -194,10 +256,11 @@ export default function CheckoutModal() {
         order.id,
         billImage,
         ref,
-        isLicenseRequired ? cleanEmail : undefined,
+        isLicenseRequired ? cleanEmails[0] : undefined,
         autoApproved ? "completed" : "pending_approval",
         orderData.admin_notes,
-        licenseKey
+        licenseInfo.licenseKey || licenseInfo.licenses[0]?.key,
+        isLicenseRequired ? cleanEmails : undefined
       );
 
       setStep("success");
@@ -222,26 +285,18 @@ export default function CheckoutModal() {
 
   const handleProceedToUpload = () => {
     if (isLicenseRequired) {
-      const trimmed = customerEmail.trim().toLowerCase();
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (
-        !trimmed ||
-        trimmed === "guest@codevault.io" ||
-        trimmed.startsWith("guest@") ||
-        !emailRegex.test(trimmed)
-      ) {
-        setEmailError("Vui lòng nhập chính xác Email tài khoản Coursera của bạn để hệ thống cấp License Key!");
-        return;
-      }
+      if (!validateEmails()) return;
 
-      // Lưu ngay Coursera Email vào order phía server để SePay Webhook nhận diện được nếu quét QR thanh toán tức thì
+      const cleanEmails = customerEmails.map((e) => e.trim().toLowerCase()).slice(0, quantity);
+      // Lưu ngay Coursera Emails vào order phía server để SePay Webhook nhận diện được nếu quét QR thanh toán tức thì
       if (order?.id) {
         fetch("/api/orders", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderId: order.id,
-            customer_email: trimmed,
+            customer_emails: cleanEmails,
+            customer_email: cleanEmails[0],
           }),
         }).catch(() => {});
       }
@@ -313,61 +368,100 @@ export default function CheckoutModal() {
                   <p className="font-extrabold text-slate-900 line-clamp-1">{checkoutProduct.title}</p>
                 </div>
 
-                {/* Mandatory Coursera License Email */}
+                {/* Quantity Selector for Coursera / Products */}
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-sm">
+                  <div>
+                    <span className="text-slate-500 font-semibold block text-[11px]">Số lượng tài khoản mua:</span>
+                    <span className="text-xs font-black text-slate-900">
+                      {quantity} tài khoản × {formatVND(checkoutProduct.price)} ={" "}
+                      <span className="text-blue-600 font-extrabold">{formatVND(checkoutProduct.price * quantity)}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(quantity - 1)}
+                      disabled={quantity <= 1}
+                      className="p-1.5 px-2.5 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                      title="Giảm số lượng"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="px-3 py-1 font-mono font-black text-xs text-blue-600">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(quantity + 1)}
+                      disabled={quantity >= 20}
+                      className="p-1.5 px-2.5 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                      title="Tăng số lượng"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mandatory Coursera License Emails (One input per account) */}
                 {isLicenseRequired && (
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/90 space-y-2">
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/90 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
                         <Mail className="w-4 h-4 text-indigo-600" />
                         Email Coursera Kích Hoạt Key:
-                        <span className="text-rose-500">* Bắt buộc</span>
+                        <span className="text-rose-500">* Bắt buộc ({quantity} email)</span>
                       </label>
-                      <span className="text-[10px] text-indigo-800 font-extrabold bg-indigo-200/60 px-2 py-0.5 rounded-full border border-indigo-300">
-                        Cấp Key VIP
+                      <span className="text-[10px] text-indigo-800 font-extrabold bg-indigo-200/60 px-2.5 py-0.5 rounded-full border border-indigo-300">
+                        Cấp {quantity} Key VIP (30 Ngày)
                       </span>
                     </div>
 
-                    <input
-                      type="email"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      value={customerEmail}
-                      onChange={(e) => {
-                        setCustomerEmail(e.target.value);
-                        if (emailError) setEmailError(null);
-                      }}
-                      onBlur={() => {
-                        const trimmed = customerEmail.trim().toLowerCase();
-                        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                        if (trimmed && emailRegex.test(trimmed) && order?.id) {
-                          fetch("/api/orders", {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              orderId: order.id,
-                              customer_email: trimmed,
-                            }),
-                          }).catch(() => {});
-                        }
-                      }}
-                      placeholder="Ví dụ: yourname@gmail.com (Email đăng nhập Coursera)"
-                      className={`w-full px-3.5 py-2.5 text-xs rounded-xl border ${
-                        emailError
-                          ? "border-rose-400 bg-rose-50/30 ring-2 ring-rose-200"
-                          : "border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500"
-                      } focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all`}
-                    />
+                    <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                      {Array.from({ length: quantity }).map((_, idx) => (
+                        <div key={idx} className="space-y-1 bg-white/70 p-2.5 rounded-xl border border-indigo-100">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-indigo-950">
+                            <span>Tài khoản #{idx + 1}:</span>
+                            <span className="text-[10px] font-mono text-indigo-600">Gói 1 tháng (30 ngày)</span>
+                          </div>
+                          <input
+                            type="email"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            value={customerEmails[idx] || ""}
+                            onChange={(e) => handleEmailChange(idx, e.target.value)}
+                            onBlur={() => {
+                              const cleanEmails = customerEmails
+                                .map((e) => e.trim().toLowerCase())
+                                .filter((e) => e.includes("@"));
+                              if (cleanEmails.length > 0 && order?.id) {
+                                fetch("/api/orders", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    orderId: order.id,
+                                    customer_emails: cleanEmails,
+                                    customer_email: cleanEmails[0],
+                                  }),
+                                }).catch(() => {});
+                              }
+                            }}
+                            placeholder={`Ví dụ: coursera.user${idx + 1}@gmail.com (Email đăng nhập Coursera #${idx + 1})`}
+                            className="w-full px-3 py-2 text-xs rounded-lg border border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all"
+                          />
+                        </div>
+                      ))}
+                    </div>
 
                     <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
                       <span className="font-bold shrink-0">⚠️ Lưu ý:</span>
                       <span>
-                        License Key sẽ được hệ thống mã hóa gắn liền với Email này. Vui lòng điền <b>chính xác email bạn dùng trên Coursera</b>.
+                        Hệ thống sẽ mã hóa sinh <b>{quantity} mã License Key</b> gắn riêng biệt cho từng Email trên. Vui lòng nhập <b>chính xác email đăng nhập Coursera</b> cho mỗi tài khoản và không nhập trùng email.
                       </span>
                     </p>
 
                     {emailError && (
-                      <p className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 flex items-center gap-1">
+                      <p className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 flex items-center gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         {emailError}
                       </p>
@@ -479,20 +573,23 @@ export default function CheckoutModal() {
               </p>
             </div>
 
-            {isLicenseRequired && customerEmail && (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs">
-                <div className="flex items-center gap-2">
-                  <Key className="w-4 h-4 text-indigo-600 shrink-0" />
+            {isLicenseRequired && customerEmails.some((e) => e.trim()) && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs gap-2">
+                <div className="flex items-start gap-2">
+                  <Key className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                   <span className="text-slate-700">
-                    Email nhận License Key: <b className="font-mono text-indigo-950">{customerEmail}</b>
+                    <span className="font-bold">{quantity} Email nhận License Key VIP:</span>{" "}
+                    <span className="font-mono text-indigo-950 font-bold break-all">
+                      {customerEmails.filter(Boolean).join(", ")}
+                    </span>
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setStep("qr")}
-                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline"
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline shrink-0"
                 >
-                  Đổi email
+                  Sửa danh sách email
                 </button>
               </div>
             )}
@@ -657,8 +754,86 @@ export default function CheckoutModal() {
               </p>
             </div>
 
-            {/* If Coursera License Key exists, display prominent key box */}
-            {generatedLicenseKey && (
+            {/* If Coursera License Keys exist, display prominent key box(es) */}
+            {generatedLicenses.length > 1 ? (
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 max-w-md mx-auto text-left shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-xs">
+                    <Key className="w-4 h-4 text-indigo-600 shrink-0" />
+                    <span>{generatedLicenses.length} License Keys Coursera (Gói 30 Ngày)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = generatedLicenses
+                        .map((l, i) => `Tài khoản #${i + 1} (${l.email}): ${l.key}`)
+                        .join("\n");
+                      navigator.clipboard.writeText(text);
+                      setCopiedAllKeys(true);
+                      setTimeout(() => setCopiedAllKeys(false), 2000);
+                    }}
+                    className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 underline flex items-center gap-1"
+                  >
+                    {copiedAllKeys ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        <span className="text-emerald-700">Đã chép tất cả!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Sao chép tất cả</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {generatedLicenses.map((item, idx) => (
+                    <div key={idx} className="p-2.5 rounded-xl bg-white border border-indigo-100 shadow-sm space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-indigo-950">
+                          TK #{idx + 1}: <span className="font-mono">{item.email}</span>
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+                          {item.durationLabel || "30 Ngày"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono font-bold text-xs text-indigo-700 break-all select-all">
+                          {item.key}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.key);
+                            setCopiedKeyIndex(idx);
+                            setTimeout(() => setCopiedKeyIndex(null), 2000);
+                          }}
+                          className="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95"
+                        >
+                          {copiedKeyIndex === idx ? (
+                            <>
+                              <Check className="w-3 h-3" />
+                              <span>Đã chép</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Sao chép</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-indigo-600/80">
+                  * Toàn bộ {generatedLicenses.length} Key cũng đã được lưu vĩnh viễn vào tài khoản của bạn tại mục Kho Quà Tặng (My Vault).
+                </p>
+              </div>
+            ) : (generatedLicenseKey || generatedLicenses[0]?.key) ? (
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 max-w-md mx-auto text-left shadow-sm">
                 <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold text-xs">
                   <Key className="w-4 h-4 text-indigo-600" />
@@ -666,12 +841,13 @@ export default function CheckoutModal() {
                 </div>
                 <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-indigo-100 shadow-inner">
                   <span className="font-mono font-bold text-xs text-indigo-700 break-all select-all">
-                    {generatedLicenseKey}
+                    {generatedLicenseKey || generatedLicenses[0]?.key}
                   </span>
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(generatedLicenseKey);
+                      const keyToCopy = generatedLicenseKey || generatedLicenses[0]?.key || "";
+                      navigator.clipboard.writeText(keyToCopy);
                       setCopiedLicense(true);
                       setTimeout(() => setCopiedLicense(false), 2000);
                     }}
@@ -694,7 +870,7 @@ export default function CheckoutModal() {
                   * Key cũng đã được lưu vĩnh viễn vào tài khoản của bạn tại mục Kho Quà Tặng (My Vault).
                 </p>
               </div>
-            )}
+            ) : null}
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left text-xs space-y-1.5">
               <div className="flex justify-between">

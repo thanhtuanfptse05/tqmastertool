@@ -48,6 +48,7 @@ export default function DeliverableVaultPage() {
     videoUrl?: string;
     licenseKey?: string;
     courseraEmail?: string;
+    licenses?: Array<{ email: string; key: string }>;
   } | null>(null);
 
   const [copiedLink, setCopiedLink] = useState(false);
@@ -122,10 +123,14 @@ export default function DeliverableVaultPage() {
       access_instructions?: string;
       license_key?: string;
       coursera_email?: string;
+      licenses?: Array<{ email: string; key: string }>;
     }> = [];
 
     completed.forEach((order) => {
-      const { licenseKey, courseraEmail } = extractOrderLicenseInfo(order);
+      const { licenseKey, courseraEmail, licenses } = extractOrderLicenseInfo(order);
+      const effectiveLicenses = licenses.length > 0
+        ? licenses
+        : (licenseKey ? [{ email: courseraEmail || order.user_email || "customer", key: licenseKey }] : []);
       const hasItems = order.items && order.items.length > 0;
 
       if (hasItems) {
@@ -147,6 +152,7 @@ export default function DeliverableVaultPage() {
             access_instructions: (item as any).access_instructions || product?.access_instructions,
             license_key: licenseKey || order.license_key,
             coursera_email: courseraEmail || order.user_email,
+            licenses: effectiveLicenses,
           });
         });
       } else {
@@ -163,6 +169,7 @@ export default function DeliverableVaultPage() {
           access_instructions: matchedProduct?.access_instructions,
           license_key: licenseKey || order.license_key,
           coursera_email: courseraEmail || order.user_email,
+          licenses: effectiveLicenses,
         });
       }
     });
@@ -310,6 +317,7 @@ export default function DeliverableVaultPage() {
                               videoUrl: toolVideoUrl,
                               licenseKey: item.license_key,
                               courseraEmail: item.coursera_email,
+                              licenses: item.licenses,
                             })
                           }
                           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 whitespace-nowrap"
@@ -359,7 +367,77 @@ export default function DeliverableVaultPage() {
                 </div>
 
                 {/* License Key Box if applicable */}
-                {item.license_key && (() => {
+                {item.licenses && item.licenses.length > 1 ? (
+                  <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
+                          <Key className="w-3.5 h-3.5" />
+                          Danh Sách License Keys ({item.licenses.length} tài khoản)
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const all = item.licenses.map((l: any, i: number) => `TK #${i + 1} (${l.email}): ${l.key}`).join("\n");
+                          handleCopyKey(all);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition-colors"
+                      >
+                        <Copy className="w-3 h-3" />
+                        <span>Sao chép tất cả</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {item.licenses.map((lic: any, licIdx: number) => {
+                        const durationInfo = parseLicenseKeyDuration(lic.key);
+                        return (
+                          <div
+                            key={licIdx}
+                            className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0 space-y-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-extrabold text-amber-400">
+                                  #{licIdx + 1}:
+                                </span>
+                                <span className="text-xs text-slate-300 truncate font-semibold">
+                                  {lic.email}
+                                </span>
+                                <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                                  durationInfo.isExpired
+                                    ? "bg-rose-500/20 text-rose-400"
+                                    : "bg-emerald-500/20 text-emerald-400"
+                                }`}>
+                                  {durationInfo.label}
+                                </span>
+                              </div>
+                              <div className="font-mono text-xs font-bold text-cyan-300 tracking-wider break-all select-all">
+                                {lic.key}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleCopyKey(lic.key)}
+                              className="inline-flex items-center justify-center gap-1 px-2.5 py-1 rounded bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-[11px] transition-all active:scale-95 shrink-0"
+                            >
+                              {copiedKey === lic.key ? (
+                                <>
+                                  <Check className="w-3 h-3" />
+                                  <span>Đã chép</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Chép</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : item.license_key ? (() => {
                   const durationInfo = parseLicenseKeyDuration(item.license_key);
                   return (
                     <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
@@ -407,7 +485,7 @@ export default function DeliverableVaultPage() {
                       </div>
                     </div>
                   );
-                })()}
+                })() : null}
               </div>
             );
           })}
@@ -491,7 +569,76 @@ export default function DeliverableVaultPage() {
               </div>
 
               {/* License Key in Modal if available */}
-              {activeToolModal.licenseKey && (() => {
+              {activeToolModal.licenses && activeToolModal.licenses.length > 1 ? (
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+                      <Key className="w-3.5 h-3.5" />
+                      Danh Sách License Keys Kích Hoạt ({activeToolModal.licenses.length} tài khoản)
+                    </span>
+                    <button
+                      onClick={() => {
+                        const all = activeToolModal.licenses!.map((l, i) => `TK #${i + 1} (${l.email}): ${l.key}`).join("\n");
+                        handleCopyKey(all);
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold transition-colors"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Sao chép tất cả</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {activeToolModal.licenses.map((lic, licIdx) => {
+                      const durationInfo = parseLicenseKeyDuration(lic.key);
+                      return (
+                        <div
+                          key={licIdx}
+                          className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                        >
+                          <div className="min-w-0 space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-extrabold text-amber-400">
+                                TK #{licIdx + 1}:
+                              </span>
+                              <span className="text-xs text-slate-200 font-semibold truncate">
+                                {lic.email}
+                              </span>
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                                durationInfo.isExpired
+                                  ? "bg-rose-500/20 text-rose-400"
+                                  : "bg-emerald-500/20 text-emerald-400"
+                              }`}>
+                                {durationInfo.label}
+                              </span>
+                            </div>
+                            <div className="font-mono text-xs sm:text-sm font-black text-cyan-300 tracking-wider break-all select-all">
+                              {lic.key}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleCopyKey(lic.key)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all active:scale-95 shadow-md shadow-cyan-500/20 shrink-0"
+                          >
+                            {copiedKey === lic.key ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-slate-950" />
+                                <span>Đã sao chép</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5 text-slate-950" />
+                                <span>Sao chép Key</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : activeToolModal.licenseKey ? (() => {
                 const modalDurationInfo = parseLicenseKeyDuration(activeToolModal.licenseKey);
                 return (
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg">
@@ -539,7 +686,7 @@ export default function DeliverableVaultPage() {
                     </div>
                   </div>
                 );
-              })()}
+              })() : null}
 
               {/* Action Buttons Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

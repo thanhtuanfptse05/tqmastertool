@@ -17,6 +17,9 @@ import {
   generateCourseraLicenseKey,
   extractOrderLicenseInfo,
   formatOrderNotesWithLicense,
+  formatOrderNotesWithMultipleLicenses,
+  formatOrderNotesWithEmails,
+  CourseraLicenseItem,
 } from "./coursera-keygen";
 
 interface StoreContextType {
@@ -52,7 +55,7 @@ interface StoreContextType {
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   orders: Order[];
-  createOrder: (product: Product) => Order;
+  createOrder: (product: Product, quantity?: number, customerEmails?: string[]) => Order;
   submitPaymentProof: (
     orderId: string,
     proofUrl: string,
@@ -60,7 +63,8 @@ interface StoreContextType {
     customerEmail?: string,
     overrideStatus?: OrderStatus,
     adminNotes?: string,
-    licenseKey?: string
+    licenseKey?: string,
+    customerEmails?: string[]
   ) => void;
 
   // Admin Order Review & CRUD
@@ -82,7 +86,9 @@ interface StoreContextType {
   openAuthModal: (mode?: "login" | "register") => void;
   closeAuthModal: () => void;
   checkoutProduct: Product | null;
-  openCheckout: (product: Product) => void;
+  checkoutQuantity: number;
+  setCheckoutQuantity: (qty: number) => void;
+  openCheckout: (product: Product, quantity?: number) => void;
   closeCheckout: () => void;
   activeOrderForPayment: Order | null;
   setActiveOrderForPayment: (order: Order | null) => void;
@@ -112,6 +118,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"login" | "register">("login");
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
+  const [checkoutQuantity, setCheckoutQuantity] = useState<number>(1);
   const [activeOrderForPayment, setActiveOrderForPayment] = useState<Order | null>(null);
 
   // Sync to localStorage
@@ -1043,36 +1050,54 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.CART, []);
   };
 
-  const createOrder = (product: Product): Order => {
+  const createOrder = (product: Product, quantity: number = 1, customerEmails: string[] = []): Order => {
+    const qty = Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1)));
+    const totalAmount = product.price * qty;
     const orderNum = Math.floor(1000 + Math.random() * 9000);
     const orderCode = `TQ-2026-${orderNum}`;
     const orderId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `order-${Date.now()}`;
     const cleanMemo = `TQ2026${orderNum}`;
 
+    const cleanEmails = (customerEmails || [])
+      .map((e) => (e || "").trim().toLowerCase())
+      .filter((e) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io");
+
+    const isCoursera =
+      product.title.toLowerCase().includes("coursera") ||
+      (product.slug && product.slug.toLowerCase().includes("coursera"));
+
+    let initialNotes: string | undefined = undefined;
+    if (isCoursera && cleanEmails.length > 0) {
+      initialNotes = formatOrderNotesWithEmails("", cleanEmails);
+    }
+
     const newOrder: Order = {
       id: orderId,
       order_code: orderCode,
       user_id: currentUser?.id || "user-guest",
-      user_email: (currentUser?.email && currentUser.email !== "guest@codevault.io") ? currentUser.email : "",
+      user_email: (currentUser?.email && currentUser.email !== "guest@codevault.io")
+        ? currentUser.email
+        : (cleanEmails[0] || ""),
       user_name: currentUser?.full_name || "Khách Hàng",
-      total_amount: product.price,
+      total_amount: totalAmount,
       status: "pending_payment",
       payment_method: "vietqr",
       vietqr_content: cleanMemo,
+      admin_notes: initialNotes,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      items: [
-        {
-          id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `item-${Date.now()}`,
-          order_id: orderId,
-          product_id: product.id,
-          unit_price: product.price,
-          product_title: product.title,
-          product_category: product.category,
-          product_thumbnail: product.thumbnail_url,
-          created_at: new Date().toISOString(),
-        },
-      ],
+      items: Array.from({ length: qty }).map((_, index) => ({
+        id: typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `item-${Date.now()}-${index}`,
+        order_id: orderId,
+        product_id: product.id,
+        unit_price: product.price,
+        product_title: product.title,
+        product_category: product.category,
+        product_thumbnail: product.thumbnail_url,
+        created_at: new Date().toISOString(),
+      })),
     };
 
     const updated = [newOrder, ...orders];
@@ -1080,7 +1105,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
     setActiveOrderForPayment(newOrder);
 
-    // Call Secure Server API to guarantee immutable DB price & secure persistence (Spec 015)
+    // Call Secure Server API to guarantee immutable DB price & secure persistence (Spec 015 & Spec 016)
     if (isSupabaseConfigured) {
       (async () => {
         try {
@@ -1095,7 +1120,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             headers,
             body: JSON.stringify({
               productId: product.id,
-              customerEmail: undefined, // Coursera email is entered manually during checkout, never auto-filled
+              quantity: qty,
+              customerEmails: cleanEmails.length > 0 ? cleanEmails : undefined,
               customerName: currentUser?.full_name || undefined,
             }),
           });
@@ -1133,19 +1159,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     customerEmail?: string,
     overrideStatus?: OrderStatus,
     adminNotes?: string,
-    licenseKey?: string
+    licenseKey?: string,
+    customerEmails?: string[]
   ) => {
     const cleanEmail = customerEmail?.trim().toLowerCase();
     const finalStatus = overrideStatus || ("pending_approval" as const);
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
       let updatedNotes = adminNotes || o.admin_notes;
-      const isCourseraOrder = o.items?.some(i => i.product_title.toLowerCase().includes("coursera")) || o.total_amount === 40000 || o.total_amount === 149000;
-      if (isCourseraOrder && cleanEmail && cleanEmail !== "guest@codevault.io" && !cleanEmail.startsWith("guest@")) {
-        if (!updatedNotes || !updatedNotes.includes("[COURSERA_EMAIL:")) {
-          updatedNotes = updatedNotes ? `${updatedNotes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`;
+      const isCourseraOrder =
+        o.items?.some((i) => i.product_title.toLowerCase().includes("coursera")) ||
+        (o.total_amount && o.total_amount % 40000 === 0 && o.total_amount >= 40000) ||
+        o.total_amount === 149000;
+
+      if (isCourseraOrder) {
+        const emailsToFormat = customerEmails && customerEmails.length > 0
+          ? customerEmails
+          : (cleanEmail && cleanEmail !== "guest@codevault.io" && !cleanEmail.startsWith("guest@") ? [cleanEmail] : []);
+        if (emailsToFormat.length > 0 && (!updatedNotes || !updatedNotes.includes("[COURSERA_EMAILS:"))) {
+          updatedNotes = formatOrderNotesWithEmails(updatedNotes, emailsToFormat);
         }
       }
+
       return {
         ...o,
         status: finalStatus,
@@ -1197,12 +1232,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     let generatedKey: string | undefined = undefined;
 
     if (action === "approve" && targetOrder) {
-      const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera")) || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
-      if (isCoursera && courseraEmail) {
+      const licenseInfo = extractOrderLicenseInfo(targetOrder);
+      const isCoursera =
+        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
+        (targetOrder.total_amount && targetOrder.total_amount % 40000 === 0 && targetOrder.total_amount >= 40000) ||
+        targetOrder.total_amount === 149000;
+
+      if (isCoursera && licenseInfo.emails.length > 0) {
         try {
-          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);
-          finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
+          const licensesToSave = licenseInfo.emails.map((email) => {
+            const existing = licenseInfo.licenses.find((l) => l.email === email);
+            const key = existing?.key || generateCourseraLicenseKey(email, 30);
+            return { email, key };
+          });
+          generatedKey = licensesToSave[0]?.key;
+          finalNotes = formatOrderNotesWithMultipleLicenses(finalNotes, licensesToSave);
         } catch (e) {
           console.warn("adminReviewOrder keygen failed:", e);
         }
@@ -1247,12 +1291,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     let generatedKey: string | undefined = undefined;
 
     if (status === "completed" && targetOrder) {
-      const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera")) || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
-      if (isCoursera && courseraEmail) {
+      const licenseInfo = extractOrderLicenseInfo(targetOrder);
+      const isCoursera =
+        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
+        (targetOrder.total_amount && targetOrder.total_amount % 40000 === 0 && targetOrder.total_amount >= 40000) ||
+        targetOrder.total_amount === 149000;
+
+      if (isCoursera && licenseInfo.emails.length > 0) {
         try {
-          generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);
-          finalNotes = formatOrderNotesWithLicense(finalNotes, generatedKey, courseraEmail);
+          const licensesToSave = licenseInfo.emails.map((email) => {
+            const existing = licenseInfo.licenses.find((l) => l.email === email);
+            const key = existing?.key || generateCourseraLicenseKey(email, 30);
+            return { email, key };
+          });
+          generatedKey = licensesToSave[0]?.key;
+          finalNotes = formatOrderNotesWithMultipleLicenses(finalNotes, licensesToSave);
         } catch (e) {
           console.warn("adminUpdateOrderStatus keygen failed:", e);
         }
@@ -1448,12 +1501,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false);
   };
 
-  const openCheckout = (product: Product) => {
+  const openCheckout = (product: Product, quantity: number = 1) => {
+    setCheckoutQuantity(Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))));
     setCheckoutProduct(product);
   };
 
   const closeCheckout = () => {
     setCheckoutProduct(null);
+    setCheckoutQuantity(1);
   };
 
   return (
@@ -1498,6 +1553,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         openAuthModal,
         closeAuthModal,
         checkoutProduct,
+        checkoutQuantity,
+        setCheckoutQuantity,
         openCheckout,
         closeCheckout,
         activeOrderForPayment,

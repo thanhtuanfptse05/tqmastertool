@@ -19,8 +19,10 @@ import {
 } from "lucide-react";
 import {
   generateCourseraLicenseKey,
+  generateMultipleCourseraKeys,
   extractOrderLicenseInfo,
   formatOrderNotesWithLicense,
+  formatOrderNotesWithMultipleLicenses,
 } from "@/lib/coursera-keygen";
 
 interface AdminOrderEditModalProps {
@@ -59,15 +61,16 @@ export default function AdminOrderEditModal({
     try {
       let finalAdminNotes = adminNotes;
       if (status === "completed") {
-        const { courseraEmail } = extractOrderLicenseInfo({ ...order, admin_notes: adminNotes });
-        const email = courseraEmail || order.user_email;
+        const { courseraEmail, emails } = extractOrderLicenseInfo({ ...order, admin_notes: adminNotes });
+        const targetEmails: string[] = emails.length > 0 ? emails : [courseraEmail || order.user_email || "customer@codevault.local"];
         const isCoursera =
           order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-          Boolean(courseraEmail);
+          Boolean(courseraEmail) ||
+          emails.length > 0;
 
-        if (isCoursera && email && !finalAdminNotes.includes("[KEY:")) {
-          const key = generateCourseraLicenseKey(email, 30);
-          finalAdminNotes = formatOrderNotesWithLicense(finalAdminNotes, key, email);
+        if (isCoursera && !finalAdminNotes.includes("[KEY:") && !finalAdminNotes.includes("[LICENSES:")) {
+          const licenses = generateMultipleCourseraKeys(targetEmails, 30);
+          finalAdminNotes = formatOrderNotesWithMultipleLicenses(finalAdminNotes, licenses);
         }
       }
 
