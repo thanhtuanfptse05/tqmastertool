@@ -391,7 +391,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
       if (savedUser) {
-        setCurrentUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        if (parsed?.id && !parsed.id.startsWith("user-") && !parsed.id.startsWith("usr-")) {
+          setCurrentUser(parsed);
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.USER);
+          setCurrentUser(null);
+        }
       }
 
       const savedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
@@ -481,10 +487,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
               setIsAuthLoading(false);
             });
         } else {
+          // KHÔNG CÓ PHIÊN SUPABASE AUTH HỢP LỆ => DỌN SẠCH GHOST USER TRONG LOCALSTORAGE!
+          setCurrentUser(null);
+          localStorage.removeItem(STORAGE_KEYS.USER);
           setIsAuthLoading(false);
         }
       }).catch(() => {
-        if (active) setIsAuthLoading(false);
+        if (active) {
+          setCurrentUser(null);
+          localStorage.removeItem(STORAGE_KEYS.USER);
+          setIsAuthLoading(false);
+        }
       });
 
       // Listen for auth changes (sign in, sign out)
@@ -534,80 +547,86 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, [fetchProductsFromDB, fetchOrdersFromDB]);
 
-  // Auth Operations: Normal Login with Auto-Heal for unconfirmed emails
+  // Auth Operations: Strict Supabase Authentication (Zero Mock Fallback)
   const login = async (email: string, password?: string): Promise<boolean> => {
     const cleanEmail = email.trim().toLowerCase();
-    const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
-    const isAdmin = existing?.role === "admin";
-    const role: UserRole = isAdmin ? "admin" : (existing?.role || "customer");
+    if (!cleanEmail) {
+      throw new Error("Vui lòng nhập địa chỉ email.");
+    }
+    if (!password || password.length < 6) {
+      throw new Error("Mật khẩu phải có tối thiểu 6 ký tự.");
+    }
 
-    const userToSet: UserProfile = existing
-      ? { ...existing, role: isAdmin ? "admin" : existing.role }
-      : {
-          id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
-          email: cleanEmail,
-          full_name: cleanEmail.split("@")[0].toUpperCase(),
-          avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
-          role,
-          created_at: new Date().toISOString(),
-        };
+    if (!isSupabaseConfigured) {
+      throw new Error("Hệ thống xác thực Supabase chưa được cấu hình.");
+    }
 
-    const newUsers = existing
-      ? users.map((u) => (u.email.toLowerCase() === cleanEmail ? userToSet : u))
-      : [userToSet, ...users];
+    // 1. Authenticate strictly against Supabase Auth
+    let { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
 
-    setUsers(newUsers);
-    persist(STORAGE_KEYS.USERS, newUsers);
+    // Auto-heal: If user account was created earlier without confirmed email, auto-confirm and retry
+    if (error && (error.message.includes("Email not confirmed") || error.message.includes("email_not_confirmed"))) {
+      console.log("[Auth] Detected unconfirmed email on Supabase. Auto-confirming via backend...");
+      try {
+        const autoRes = await fetch("/api/auth/auto-confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail }),
+        });
+        if (autoRes.ok) {
+          const retry = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+          data = retry.data;
+          error = retry.error;
+        }
+      } catch (e) {
+        console.warn("[Auth] Auto-confirm retry failed:", e);
+      }
+    }
+
+    // 2. STRICT VALIDATION: If Supabase reports invalid credentials or user not found, BLOCK COMPLETELY!
+    if (error || !data?.user) {
+      const errMsg = error?.message || "";
+      if (
+        errMsg.includes("Invalid login credentials") ||
+        errMsg.includes("invalid_credentials") ||
+        errMsg.includes("User not found")
+      ) {
+        throw new Error(
+          "Tài khoản chưa được đăng ký hoặc mật khẩu không chính xác. Nếu bạn chưa có tài khoản, vui lòng bấm 'Đăng ký ngay'."
+        );
+      }
+      throw new Error(errMsg || "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin.");
+    }
+
+    // 3. SUCCESSFUL AUTH: Fetch official role & profile from PostgreSQL
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    const dbRole: UserRole = profile?.role === "admin" ? "admin" : "customer";
+    const userToSet: UserProfile = {
+      id: data.user.id,
+      email: data.user.email || cleanEmail,
+      full_name: profile?.full_name || data.user.user_metadata?.full_name || cleanEmail.split("@")[0].toUpperCase(),
+      avatar_url: profile?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+      role: dbRole,
+      created_at: profile?.created_at || data.user.created_at || new Date().toISOString(),
+    };
 
     setCurrentUser(userToSet);
     persist(STORAGE_KEYS.USER, userToSet);
     setIsAuthModalOpen(false);
 
-    // Sync with Supabase Auth if configured
-    if (isSupabaseConfigured && password) {
-      let { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-
-      // Auto-heal: If Supabase blocked due to unconfirmed email, auto-confirm via backend and retry!
-      if (error && (error.message.includes("Email not confirmed") || error.message.includes("email_not_confirmed"))) {
-        console.log("[Auth] Detected unconfirmed email on Supabase. Auto-confirming via backend...");
-        try {
-          const autoRes = await fetch("/api/auth/auto-confirm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: cleanEmail }),
-          });
-          if (autoRes.ok) {
-            const retry = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-            data = retry.data;
-            error = retry.error;
-          }
-        } catch (e) {
-          console.warn("[Auth] Auto-confirm retry failed:", e);
-        }
-      }
-
-      if (!error && data?.user) {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", data.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile) {
-              const dbIsAdmin = profile.role === "admin";
-              const updatedUser: UserProfile = {
-                ...userToSet,
-                id: data.user.id,
-                role: dbIsAdmin ? "admin" : "customer",
-                full_name: profile.full_name || userToSet.full_name,
-                avatar_url: profile.avatar_url || userToSet.avatar_url,
-              };
-              setCurrentUser(updatedUser);
-              persist(STORAGE_KEYS.USER, updatedUser);
-            }
-          });
-      }
+    // Sync user's real orders and database data
+    fetchOrdersFromDB();
+    if (dbRole === "admin") {
+      fetchUsersFromDB();
     }
 
     return true;
@@ -619,79 +638,73 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     password?: string
   ): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
-    const cleanName = fullName.trim() || cleanEmail.split("@")[0];
+    const cleanName = (fullName || cleanEmail.split("@")[0]).trim();
 
-    // Check duplicate in local state
-    if (users.some((u) => u.email.toLowerCase() === cleanEmail)) {
+    if (!cleanEmail) {
+      return { success: false, error: "Vui lòng nhập địa chỉ email hợp lệ." };
+    }
+    if (!password || password.length < 6) {
+      return { success: false, error: "Mật khẩu phải có tối thiểu 6 ký tự." };
+    }
+
+    // 1. Call server-side register API (creates user with email_confirm: true via service role)
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, password, fullName: cleanName }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        return {
+          success: false,
+          error: json.error || "Không thể đăng ký tài khoản. Vui lòng thử lại.",
+        };
+      }
+    } catch (err: any) {
       return {
         success: false,
-        error: "Email này đã tồn tại trong hệ thống. Vui lòng chuyển sang Đăng Nhập.",
+        error: err?.message || "Lỗi kết nối máy chủ khi đăng ký tài khoản.",
       };
     }
 
-    // Call server register API with email_confirm: true (Zero confirmation delay)
-    if (password) {
-      try {
-        const res = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: cleanEmail, password, fullName: cleanName }),
-        });
-        const json = await res.json();
-        if (!res.ok || !json.success) {
-          if (json.error && json.error.includes("tồn tại")) {
-            return { success: false, error: json.error };
-          }
-          console.warn("[Register API]", json.error);
-        }
-      } catch (err) {
-        console.warn("[Register API network fallback]:", err);
-      }
+    // 2. Establish active JWT session via signInWithPassword immediately
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
+
+    if (error || !data?.user) {
+      return {
+        success: false,
+        error: "Đăng ký thành công! Vui lòng chuyển sang tab Đăng Nhập để đăng nhập vào tài khoản.",
+      };
     }
 
-    const newUser: UserProfile = {
-      id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
-      email: cleanEmail,
-      full_name: cleanName,
-      avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
-      role: "customer",
-      created_at: new Date().toISOString(),
+    // 3. Retrieve registered profile and set active user
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    const dbRole: UserRole = profile?.role === "admin" ? "admin" : "customer";
+    const userToSet: UserProfile = {
+      id: data.user.id,
+      email: data.user.email || cleanEmail,
+      full_name: profile?.full_name || cleanName,
+      avatar_url: profile?.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
+      role: dbRole,
+      created_at: profile?.created_at || new Date().toISOString(),
     };
 
-    const updatedUsers = [newUser, ...users];
-    setUsers(updatedUsers);
-    persist(STORAGE_KEYS.USERS, updatedUsers);
-
-    setCurrentUser(newUser);
-    persist(STORAGE_KEYS.USER, newUser);
+    setCurrentUser(userToSet);
+    persist(STORAGE_KEYS.USER, userToSet);
     setIsAuthModalOpen(false);
 
-    // Immediately sign in with Supabase Auth to establish active session & JWT token
-    if (isSupabaseConfigured && password) {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
-
-      if (!error && data?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", data.user.id)
-          .single();
-
-        if (profile) {
-          const dbIsAdmin = profile.role === "admin";
-          const updatedUser: UserProfile = {
-            ...newUser,
-            id: data.user.id,
-            role: dbIsAdmin ? "admin" : "customer",
-            full_name: profile.full_name || cleanName,
-          };
-          setCurrentUser(updatedUser);
-          persist(STORAGE_KEYS.USER, updatedUser);
-        }
-      }
+    fetchOrdersFromDB();
+    if (dbRole === "admin") {
+      fetchUsersFromDB();
     }
 
     return { success: true };

@@ -86,6 +86,8 @@
 - **FR-004 (Event-Driven)**: WHEN an admin triggers password reset, THE system SHALL validate the new password is at least 6 characters and update the record.
 - **FR-005 (State-Driven)**: WHILE a user is authenticated, THE system SHALL display user avatar, full name, and appropriate navigation links (e.g. "Quản Trị Admin" if role is `admin`).
 - **FR-006 (Unwanted Behavior - Anti-Leak & Secure RBAC Guard)**: IF a non-admin user accesses `/admin/*`, THEN THE system SHALL block access and show a secure Access Restricted barrier. The barrier MUST NOT display or expose any admin email, password, or 1-click login shortcut. All authentication must occur through manual credential entry via AuthModal or redirects.
+- **FR-007 (Unwanted Behavior - Strict Non-Existent Account Block)**: IF a user attempts to log in with an email that is NOT registered in Supabase Auth, or provides an incorrect password, THEN THE system SHALL strictly reject the login attempt, display an explicit Vietnamese error message (*"Email hoặc mật khẩu không chính xác. Nếu bạn chưa có tài khoản, vui lòng bấm Đăng ký ngay."*), retain the `AuthModal` open, and MUST NOT create or persist any local mock user profile or session.
+- **FR-008 (Session Integrity Guard)**: WHEN the client application initializes or refreshes, THE system SHALL verify the active session with Supabase Auth via `supabase.auth.getSession()`. IF no valid active session exists on Supabase (`session === null`), THE system SHALL immediately purge any unverified `currentUser` from memory and `localStorage` to prevent ghost accounts.
 
 ---
 

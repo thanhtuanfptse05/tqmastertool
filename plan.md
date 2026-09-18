@@ -237,15 +237,33 @@
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Push commit lên remote GitHub `origin/main`.
 
-### [x] Giai Đoạn 17: Phân Quyền 100% Database-Driven & Triệt Tiêu Hardcode Role Whitelist (Spec-First) — ĐANG TIẾN HÀNH
+### [x] Giai Đoạn 17: Phân Quyền 100% Database-Driven & Triệt Tiêu Hardcode Role Whitelist (Spec-First) — ĐÃ HOÀN THÀNH
 - [x] **Spec-First Protocol**:
   - `specs/015-security-hardening-admin-and-anti-price-tampering/spec.md`: Nâng cấp User Story 4, quy định vai trò (role) 100% phụ thuộc vào `profiles.role` trong Database. Triệt tiêu hoàn toàn danh sách hardcode email admin trong mã nguồn backend.
-- [ ] **Khắc Phục Lỗi Không Hạ Được Role Admin**:
+- [x] **Khắc Phục Lỗi Không Hạ Được Role Admin**:
   - `src/lib/supabase-server.ts`: Loại bỏ danh sách `ADMIN_WHITELIST_EMAILS` hardcode các email khách/người dùng. Xóa bỏ logic auto-heal ép role admin khi người dùng đã bị hạ role trong DB.
   - `src/app/api/admin/users/route.ts`: `GET /api/admin/users` lấy chính xác `profile.role` từ Database, không ghi đè thành admin. `PATCH` thực thi lưu `customer` vào DB tức thì.
   - `src/lib/store.tsx`: Bỏ fallback `|| isAdmin` (role cũ từ cache) trong hàm `login`, đảm bảo role đồng bộ chuẩn xác với DB.
-- [ ] **Kiểm Thử & Triển Khai**:
+- [x] **Kiểm Thử & Triển Khai**:
   - Xác nhận đổi vai trò của tài khoản thành công, không bị auto-promote.
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Build kiểm tra và push lên remote GitHub `origin/main`.
+
+### [ ] Giai Đoạn 18: Thắt Chặt Toàn Diện Tính Năng Auth — Chặn Đứng Tài Khoản Chưa Đăng Ký (Spec-First) — ĐANG TIẾN HÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/001-user-auth/spec.md`: Bổ sung FR-007 (Strict Non-Existent Account Block) và FR-008 (Session Integrity Guard). Cấm hoàn toàn mock fallback login.
+- [ ] **Sửa Hàm Login & Register Trong Store**:
+  - `src/lib/store.tsx`:
+    - Xóa bỏ 100% logic tự sinh `userToSet` và gán `setCurrentUser` trước khi xác thực với Supabase.
+    - Hàm `login` bắt buộc gọi `supabase.auth.signInWithPassword`. Nếu Supabase báo lỗi (tài khoản chưa đăng ký, sai mật khẩu), ném lỗi cụ thể và giữ nguyên AuthModal, KHÔNG tạo bất kỳ user nào trong localStorage.
+    - Hàm `register`: Bắt buộc `/api/auth/register` thành công thì mới thiết lập phiên, không tự tạo mock user khi API lỗi.
+    - Hydration check: Khi F5 hoặc mở trang, nếu Supabase không có active session thì xóa sạch user rác trong localStorage.
+  - `src/components/common/AuthModal.tsx`:
+    - Hiển thị thông báo lỗi rõ ràng bằng tiếng Việt khi đăng nhập sai thông tin hoặc tài khoản chưa đăng ký.
+- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - Thử đăng nhập bằng email chưa đăng ký => Bị chặn đứng và báo lỗi rõ ràng.
+  - Thử đăng nhập bằng tài khoản thật => Đăng nhập thành công.
+  - Chạy `npx tsc --noEmit` và `npm run build`.
+  - Push commit lên remote GitHub `origin/main`.
+
 
