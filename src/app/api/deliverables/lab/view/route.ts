@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, status, user_id, order_code, admin_notes")
+      .select("id, status, user_id, order_code, admin_notes, total_amount")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -85,6 +85,25 @@ export async function GET(req: NextRequest) {
           error: errorMsg,
           status: order.status,
         },
+        { status: 403 }
+      );
+    }
+
+    // 1.1 Category Authorization Gate (Spec 018): Verify order contains LAB211 product
+    const { data: orderItems } = await supabaseAdmin
+      .from("order_items")
+      .select("product_id, product_title, product_category")
+      .eq("order_id", order.id);
+
+    const hasLab = orderItems?.some((item: any) =>
+      item.product_category === "lab211" ||
+      item.product_title?.toLowerCase().includes("lab211")
+    ) || (order.total_amount === 80000 && !orderItems?.some((i: any) => i.product_category === "tool"));
+
+    if (!hasLab && !isAdmin) {
+      console.warn(`[SECURITY ALERT - WRONG CATEGORY VIEW] Requester tried to access LAB211 deliverables for non-LAB order ${order.order_code}`);
+      return NextResponse.json(
+        { error: "Đơn hàng này không bao gồm tài nguyên LAB211. Quyền truy cập bị từ chối." },
         { status: 403 }
       );
     }

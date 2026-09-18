@@ -298,14 +298,29 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên GitHub `origin/main`.
 
-### [ ] Giai Đoạn 21: Auto-Polling Thanh Toán & Kích Hoạt Đơn Hàng Tức Thì (Spec 017) — ĐANG TIẾN HÀNH
+### [x] Giai Đoạn 21: Auto-Polling Thanh Toán & Kích Hoạt Đơn Hàng Tức Thì (Spec 017) — ĐÃ HOÀN THÀNH
 - [x] **Spec-First Protocol**: Tạo `specs/017-checkout-auto-polling-and-instant-activation/spec.md`.
-- [ ] **Tự Động Polling Tại Checkout Step 2 (QR Code)**:
+- [x] **Tự Động Polling Tại Checkout Step 2 (QR Code)**:
   - `CheckoutModal.tsx`: Tích hợp background interval polling mỗi 2.5s khi mở màn hình VietQR.
   - Lắng nghe trạng thái đơn hàng: khi SePay webhook duyệt xong (`completed`), modal tự động chuyển sang `step = "success"`, nhả key và nổ pháo hoa mà không bắt khách nộp bill thủ công.
-  - Bổ sung nút *"Kiểm tra thanh toán ngay"* để khách bấm kiểm tra tức thì.
-  - Nộp bill chỉ là tùy chọn phụ khi hệ thống ngân hàng bị nghẽn sau 45s.
-- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - Bổ sung nút *"Tôi đã chuyển tiền — Kiểm tra ngay"* để khách bấm kiểm tra tức thì.
+  - Nộp bill chuyển thành tùy chọn dự phòng *"Tải ảnh bill dự phòng"*.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên remote `origin/main`.
+
+### [x] Giai Đoạn 22: Phân Quyền Tài Nguyên & Cô Lập Danh Mục Sản Phẩm (Spec 018) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/018-deliverable-access-control-and-isolation/spec.md`.
+- [x] **Khóa Chặt API Server Deliverables (`/api/deliverables/lab/view` & `download`)**:
+  - Kiểm tra `order_items`: Chỉ cho phép xem đề, code và tải ZIP nếu đơn hàng thực sự có sản phẩm danh mục `lab211`.
+  - Trả về `403 Forbidden` nếu đơn hàng là Tool hoặc Project.
+  - Tích hợp bảo vệ bằng `supabaseAdmin` và đối soát `total_amount` tránh bypass.
+- [x] **Sửa Giao Diện Danh Sách Đơn Hàng (`CustomerOrdersPage`)**:
+  - `src/app/customer/orders/page.tsx`: Kiểm tra danh mục sản phẩm của đơn hàng (`isLab`).
+  - Nếu là `lab211`: Hiển thị nút *"Xem Đề & Code LAB211"*.
+  - Nếu là `tool` (Coursera): Hiển thị thông báo bảo mật bản quyền và nút *"Vào Kho Lấy Key & Tool"*, TUYỆT ĐỐI KHÔNG hiển thị *"Xem Đề & Code"*.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên remote `origin/main`.
+
 

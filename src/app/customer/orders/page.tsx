@@ -443,12 +443,23 @@ export default function CustomerOrdersPage() {
                   <div className="px-5 py-3.5 bg-slate-50/60 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     {/* Status message */}
                     <div className="text-[11px] font-semibold">
-                      {order.status === "completed" && (
-                        <span className="text-emerald-700 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          Đơn đã duyệt! Bạn có thể tải mã nguồn ngay bên dưới.
-                        </span>
-                      )}
+                      {order.status === "completed" && (() => {
+                        const isLab = order.items?.some((i) => i.product_category === "lab211" || i.product_title?.toLowerCase().includes("lab211")) ||
+                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "lab211";
+                        const isTool = order.items?.some((i) => i.product_category === "tool" || i.product_title?.toLowerCase().includes("coursera") || i.product_title?.toLowerCase().includes("tool")) ||
+                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "tool";
+
+                        return (
+                          <span className="text-emerald-700 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            {isLab
+                              ? "Đơn đã duyệt! Bạn có thể xem đề và tải mã nguồn LAB211 ngay bên dưới."
+                              : isTool
+                              ? "Đơn đã duyệt! Bản quyền Tool và License Key đã được mở khóa trong Kho Lưu Trữ (Vault)."
+                              : "Đơn đã duyệt! Bạn có thể nhận tài nguyên trong Kho Lưu Trữ (Vault)."}
+                          </span>
+                        );
+                      })()}
                       {order.status === "pending_approval" && (
                         <span className="text-amber-700 flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5 animate-pulse" />
@@ -492,30 +503,39 @@ export default function CustomerOrdersPage() {
                         Chi tiết & QR
                       </button>
 
-                      {order.status === "completed" && (
-                        <>
-                          <button
-                            onClick={() =>
-                              setActiveLabModal({
-                                isOpen: true,
-                                orderId: order.id,
-                                orderCode: order.order_code,
-                              })
-                            }
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
-                          >
-                            <BookOpen className="w-3.5 h-3.5" />
-                            Xem Đề & Code
-                          </button>
-                          <a
-                            href="/customer/vault"
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition-all"
-                          >
-                            <Package className="w-3.5 h-3.5" />
-                            Vào Vault
-                          </a>
-                        </>
-                      )}
+                      {order.status === "completed" && (() => {
+                        const isLab = order.items?.some((i) => i.product_category === "lab211" || i.product_title?.toLowerCase().includes("lab211")) ||
+                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "lab211";
+                        const isTool = order.items?.some((i) => i.product_category === "tool" || i.product_title?.toLowerCase().includes("coursera") || i.product_title?.toLowerCase().includes("tool")) ||
+                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "tool";
+
+                        return (
+                          <>
+                            {isLab && (
+                              <button
+                                onClick={() =>
+                                  setActiveLabModal({
+                                    isOpen: true,
+                                    orderId: order.id,
+                                    orderCode: order.order_code,
+                                  })
+                                }
+                                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                Xem Đề & Code LAB211
+                              </button>
+                            )}
+                            <a
+                              href="/customer/vault"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition-all"
+                            >
+                              <Package className="w-3.5 h-3.5" />
+                              {isTool ? "Vào Kho Lấy Key & Tool" : "Vào Vault"}
+                            </a>
+                          </>
+                        );
+                      })()}
 
                       {order.status === "pending_payment" && (
                         <>
