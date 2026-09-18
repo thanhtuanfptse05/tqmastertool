@@ -281,19 +281,31 @@
   - `npm run build` đạt 0 lỗi.
   - Push lên GitHub `origin/main`.
 
-### [ ] Giai Đoạn 20: Tool Coursera Multi-Quantity & Tự Động Sinh Nhiều License Key (Spec 016) — ĐANG TIẾN HÀNH
+### [x] Giai Đoạn 20: Tool Coursera Multi-Quantity & Tự Động Sinh Nhiều License Key (Spec 016) — ĐÃ HOÀN THÀNH
 - [x] **Spec-First Protocol**: Tạo `specs/016-coursera-multi-quantity-and-bulk-keygen/spec.md`.
-- [ ] **Engine Keygen & Quản Lý Nhiều License**:
+- [x] **Engine Keygen & Quản Lý Nhiều License**:
   - `src/lib/coursera-keygen.ts`: Viết hàm xử lý danh sách nhiều email `[COURSERA_EMAILS: ...]`, tự động sinh nhiều key `[LICENSES: email:key | ...]`, trích xuất `licenses: CourseraLicenseItem[]` tương thích ngược 100%.
-- [ ] **Bảo Mật Máy Chủ & Chống Gian Lận Giá (Anti-Price-Tampering)**:
+- [x] **Bảo Mật Máy Chủ & Chống Gian Lận Giá (Anti-Price-Tampering)**:
   - `src/app/api/orders/route.ts`: Nhận `quantity` (1-20), tính `total_amount = officialPrice * quantity` cố định từ DB, chèn đúng `quantity` bản ghi vào `order_items`.
   - `src/app/api/webhooks/sepay/route.ts`: Đối soát `expectedRealTotal` theo `quantity`, tự động sinh N license keys cho N emails khi nhận đủ tiền.
   - `PATCH /api/orders`: Tự động sinh N license keys cho N emails khi Admin duyệt `completed`.
-- [ ] **Giao Diện Chọn Số Lượng & Nhập N Email Không Trùng Lặp**:
+- [x] **Giao Diện Chọn Số Lượng & Nhập N Email Không Trùng Lặp**:
   - `CheckoutModal.tsx`: Cho phép chọn số lượng, hiển thị N ô nhập email kèm validate không rỗng, đúng định dạng, không trùng lặp. Hiển thị đủ N keys kèm nút sao chép từng key và sao chép tất cả.
   - `ProductDetailModal.tsx` & `/products/[slug]`: Thêm bộ chọn số lượng `[-] [ 1 ] [+]` cập nhật tổng tiền trước khi mở checkout.
   - `OrderDetailModal.tsx` & `/customer/vault`: Hiển thị danh sách đầy đủ N license keys và email của đơn hàng.
   - `AdminOrdersPage` & `AdminOrderEditModal`: Hiển thị số lượng, danh sách email và danh sách key.
-- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên GitHub `origin/main`.
+
+### [ ] Giai Đoạn 21: Auto-Polling Thanh Toán & Kích Hoạt Đơn Hàng Tức Thì (Spec 017) — ĐANG TIẾN HÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/017-checkout-auto-polling-and-instant-activation/spec.md`.
+- [ ] **Tự Động Polling Tại Checkout Step 2 (QR Code)**:
+  - `CheckoutModal.tsx`: Tích hợp background interval polling mỗi 2.5s khi mở màn hình VietQR.
+  - Lắng nghe trạng thái đơn hàng: khi SePay webhook duyệt xong (`completed`), modal tự động chuyển sang `step = "success"`, nhả key và nổ pháo hoa mà không bắt khách nộp bill thủ công.
+  - Bổ sung nút *"Kiểm tra thanh toán ngay"* để khách bấm kiểm tra tức thì.
+  - Nộp bill chỉ là tùy chọn phụ khi hệ thống ngân hàng bị nghẽn sau 45s.
+- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên remote `origin/main`.
+

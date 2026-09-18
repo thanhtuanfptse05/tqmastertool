@@ -25,6 +25,7 @@ import {
   Key,
   Plus,
   Minus,
+  RefreshCw,
 } from "lucide-react";
 import {
   extractOrderLicenseInfo,
@@ -66,6 +67,7 @@ export default function CheckoutModal() {
   const [copiedLicense, setCopiedLicense] = useState(false);
   const [copiedKeyIndex, setCopiedKeyIndex] = useState<number | null>(null);
   const [copiedAllKeys, setCopiedAllKeys] = useState(false);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
 
   // CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL:
   // Luôn reset ô nhập email về rỗng khi mở sản phẩm, khách bắt buộc phải tự tay điền email Coursera
@@ -118,6 +120,106 @@ export default function CheckoutModal() {
       createOrder(checkoutProduct, quantity);
     }
   }, [checkoutProduct, activeOrderForPayment, quantity]);
+
+  // AUTO-POLLING (SPEC 017): Tự động lắng nghe trạng thái đơn hàng khi khách đang ở màn hình QR
+  React.useEffect(() => {
+    if (step !== "qr" || !activeOrderForPayment?.id) return;
+
+    let isSubscribed = true;
+
+    const checkStatus = async () => {
+      try {
+        const { data: latestOrder } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", activeOrderForPayment.id)
+          .maybeSingle();
+
+        if (!isSubscribed || !latestOrder) return;
+
+        if (latestOrder.status === "completed") {
+          const licenseInfo = extractOrderLicenseInfo(latestOrder);
+          if (licenseInfo.licenses.length > 0) {
+            setGeneratedLicenses(licenseInfo.licenses);
+            setGeneratedLicenseKey(licenseInfo.licenseKey || licenseInfo.licenses[0]?.key || null);
+          }
+          setIsAutoApproved(true);
+          submitPaymentProof(
+            latestOrder.id,
+            latestOrder.payment_proof_image || "",
+            latestOrder.transaction_ref || "",
+            licenseInfo.licenses[0]?.email,
+            "completed",
+            latestOrder.admin_notes,
+            licenseInfo.licenseKey || licenseInfo.licenses[0]?.key,
+            licenseInfo.licenses.map((l) => l.email)
+          );
+          setStep("success");
+
+          try {
+            const confetti = (await import("canvas-confetti")).default;
+            confetti({
+              particleCount: 120,
+              spread: 80,
+              origin: { y: 0.6 },
+            });
+          } catch {}
+        }
+      } catch (err) {
+        console.warn("[Checkout Auto-Polling] Error checking order:", err);
+      }
+    };
+
+    // Kiểm tra định kỳ mỗi 2500ms
+    const interval = setInterval(checkStatus, 2500);
+
+    return () => {
+      isSubscribed = false;
+      clearInterval(interval);
+    };
+  }, [step, activeOrderForPayment?.id, submitPaymentProof]);
+
+  const handleManualCheckPayment = async () => {
+    if (!activeOrderForPayment?.id) return;
+    setIsCheckingPayment(true);
+    try {
+      const { data: latestOrder } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", activeOrderForPayment.id)
+        .maybeSingle();
+
+      if (latestOrder?.status === "completed") {
+        const licenseInfo = extractOrderLicenseInfo(latestOrder);
+        if (licenseInfo.licenses.length > 0) {
+          setGeneratedLicenses(licenseInfo.licenses);
+          setGeneratedLicenseKey(licenseInfo.licenseKey || licenseInfo.licenses[0]?.key || null);
+        }
+        setIsAutoApproved(true);
+        submitPaymentProof(
+          latestOrder.id,
+          latestOrder.payment_proof_image || "",
+          latestOrder.transaction_ref || "",
+          licenseInfo.licenses[0]?.email,
+          "completed",
+          latestOrder.admin_notes,
+          licenseInfo.licenseKey || licenseInfo.licenses[0]?.key,
+          licenseInfo.licenses.map((l) => l.email)
+        );
+        setStep("success");
+        try {
+          const confetti = (await import("canvas-confetti")).default;
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        } catch {}
+      } else {
+        alert("Hệ thống chưa nhận được tín hiệu tiền vào tài khoản từ ngân hàng. Nếu bạn vừa chuyển khoản, vui lòng đợi 5-10 giây để hệ thống tự động bắt giao dịch hoặc bấm 'Tải ảnh bill dự phòng'.");
+      }
+    } catch (e: any) {
+      alert("Lỗi kiểm tra: " + (e?.message || "Vui lòng thử lại"));
+    } finally {
+      setIsCheckingPayment(false);
+    }
+  };
 
   if (!checkoutProduct || !activeOrderForPayment) return null;
 
@@ -543,20 +645,55 @@ export default function CheckoutModal() {
             </div>
 
             {/* CTA to Step 2 */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-              <button
-                onClick={closeCheckout}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleProceedToUpload}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95"
-              >
-                <span>Tôi đã chuyển khoản — Tải ảnh bill</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
+              {/* Radar pulse notice */}
+              <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 py-2.5 px-3.5 rounded-xl border border-emerald-200">
+                <span className="relative flex h-2.5 w-2.5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span>Hệ thống tự động phát hiện chuyển khoản &amp; mở key ngay lập tức (24/7)</span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                <button
+                  type="button"
+                  onClick={closeCheckout}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors order-3 sm:order-1"
+                >
+                  Hủy
+                </button>
+
+                <div className="flex items-center gap-2 order-1 sm:order-2">
+                  <button
+                    type="button"
+                    onClick={handleProceedToUpload}
+                    className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex-1 sm:flex-initial text-center"
+                    title="Nộp ảnh biên lai nếu ngân hàng bị chậm trễ biến động số dư"
+                  >
+                    Tải ảnh bill dự phòng
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleManualCheckPayment}
+                    disabled={isCheckingPayment}
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-60 flex-1 sm:flex-initial"
+                  >
+                    {isCheckingPayment ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Đang kiểm tra...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                        <span>Tôi đã chuyển tiền — Kiểm tra ngay</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -53,6 +53,20 @@ export default function CustomerOrdersPage() {
     ? orders.filter((o) => o.user_id === currentUser.id || o.user_email === currentUser.email)
     : orders;
 
+  // Auto-refresh orders if there are pending orders
+  React.useEffect(() => {
+    const hasPending = userOrders.some(
+      (o) => o.status === "pending_payment" || o.status === "pending_approval"
+    );
+    if (!hasPending) return;
+
+    const interval = setInterval(() => {
+      refreshOrders();
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [userOrders, refreshOrders]);
+
   const filteredOrders = selectedStatus === "all"
     ? userOrders
     : userOrders.filter((o) => o.status === selectedStatus);
