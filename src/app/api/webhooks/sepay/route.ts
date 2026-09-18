@@ -5,6 +5,7 @@ import {
   formatOrderNotesWithLicense,
   formatOrderNotesWithMultipleLicenses,
   extractOrderLicenseInfo,
+  findActiveLicenseForEmail,
 } from "@/lib/coursera-keygen";
 
 export const dynamic = "force-dynamic";
@@ -347,13 +348,42 @@ export async function POST(req: NextRequest) {
 
       if (targetEmails.length > 0) {
         try {
+          // Lấy danh sách đơn hàng completed trước đó để kiểm tra key còn hạn (Spec 019)
+          const { data: pastCompletedOrders } = await supabase
+            .from("orders")
+            .select("id, status, admin_notes, license_key, created_at")
+            .eq("status", "completed")
+            .neq("id", order.id)
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+          const reusedInfoList: string[] = [];
           const licensesToSave = targetEmails.map((email) => {
-            const existing = licenseInfo.licenses.find((l) => l.email === email);
-            const key = existing?.key || generateCourseraLicenseKey(email, 30);
-            return { email, key };
+            // 1. Nếu đơn này đã có key
+            const existingInThisOrder = licenseInfo.licenses.find((l) => l.email === email);
+            if (existingInThisOrder?.key) {
+              return { email, key: existingInThisOrder.key };
+            }
+
+            // 2. Tra cứu key các đơn trước
+            const activeCheck = findActiveLicenseForEmail(email, pastCompletedOrders || []);
+            if (activeCheck.hasActive && activeCheck.key) {
+              reusedInfoList.push(`${email}: Còn ${activeCheck.daysRemaining} ngày (đến ${activeCheck.formattedExpDate})`);
+              console.log(`[SePay Webhook] ⚡ Email ${email} đang có key còn hạn (${activeCheck.daysRemaining} ngày). Giữ nguyên key: ${activeCheck.key}`);
+              return { email, key: activeCheck.key };
+            }
+
+            // 3. Hết hạn hoặc chưa từng mua => Sinh key mới 30 ngày
+            const newKey = generateCourseraLicenseKey(email, 30);
+            console.log(`[SePay Webhook] 🔑 Email ${email} chưa có key hoặc key cũ đã hết hạn. Sinh key mới 30 ngày: ${newKey}`);
+            return { email, key: newKey };
           });
+
           baseNotes = formatOrderNotesWithMultipleLicenses(baseNotes, licensesToSave);
-          console.log(`[SePay Webhook] 🔑 Auto-generated ${licensesToSave.length} Coursera Keys (30 days) for emails:`, targetEmails);
+          if (reusedInfoList.length > 0) {
+            baseNotes += ` [GHI CHÚ HẠN DÙNG: Giữ nguyên key đang còn hạn cho ${reusedInfoList.join("; ")}]`;
+          }
+          console.log(`[SePay Webhook] 🔑 Auto-processed ${licensesToSave.length} Coursera Keys for emails:`, targetEmails);
         } catch (keyErr) {
           console.warn("[SePay Webhook] Could not generate Coursera keys:", keyErr);
         }

@@ -20,6 +20,7 @@ import {
   formatOrderNotesWithMultipleLicenses,
   formatOrderNotesWithEmails,
   CourseraLicenseItem,
+  findActiveLicenseForEmail,
 } from "./coursera-keygen";
 
 interface StoreContextType {
@@ -1299,13 +1300,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       if (isCoursera && licenseInfo.emails.length > 0) {
         try {
+          const otherCompleted = orders.filter((o) => o.status === "completed" && o.id !== orderId);
+          const reusedInfoList: string[] = [];
           const licensesToSave = licenseInfo.emails.map((email) => {
-            const existing = licenseInfo.licenses.find((l) => l.email === email);
-            const key = existing?.key || generateCourseraLicenseKey(email, 30);
+            const existingInThisOrder = licenseInfo.licenses.find((l) => l.email === email);
+            if (existingInThisOrder?.key) {
+              return { email, key: existingInThisOrder.key };
+            }
+
+            const activeCheck = findActiveLicenseForEmail(email, otherCompleted);
+            if (activeCheck.hasActive && activeCheck.key) {
+              reusedInfoList.push(`${email}: Còn ${activeCheck.daysRemaining} ngày (đến ${activeCheck.formattedExpDate})`);
+              return { email, key: activeCheck.key };
+            }
+
+            const key = generateCourseraLicenseKey(email, 30);
             return { email, key };
           });
           generatedKey = licensesToSave[0]?.key;
           finalNotes = formatOrderNotesWithMultipleLicenses(finalNotes, licensesToSave);
+          if (reusedInfoList.length > 0) {
+            finalNotes += ` [GHI CHÚ HẠN DÙNG: Giữ nguyên key đang còn hạn cho ${reusedInfoList.join("; ")}]`;
+          }
         } catch (e) {
           console.warn("adminUpdateOrderStatus keygen failed:", e);
         }

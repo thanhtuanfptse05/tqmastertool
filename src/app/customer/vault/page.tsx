@@ -404,10 +404,10 @@ export default function DeliverableVaultPage() {
                                 <span className="text-xs text-slate-300 truncate font-semibold">
                                   {lic.email}
                                 </span>
-                                <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
                                   durationInfo.isExpired
-                                    ? "bg-rose-500/20 text-rose-400"
-                                    : "bg-emerald-500/20 text-emerald-400"
+                                    ? "bg-rose-600 text-white border-rose-400 shadow-sm animate-pulse"
+                                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                                 }`}>
                                   {durationInfo.label}
                                 </span>
@@ -415,6 +415,11 @@ export default function DeliverableVaultPage() {
                               <div className="font-mono text-xs font-bold text-cyan-300 tracking-wider break-all select-all">
                                 {lic.key}
                               </div>
+                              {durationInfo.isExpired && (
+                                <p className="text-[10px] text-rose-300 font-bold flex items-center gap-1">
+                                  <span>🚨 Khóa bản quyền này đã hết hạn. Bạn có thể mua gói mới để gia hạn Tool.</span>
+                                </p>
+                              )}
                             </div>
                             <button
                               onClick={() => handleCopyKey(lic.key)}
@@ -448,10 +453,10 @@ export default function DeliverableVaultPage() {
                               <Key className="w-3.5 h-3.5" />
                               License Key Bản Quyền
                             </span>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
                               durationInfo.isExpired
-                                ? "bg-rose-500/20 text-rose-400"
-                                : "bg-emerald-500/20 text-emerald-400"
+                                ? "bg-rose-600 text-white border-rose-400 shadow-sm animate-pulse"
+                                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                             }`}>
                               {durationInfo.label}
                             </span>
@@ -459,6 +464,11 @@ export default function DeliverableVaultPage() {
                           <div className="font-mono text-sm sm:text-base font-bold text-cyan-300 tracking-wider break-all select-all">
                             {item.license_key}
                           </div>
+                          {durationInfo.isExpired && (
+                            <p className="text-[10px] text-rose-300 font-bold flex items-center gap-1">
+                              <span>🚨 Khóa bản quyền này đã hết hạn. Bạn có thể mua gói mới để gia hạn Tool.</span>
+                            </p>
+                          )}
                           {item.coursera_email && (
                             <div className="text-[11px] text-slate-400">
                               Email kích hoạt Coursera: <span className="text-slate-200 font-semibold">{item.coursera_email}</span>

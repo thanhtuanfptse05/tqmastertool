@@ -14,13 +14,15 @@ interface ProductCardProps {
 export default function ProductCard({ product, onSelectDetail }: ProductCardProps) {
   const { openCheckout, orders, currentUser } = useStore();
 
-  // Check if current user already owns this product
-  const isPurchased = orders.some(
-    (o) =>
-      o.user_id === currentUser?.id &&
-      o.status === "completed" &&
-      o.items?.some((item) => item.product_id === product.id)
-  );
+  // Check if current user already owns this product (Only applies to permanent deliverables like LAB211/Projects, NOT recurring tools)
+  const isPurchased =
+    product.category !== "tool" &&
+    orders.some(
+      (o) =>
+        o.user_id === currentUser?.id &&
+        o.status === "completed" &&
+        o.items?.some((item) => item.product_id === product.id)
+    );
 
   const getCategoryBadge = () => {
     switch (product.category) {
@@ -138,7 +140,7 @@ export default function ProductCard({ product, onSelectDetail }: ProductCardProp
               )}
             </div>
             <span className="text-[10px] text-slate-400 font-medium block">
-              Sở hữu vĩnh viễn
+              {product.category === "tool" ? "Gói 30 ngày / tài khoản" : "Sở hữu vĩnh viễn"}
             </span>
           </div>
 

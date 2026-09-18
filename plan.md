@@ -323,4 +323,21 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên remote `origin/main`.
 
+### [x] Giai Đoạn 23: Quản Lý Vòng Đời Key Coursera & Cho Phép Mua Liên Tục (Spec 019) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/019-coursera-license-lifecycle-and-reorder-management/spec.md`.
+- [x] **Loại Bỏ Chế Độ "Đã Sở Hữu" Cho Sản Phẩm Tool**:
+  - `ProductCard.tsx`, `ProductDetailModal.tsx`, `/products/[slug]`: Bỏ cờ `isPurchased` với category `tool`, nút mua luôn sẵn sàng hoạt động; thay nhãn "Sở hữu vĩnh viễn" thành "Gói 30 ngày / tài khoản" cho Tool.
+- [x] **Hiển Thị Cảnh Báo Đỏ Khi Key Hết Hạn**:
+  - `src/lib/coursera-keygen.ts`: Cập nhật `parseLicenseKeyDuration` trả về `daysRemaining`, `formattedExpDate`, trạng thái hết hạn và format badge màu đỏ.
+  - `OrderDetailModal.tsx`, `/customer/vault`, `CheckoutModal.tsx`, Admin Pages: Hiển thị badge ĐỎ NỔI BẬT khi hết hạn và XANH LÁ khi còn hạn kèm số ngày.
+- [x] **Nghiệp Vụ Mua Lại (Re-order) & API Kiểm Tra Email**:
+  - Tạo API `GET /api/licenses/status?email=...`: Trả về trạng thái key hiện tại của email.
+  - `CheckoutModal.tsx`: Kiểm tra email và hiển thị cảnh báo trực tiếp nếu email đang còn hạn.
+  - `PATCH /api/orders` & SePay Webhook & Store: Nếu email còn hạn thì giữ nguyên key cũ và không gen key mới; nếu đã hết hạn 30 ngày thì sinh key mới 100%, tuyệt đối không dùng lại key cũ.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Chạy script kiểm thử logic vòng đời `test_spec019_lifecycle.js` đạt 100% assertions.
+  - Commit và push lên remote `origin/main`.
+
+
 

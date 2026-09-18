@@ -428,10 +428,10 @@ export default function OrderDetailModal({
                                 <span className="text-xs font-semibold text-slate-200 truncate">
                                   {lic.email}
                                 </span>
-                                <span className={`px-1.5 py-0.2 rounded text-[9px] font-extrabold ${
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
                                   durationInfo.isExpired
-                                    ? "bg-rose-500/20 text-rose-400"
-                                    : "bg-emerald-500/20 text-emerald-400"
+                                    ? "bg-rose-600 text-white border-rose-400 shadow-sm animate-pulse"
+                                    : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                                 }`}>
                                   {durationInfo.label}
                                 </span>
@@ -439,6 +439,11 @@ export default function OrderDetailModal({
                               <div className="font-mono text-xs font-bold text-cyan-300 tracking-wider break-all select-all">
                                 {lic.key}
                               </div>
+                              {durationInfo.isExpired && (
+                                <p className="text-[10px] text-rose-300 font-bold flex items-center gap-1">
+                                  <span>🚨 Khóa bản quyền này đã hết hạn. Vui lòng mua mới để gia hạn Tool.</span>
+                                </p>
+                              )}
                             </div>
 
                             <button
@@ -474,10 +479,10 @@ export default function OrderDetailModal({
                               <Key className="w-3.5 h-3.5" />
                               License Key Bản Quyền
                             </span>
-                            <span className={`px-2 py-0.2 rounded text-[9px] font-extrabold ${
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
                               durationInfo.isExpired
-                                ? "bg-rose-500/20 text-rose-400"
-                                : "bg-emerald-500/20 text-emerald-400"
+                                ? "bg-rose-600 text-white border-rose-400 shadow-sm animate-pulse"
+                                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
                             }`}>
                               {durationInfo.label}
                             </span>
@@ -485,6 +490,11 @@ export default function OrderDetailModal({
                           <div className="font-mono text-xs sm:text-sm font-bold text-cyan-300 tracking-wider break-all select-all">
                             {singleLic.key}
                           </div>
+                          {durationInfo.isExpired && (
+                            <p className="text-[10px] text-rose-300 font-bold flex items-center gap-1">
+                              <span>🚨 Khóa bản quyền này đã hết hạn. Vui lòng mua mới để gia hạn Tool.</span>
+                            </p>
+                          )}
                           {singleLic.email && (
                             <div className="text-[10px] text-slate-400">
                               Email kích hoạt: <span className="text-slate-200 font-semibold">{singleLic.email}</span>

@@ -6,6 +6,8 @@ import {
   formatOrderNotesWithEmails,
   formatOrderNotesWithMultipleLicenses,
   extractOrderLicenseInfo,
+  findActiveLicenseForEmail,
+  parseLicenseKeyDuration,
 } from "@/lib/coursera-keygen";
 
 export const dynamic = "force-dynamic";
@@ -332,13 +334,44 @@ export async function PATCH(req: NextRequest) {
 
       if (targetEmails.length > 0) {
         try {
+          // Lấy danh sách các đơn hàng completed khác để kiểm tra key còn hạn (Spec 019)
+          const { data: pastCompletedOrders } = await supabaseAdmin
+            .from("orders")
+            .select("id, status, admin_notes, license_key, created_at")
+            .eq("status", "completed")
+            .neq("id", existingOrder.id)
+            .order("created_at", { ascending: false })
+            .limit(100);
+
+          const reusedInfoList: string[] = [];
           const licensesToSave = targetEmails.map((email) => {
-            const existing = licenseInfo.licenses.find((l) => l.email === email);
-            const key = existing?.key || generateCourseraLicenseKey(email, 30);
-            return { email, key };
+            // 1. Kiểm tra xem chính đơn này đã từng được gán key chưa
+            const existingInThisOrder = licenseInfo.licenses.find((l) => l.email === email);
+            if (existingInThisOrder?.key) {
+              return { email, key: existingInThisOrder.key };
+            }
+
+            // 2. Tra cứu các đơn hàng completed trước đó của email này (Spec 019)
+            const activeCheck = findActiveLicenseForEmail(email, pastCompletedOrders || []);
+            if (activeCheck.hasActive && activeCheck.key) {
+              // CÒN HẠN: Giữ nguyên key cũ, TUYỆT ĐỐI KHÔNG sinh key mới!
+              reusedInfoList.push(`${email}: Còn ${activeCheck.daysRemaining} ngày (đến ${activeCheck.formattedExpDate})`);
+              console.log(`[API /api/orders] ⚡ Email ${email} đang có key còn hạn (${activeCheck.daysRemaining} ngày). Giữ nguyên key: ${activeCheck.key}`);
+              return { email, key: activeCheck.key };
+            }
+
+            // 3. ĐÃ HẾT HẠN HOẶC CHƯA MUA: Bắt buộc sinh key mới toanh (30 ngày từ hiện tại)!
+            const newKey = generateCourseraLicenseKey(email, 30);
+            console.log(`[API /api/orders] 🔑 Email ${email} chưa có key hoặc key cũ đã hết hạn. Sinh key mới 30 ngày: ${newKey}`);
+            return { email, key: newKey };
           });
-          payload.admin_notes = formatOrderNotesWithMultipleLicenses(currentNotes, licensesToSave);
-          console.log(`[API /api/orders] 🔑 Auto-generated ${licensesToSave.length} Coursera Keys (30 days) for emails:`, targetEmails);
+
+          let updatedNotes = formatOrderNotesWithMultipleLicenses(currentNotes, licensesToSave);
+          if (reusedInfoList.length > 0) {
+            updatedNotes += ` [GHI CHÚ HẠN DÙNG: Giữ nguyên key đang còn hạn cho ${reusedInfoList.join("; ")}]`;
+          }
+          payload.admin_notes = updatedNotes;
+          console.log(`[API /api/orders] 🔑 Processed ${licensesToSave.length} Coursera Keys for emails:`, targetEmails);
         } catch (err) {
           console.warn("[API /api/orders] Keygen warning:", err);
         }

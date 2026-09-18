@@ -68,6 +68,33 @@ export default function CheckoutModal() {
   const [copiedKeyIndex, setCopiedKeyIndex] = useState<number | null>(null);
   const [copiedAllKeys, setCopiedAllKeys] = useState(false);
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
+  const [emailCheckStatus, setEmailCheckStatus] = useState<
+    Record<
+      string,
+      {
+        hasActiveLicense: boolean;
+        daysRemaining?: number;
+        formattedExpDate?: string;
+        key?: string;
+        message: string;
+        isExpired?: boolean;
+      }
+    >
+  >({});
+
+  const handleCheckEmailLicense = async (email: string) => {
+    const clean = (email || "").trim().toLowerCase();
+    if (!clean.includes("@") || clean.startsWith("guest@") || clean === "guest@codevault.io") return;
+    try {
+      const res = await fetch(`/api/licenses/status?email=${encodeURIComponent(clean)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setEmailCheckStatus((prev) => ({ ...prev, [clean]: data }));
+      }
+    } catch (e) {
+      console.warn("Failed to check license status:", e);
+    }
+  };
 
   // CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL:
   // Luôn reset ô nhập email về rỗng khi mở sản phẩm, khách bắt buộc phải tự tay điền email Coursera
@@ -76,6 +103,7 @@ export default function CheckoutModal() {
     setQuantity(initQty);
     setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
     setEmailError(null);
+    setEmailCheckStatus({});
     setStep("qr");
     setBillImage("");
     setTransactionRef("");
@@ -519,40 +547,68 @@ export default function CheckoutModal() {
                     </div>
 
                     <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                      {Array.from({ length: quantity }).map((_, idx) => (
-                        <div key={idx} className="space-y-1 bg-white/70 p-2.5 rounded-xl border border-indigo-100">
-                          <div className="flex items-center justify-between text-[11px] font-bold text-indigo-950">
-                            <span>Tài khoản #{idx + 1}:</span>
-                            <span className="text-[10px] font-mono text-indigo-600">Gói 1 tháng (30 ngày)</span>
+                      {Array.from({ length: quantity }).map((_, idx) => {
+                        const curEmail = (customerEmails[idx] || "").trim().toLowerCase();
+                        const checkStatus = emailCheckStatus[curEmail];
+                        return (
+                          <div key={idx} className="space-y-1.5 bg-white/70 p-2.5 rounded-xl border border-indigo-100">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-indigo-950">
+                              <span>Tài khoản #{idx + 1}:</span>
+                              <span className="text-[10px] font-mono text-indigo-600">Gói 1 tháng (30 ngày)</span>
+                            </div>
+                            <input
+                              type="email"
+                              autoComplete="off"
+                              autoCorrect="off"
+                              spellCheck={false}
+                              value={customerEmails[idx] || ""}
+                              onChange={(e) => handleEmailChange(idx, e.target.value)}
+                              onBlur={() => {
+                                const emailVal = (customerEmails[idx] || "").trim().toLowerCase();
+                                if (emailVal && emailVal.includes("@")) {
+                                  handleCheckEmailLicense(emailVal);
+                                }
+                                const cleanEmails = customerEmails
+                                  .map((e) => e.trim().toLowerCase())
+                                  .filter((e) => e.includes("@"));
+                                if (cleanEmails.length > 0 && order?.id) {
+                                  fetch("/api/orders", {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      orderId: order.id,
+                                      customer_emails: cleanEmails,
+                                      customer_email: cleanEmails[0],
+                                    }),
+                                  }).catch(() => {});
+                                }
+                              }}
+                              placeholder={`Ví dụ: coursera.user${idx + 1}@gmail.com (Email đăng nhập Coursera #${idx + 1})`}
+                              className="w-full px-3 py-2 text-xs rounded-lg border border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all"
+                            />
+
+                            {/* Thông báo tình trạng bản quyền của email theo Spec 019 */}
+                            {checkStatus?.hasActiveLicense && (
+                              <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-1.5 animate-fadeIn">
+                                <span className="shrink-0 font-bold">ℹ️ Thông báo:</span>
+                                <div>
+                                  Email này hiện vẫn còn <b>{checkStatus.daysRemaining} ngày</b> bản quyền (đến {checkStatus.formattedExpDate}).
+                                  Khi hoàn tất thanh toán, hệ thống sẽ <b>giữ nguyên License Key đang hoạt động</b> và không trừ ngày của bạn.
+                                </div>
+                              </div>
+                            )}
+
+                            {checkStatus && !checkStatus.hasActiveLicense && checkStatus.isExpired && (
+                              <div className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[10px] flex items-start gap-1.5 animate-fadeIn">
+                                <span className="shrink-0 font-bold">🔄 Trạng thái:</span>
+                                <div>
+                                  Khóa bản quyền trước đây của email này đã hết hạn ({checkStatus.formattedExpDate || "quá 30 ngày"}). Hệ thống sẽ cấp <b>License Key hoàn toàn mới (30 ngày)</b> ngay sau khi thanh toán.
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <input
-                            type="email"
-                            autoComplete="off"
-                            autoCorrect="off"
-                            spellCheck={false}
-                            value={customerEmails[idx] || ""}
-                            onChange={(e) => handleEmailChange(idx, e.target.value)}
-                            onBlur={() => {
-                              const cleanEmails = customerEmails
-                                .map((e) => e.trim().toLowerCase())
-                                .filter((e) => e.includes("@"));
-                              if (cleanEmails.length > 0 && order?.id) {
-                                fetch("/api/orders", {
-                                  method: "PATCH",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    orderId: order.id,
-                                    customer_emails: cleanEmails,
-                                    customer_email: cleanEmails[0],
-                                  }),
-                                }).catch(() => {});
-                              }
-                            }}
-                            placeholder={`Ví dụ: coursera.user${idx + 1}@gmail.com (Email đăng nhập Coursera #${idx + 1})`}
-                            className="w-full px-3 py-2 text-xs rounded-lg border border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all"
-                          />
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
@@ -932,7 +988,11 @@ export default function CheckoutModal() {
                         <span className="font-bold text-indigo-950">
                           TK #{idx + 1}: <span className="font-mono">{item.email}</span>
                         </span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
+                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-extrabold border ${
+                          item.isExpired
+                            ? "bg-rose-100 text-rose-700 border-rose-300"
+                            : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                        }`}>
                           {item.durationLabel || "30 Ngày"}
                         </span>
                       </div>

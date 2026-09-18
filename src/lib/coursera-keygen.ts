@@ -115,7 +115,21 @@ export interface CourseraLicenseItem {
   key: string;
   durationLabel: string;
   isExpired: boolean;
+  daysRemaining?: number;
   expirationDate?: Date;
+  formattedExpDate?: string;
+  isReused?: boolean;
+}
+
+export interface LicenseDurationInfo {
+  isPermanent: boolean;
+  isExpired: boolean;
+  daysRemaining: number;
+  expirationDate?: Date;
+  formattedExpDate: string;
+  label: string;
+  status: "active" | "expired" | "permanent";
+  badgeClass: string;
 }
 
 /**
@@ -136,7 +150,9 @@ export function generateMultipleCourseraKeys(
         key,
         durationLabel: dur.label,
         isExpired: dur.isExpired,
+        daysRemaining: dur.daysRemaining,
         expirationDate: dur.expirationDate,
+        formattedExpDate: dur.formattedExpDate,
       };
     });
 }
@@ -181,7 +197,9 @@ export function extractOrderLicenseInfo(order: {
             key,
             durationLabel: dur.label,
             isExpired: dur.isExpired,
+            daysRemaining: dur.daysRemaining,
             expirationDate: dur.expirationDate,
+            formattedExpDate: dur.formattedExpDate,
           });
         }
       }
@@ -234,7 +252,9 @@ export function extractOrderLicenseInfo(order: {
             key: generatedKey,
             durationLabel: dur.label,
             isExpired: dur.isExpired,
+            daysRemaining: dur.daysRemaining,
             expirationDate: dur.expirationDate,
+            formattedExpDate: dur.formattedExpDate,
           });
         } catch (err) {
           console.warn(`[extractOrderLicenseInfo] Could not generate key for ${email}:`, err);
@@ -251,7 +271,9 @@ export function extractOrderLicenseInfo(order: {
       key: fallbackKey,
       durationLabel: dur.label,
       isExpired: dur.isExpired,
+      daysRemaining: dur.daysRemaining,
       expirationDate: dur.expirationDate,
+      formattedExpDate: dur.formattedExpDate,
     });
   }
 
@@ -266,26 +288,45 @@ export function extractOrderLicenseInfo(order: {
 /**
  * Đọc thông tin thời hạn từ License Key để hiển thị trực quan cho người dùng
  */
-export function parseLicenseKeyDuration(key?: string | null): {
-  isPermanent: boolean;
-  isExpired: boolean;
-  expirationDate?: Date;
-  label: string;
-} {
+export function parseLicenseKeyDuration(key?: string | null): LicenseDurationInfo {
   const cleanKey = (key || "").trim();
   if (!cleanKey) {
-    return { isPermanent: false, isExpired: false, label: "Gói 1 Tháng (30 Ngày)" };
+    return {
+      isPermanent: false,
+      isExpired: false,
+      daysRemaining: 30,
+      formattedExpDate: "",
+      label: "Gói 1 Tháng (30 Ngày)",
+      status: "active",
+      badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    };
   }
 
   const parts = cleanKey.split("-");
   if (parts.length === 5) {
-    return { isPermanent: true, isExpired: false, label: "Vĩnh Viễn" };
+    return {
+      isPermanent: true,
+      isExpired: false,
+      daysRemaining: 99999,
+      formattedExpDate: "Vĩnh Viễn",
+      label: "Vĩnh Viễn",
+      status: "permanent",
+      badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+    };
   }
 
   if (parts.length === 7) {
     const expFormatted = parts[1] + parts[2];
     if (expFormatted === "PERM0000") {
-      return { isPermanent: true, isExpired: false, label: "Vĩnh Viễn" };
+      return {
+        isPermanent: true,
+        isExpired: false,
+        daysRemaining: 99999,
+        formattedExpDate: "Vĩnh Viễn",
+        label: "Vĩnh Viễn",
+        status: "permanent",
+        badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
+      };
     }
 
     const expTimestampStr = expFormatted.replace(/^0+/, "") || "0";
@@ -293,18 +334,46 @@ export function parseLicenseKeyDuration(key?: string | null): {
     if (!isNaN(expTimestamp)) {
       const expDate = new Date(expTimestamp);
       const isExpired = Date.now() > expTimestamp;
+      const daysRemaining = isExpired
+        ? 0
+        : Math.max(0, Math.ceil((expTimestamp - Date.now()) / (1000 * 60 * 60 * 24)));
+      const formattedExpDate = expDate.toLocaleDateString("vi-VN");
+
+      if (isExpired) {
+        return {
+          isPermanent: false,
+          isExpired: true,
+          daysRemaining: 0,
+          expirationDate: expDate,
+          formattedExpDate,
+          label: `🚨 Đã hết hạn (${formattedExpDate})`,
+          status: "expired",
+          badgeClass: "bg-rose-50 text-rose-700 border-rose-300 font-extrabold",
+        };
+      }
+
       return {
         isPermanent: false,
-        isExpired,
+        isExpired: false,
+        daysRemaining,
         expirationDate: expDate,
-        label: isExpired
-          ? `Đã hết hạn (${expDate.toLocaleDateString("vi-VN")})`
-          : `Hết hạn: ${expDate.toLocaleDateString("vi-VN")}`,
+        formattedExpDate,
+        label: `Còn ${daysRemaining} ngày (Hết hạn: ${formattedExpDate})`,
+        status: "active",
+        badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold",
       };
     }
   }
 
-  return { isPermanent: false, isExpired: false, label: "Gói 1 Tháng (30 Ngày)" };
+  return {
+    isPermanent: false,
+    isExpired: false,
+    daysRemaining: 30,
+    formattedExpDate: "",
+    label: "Gói 1 Tháng (30 Ngày)",
+    status: "active",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+  };
 }
 
 /**
@@ -395,6 +464,77 @@ export function formatOrderNotesWithEmails(
 
   const newTags = `${emailsTag} ${legacyEmailTag}`;
   return notes ? `${notes} ${newTags}` : newTags;
+}
+
+/**
+ * Tra cứu xem email Coursera này có đang sở hữu License Key nào CÒN HẠN trong danh sách đơn hàng không.
+ * Nghiệp vụ Spec 019: Nếu còn hạn thì giữ nguyên key cũ, nếu hết hạn thì sinh key mới.
+ */
+export function findActiveLicenseForEmail(
+  email: string,
+  completedOrders: Array<{
+    admin_notes?: string | null;
+    license_key?: string | null;
+    status?: string | null;
+    created_at?: string | null;
+  }>
+): {
+  hasActive: boolean;
+  key?: string;
+  daysRemaining?: number;
+  expirationDate?: Date;
+  formattedExpDate?: string;
+  isExpired?: boolean;
+  lastOrderDate?: string;
+} {
+  const cleanEmail = (email || "").trim().toLowerCase();
+  if (!cleanEmail) return { hasActive: false };
+
+  // Sắp xếp các đơn hàng completed theo thời gian mới nhất trước
+  const sortedOrders = [...completedOrders]
+    .filter((o) => o.status === "completed")
+    .sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
+    });
+
+  let latestFoundKey: string | undefined = undefined;
+  let latestDuration: LicenseDurationInfo | undefined = undefined;
+
+  for (const order of sortedOrders) {
+    const info = extractOrderLicenseInfo(order);
+    const targetLicense = info.licenses.find((l) => l.email === cleanEmail);
+    if (targetLicense && targetLicense.key) {
+      const dur = parseLicenseKeyDuration(targetLicense.key);
+      if (!dur.isExpired && (dur.isPermanent || dur.daysRemaining > 0)) {
+        // Tìm thấy key đang còn hạn!
+        return {
+          hasActive: true,
+          key: targetLicense.key,
+          daysRemaining: dur.daysRemaining,
+          expirationDate: dur.expirationDate,
+          formattedExpDate: dur.formattedExpDate,
+          isExpired: false,
+          lastOrderDate: order.created_at || undefined,
+        };
+      }
+
+      if (!latestFoundKey) {
+        latestFoundKey = targetLicense.key;
+        latestDuration = dur;
+      }
+    }
+  }
+
+  // Không có key nào còn hạn
+  return {
+    hasActive: false,
+    key: latestFoundKey,
+    isExpired: latestDuration?.isExpired ?? false,
+    formattedExpDate: latestDuration?.formattedExpDate,
+    daysRemaining: 0,
+  };
 }
 
 

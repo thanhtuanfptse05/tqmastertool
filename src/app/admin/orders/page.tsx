@@ -29,7 +29,7 @@ import {
   Key,
 } from "lucide-react";
 import AdminOrderEditModal from "@/components/store/AdminOrderEditModal";
-import { extractOrderLicenseInfo } from "@/lib/coursera-keygen";
+import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
 
 export default function AdminOrdersPage() {
   const {
@@ -507,17 +507,27 @@ export default function AdminOrdersPage() {
 
                     {effectiveLicenses.length > 0 ? (
                       <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                        {effectiveLicenses.map((lic, licIdx) => (
-                          <div key={licIdx} className="p-2 rounded-xl bg-white border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="font-bold text-indigo-900 shrink-0">#{licIdx + 1}:</span>
-                              <span className="text-slate-700 truncate">{lic.email}</span>
+                        {effectiveLicenses.map((lic, licIdx) => {
+                          const dur = parseLicenseKeyDuration(lic.key);
+                          return (
+                            <div key={licIdx} className="p-2 rounded-xl bg-white border border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-bold text-indigo-900 shrink-0">#{licIdx + 1}:</span>
+                                <span className="text-slate-700 truncate">{lic.email}</span>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${
+                                  dur.isExpired
+                                    ? "bg-rose-100 text-rose-700 border border-rose-300"
+                                    : "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                }`}>
+                                  {dur.label}
+                                </span>
+                              </div>
+                              <span className="font-mono font-black text-cyan-600 bg-slate-50 px-2 py-0.5 rounded border border-indigo-200 select-all shrink-0">
+                                {lic.key}
+                              </span>
                             </div>
-                            <span className="font-mono font-black text-cyan-600 bg-slate-50 px-2 py-0.5 rounded border border-indigo-200 select-all shrink-0">
-                              {lic.key}
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="space-y-1.5">
