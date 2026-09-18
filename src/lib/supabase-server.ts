@@ -19,17 +19,38 @@ export const ADMIN_WHITELIST_EMAILS = [
 ];
 
 /**
- * Checks if an email is strictly an authorized administrator
+ * Checks if an email is strictly an authorized administrator.
+ * Checks against both hardcoded server list and server environment variable ADMIN_EMAILS.
  */
 export function isStrictAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
-  return ADMIN_WHITELIST_EMAILS.includes(clean);
+
+  // Check hardcoded secure server list
+  if (ADMIN_WHITELIST_EMAILS.includes(clean)) return true;
+
+  // Check server environment variable ADMIN_EMAILS (e.g. "admin1@domain.com,admin2@domain.com")
+  const envAdmins = process.env.ADMIN_EMAILS || "";
+  if (envAdmins) {
+    const list = envAdmins
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    if (list.includes(clean)) return true;
+  }
+
+  return false;
 }
 
 /**
  * Extracts and verifies the authenticated user from a NextRequest.
  * Checks Authorization header: Bearer <token> or Supabase cookies.
+ * 
+ * SECURITY GATE (DUAL-FACTOR ADMIN CHECK):
+ * A user is ONLY recognized as an Admin if:
+ * 1. Their email is strictly validated in the Server Admin Whitelist (isStrictAdminEmail).
+ * 2. Any arbitrary database modifications made to profiles.role by unauthorized users
+ *    will NEVER grant administrative privileges.
  */
 export async function getAuthenticatedUser(
   req: NextRequest
@@ -90,22 +111,25 @@ export async function getAuthenticatedUser(
       return { user: null, isAdmin: false };
     }
 
-    // Check if user has admin role
+    // 1. Mandatory Pre-Check: Is the user's email authorized in Admin Whitelist?
     const isEmailAdmin = isStrictAdminEmail(user.email);
-    if (isEmailAdmin) {
-      return { user, isAdmin: true };
+    if (!isEmailAdmin) {
+      // User is authenticated, but STRICTLY NOT an admin.
+      // Even if profiles.role was tampered with in Postgres, access is DENIED.
+      return { user, isAdmin: false };
     }
 
-    // Check database profiles table
+    // 2. Secondary check: verify database profile record exists
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
 
-    const isRoleAdmin = profile?.role === "admin";
+    // If profile has role admin, or if email is verified whitelist admin
+    const isAdmin = profile?.role === "admin" || isEmailAdmin;
 
-    return { user, isAdmin: isRoleAdmin };
+    return { user, isAdmin };
   } catch (err) {
     console.error("[Auth Helper] Error verifying user:", err);
     return { user: null, isAdmin: false };

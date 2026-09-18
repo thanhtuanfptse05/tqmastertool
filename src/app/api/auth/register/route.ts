@@ -25,6 +25,18 @@ export async function POST(req: NextRequest) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = (fullName || cleanEmail.split("@")[0]).trim();
 
+    // SECURITY DEFENSE: Block public registration using Admin Whitelist email addresses
+    if (isStrictAdminEmail(cleanEmail)) {
+      console.warn(`[SECURITY ALERT] Blocked public registration attempt with admin email: ${cleanEmail}`);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Không thể tự đăng ký tài khoản Quản trị viên qua biểu mẫu này. Vui lòng liên hệ trực tiếp chủ sở hữu hệ thống.",
+        },
+        { status: 403 }
+      );
+    }
+
     // 1. Create user via Supabase Admin API with email_confirm: true (No email confirmation delay)
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email: cleanEmail,

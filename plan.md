@@ -32,8 +32,9 @@
 | **Phase 5** | **Admin Portal, Full CRUD & Duyệt Đơn** | Hybrid | ✅ DONE | `/admin/*`, Dashboard, Approval Drawer |
 | **Phase 6** | **Kho Bàn Giao (Customer Deliverable Vault)** | SDD Pure | ✅ DONE | `/customer/orders/:id`, Signed URLs |
 | **Phase 7** | **Tối Ưu 60 FPS Three.js, Testing & Audit** | Hybrid | ✅ DONE | Lighthouse, Security Checklist, E2E |
-| **Phase 11** | **Tích Hợp SePay Webhook & Auto-Approval (Spec 011)** | SDD Pure | 🔄 IN PROGRESS | `/api/webhooks/sepay`, BIDV VA, TQ prefix, Bill upload |
+| **Phase 11** | **Tích Hợp SePay Webhook & Auto-Approval (Spec 011)** | SDD Pure | ✅ DONE | `/api/webhooks/sepay`, BIDV VA, TQ prefix, Bill upload |
 | **Phase 13** | **Tool Coursera & Auto License Keygen (Spec 013)** | SDD Pure | ✅ DONE | Keygen engine, Checkout, Vault, Supabase Seed |
+| **Phase 15** | **Gia Cố Bảo Mật Admin & Chống Sửa Giá SePay (Spec 015)** | SDD Pure | ✅ DONE | Server Admin Auth, POST /api/orders, Dual Price Check, RLS Hardening |
 
 ---
 

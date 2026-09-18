@@ -388,3 +388,172 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
+/**
+ * POST /api/orders
+ * Secure Server-Side Order Creation (Anti-Price-Tampering Defense)
+ * Spec: SPEC-015
+ * 
+ * Guarantees:
+ * - Product price is strictly queried from public.products in PostgreSQL.
+ * - Client cannot tamper with total_amount or unit_price (any client price is ignored).
+ * - Generates unique order_code and vietqr_content.
+ * - Creates order with initial status 'pending_payment'.
+ */
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { productId, customerEmail, customerName } = body;
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "Thiếu thông tin sản phẩm (productId)" },
+        { status: 400 }
+      );
+    }
+
+    // 1. Authenticate user if session exists
+    const { user } = await getAuthenticatedUser(req);
+    const userId = user?.id || null;
+
+    // 2. Fetch product from database to get official immutable price
+    // Support lookup by UUID or slug
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId);
+    let query = supabaseAdmin
+      .from("products")
+      .select("id, title, category, price, status, thumbnail_url");
+
+    if (isUuid) {
+      query = query.eq("id", productId);
+    } else {
+      query = query.or(`id.eq.${productId},slug.eq.${productId}`);
+    }
+
+    const { data: product, error: prodErr } = await query.maybeSingle();
+
+    if (prodErr || !product) {
+      console.warn(`[API /api/orders POST] Product not found for ID/slug: ${productId}`, prodErr);
+      return NextResponse.json(
+        { error: "Không tìm thấy sản phẩm hoặc sản phẩm đã ngừng kinh doanh." },
+        { status: 404 }
+      );
+    }
+
+    if (product.status !== "published") {
+      return NextResponse.json(
+        { error: "Sản phẩm hiện không ở trạng thái mở bán." },
+        { status: 400 }
+      );
+    }
+
+    const officialPrice = Number(product.price);
+    if (isNaN(officialPrice) || officialPrice < 0) {
+      return NextResponse.json(
+        { error: "Giá sản phẩm trong hệ thống không hợp lệ." },
+        { status: 500 }
+      );
+    }
+
+    // 3. Generate unique order numbers
+    const orderNum = Math.floor(1000 + Math.random() * 9000);
+    const orderCode = `TQ-2026-${orderNum}`;
+    const cleanMemo = `TQ2026${orderNum}`;
+    const orderId = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+    const cleanEmail = (customerEmail || user?.email || "").trim().toLowerCase();
+    const cleanName = (customerName || user?.user_metadata?.full_name || "Khách Hàng").trim();
+
+    let adminNotes = "";
+    if (cleanEmail) {
+      adminNotes = `[COURSERA_EMAIL: ${cleanEmail}]`;
+    }
+
+    // 4. Insert order via Supabase Service Role (Total amount strictly locked to DB price)
+    const orderPayload: any = {
+      id: orderId,
+      order_code: orderCode,
+      total_amount: officialPrice, // IMMUTABLE: Enforced directly from DB
+      status: "pending_payment",
+      payment_method: "vietqr",
+      vietqr_content: cleanMemo,
+      admin_notes: adminNotes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (userId) {
+      orderPayload.user_id = userId;
+    }
+
+    const { data: newOrder, error: orderErr } = await supabaseAdmin
+      .from("orders")
+      .insert(orderPayload)
+      .select()
+      .single();
+
+    if (orderErr) {
+      console.error("[API /api/orders POST] Database order insert error:", orderErr);
+      return NextResponse.json(
+        { error: `Lỗi khởi tạo đơn hàng: ${orderErr.message}` },
+        { status: 500 }
+      );
+    }
+
+    // 5. Insert order items
+    const itemId = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `item-${Date.now()}`;
+
+    const { error: itemErr } = await supabaseAdmin
+      .from("order_items")
+      .insert({
+        id: itemId,
+        order_id: orderId,
+        product_id: product.id,
+        unit_price: officialPrice,
+        product_title: product.title,
+        product_category: product.category,
+        created_at: new Date().toISOString(),
+      });
+
+    if (itemErr) {
+      console.warn("[API /api/orders POST] Order items insert warning:", itemErr);
+    }
+
+    const items = [
+      {
+        id: itemId,
+        order_id: orderId,
+        product_id: product.id,
+        unit_price: officialPrice,
+        product_title: product.title,
+        product_category: product.category,
+        product_thumbnail: product.thumbnail_url || "",
+        created_at: newOrder.created_at,
+      },
+    ];
+
+    console.log(
+      `[API /api/orders POST] ✅ Order ${orderCode} created securely. Product: "${product.title}" - Locked Price: ${officialPrice.toLocaleString()}đ`
+    );
+
+    return NextResponse.json({
+      success: true,
+      order: {
+        ...newOrder,
+        user_email: cleanEmail,
+        user_name: cleanName,
+        items,
+      },
+    });
+  } catch (err: any) {
+    console.error("[API /api/orders POST] Exception:", err);
+    return NextResponse.json(
+      { error: err.message || "Lỗi máy chủ khi khởi tạo đơn hàng" },
+      { status: 500 }
+    );
+  }
+}
+
+

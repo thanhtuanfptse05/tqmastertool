@@ -96,14 +96,7 @@ const STORAGE_KEYS = {
   CART: "cv_cart",
 };
 
-// Check if an email has administrative privileges (Strict Whitelist - Anti-Hack)
-const checkIsAdminEmail = (email: string): boolean => {
-  const clean = email.trim().toLowerCase();
-  return (
-    clean === "lequan12305@gmail.com" ||
-    clean === "admin@codevault.io"
-  );
-};
+// Admin role is strictly governed server-side and checked via profile.role / session token
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -135,7 +128,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from("products")
         .select(`
-          *,
+          id, category, title, slug, short_description, detailed_description,
+          price, original_price, thumbnail_url, status, deliverable_type,
+          created_at, updated_at,
           product_demos (*)
         `)
         .is("deleted_at", null)
@@ -161,9 +156,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             thumbnail_url: p.thumbnail_url || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
             status: p.status || "published",
             deliverable_type: p.deliverable_type || "download_file",
-            storage_file_path: p.storage_file_path,
-            git_repo_url: p.git_repo_url,
-            access_instructions: p.access_instructions,
+            // SENSITIVE DELIVERABLES (Anti-Leak): Keep undefined in public catalog
+            storage_file_path: undefined,
+            git_repo_url: undefined,
+            access_instructions: undefined,
             created_at: p.created_at,
             updated_at: p.updated_at,
             demo: demoRecord
@@ -390,7 +386,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .then(({ data: profile }) => {
               if (!active) return;
               if (profile) {
-                const isAdmin = profile.role === "admin" || checkIsAdminEmail(session.user.email || "");
+                const isAdmin = profile.role === "admin";
                 const userObj: UserProfile = {
                   id: session.user.id,
                   email: session.user.email || "",
@@ -423,7 +419,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             .then(({ data: profile }) => {
               if (!active) return;
               if (profile) {
-                const isAdmin = profile.role === "admin" || checkIsAdminEmail(session.user.email || "");
+                const isAdmin = profile.role === "admin";
                 const userObj: UserProfile = {
                   id: session.user.id,
                   email: session.user.email || "",
@@ -461,7 +457,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cleanEmail = email.trim().toLowerCase();
     const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
-    const isAdmin = existing?.role === "admin" || checkIsAdminEmail(cleanEmail);
+    const isAdmin = existing?.role === "admin";
     const role: UserRole = isAdmin ? "admin" : (existing?.role || "customer");
 
     const userToSet: UserProfile = existing
@@ -571,13 +567,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const isAdmin = checkIsAdminEmail(cleanEmail);
     const newUser: UserProfile = {
       id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `user-${Date.now()}`,
       email: cleanEmail,
       full_name: cleanName,
       avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
-      role: isAdmin ? "admin" : "customer",
+      role: "customer",
       created_at: new Date().toISOString(),
     };
 
@@ -604,7 +599,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .single();
 
         if (profile) {
-          const dbIsAdmin = profile.role === "admin" || isAdmin;
+          const dbIsAdmin = profile.role === "admin";
           const updatedUser: UserProfile = {
             ...newUser,
             id: data.user.id,
@@ -912,34 +907,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.ORDERS, updated);
     setActiveOrderForPayment(newOrder);
 
-    if (isSupabaseConfigured && currentUser?.id) {
-      supabase.from("orders").insert({
-        id: newOrder.id,
-        order_code: newOrder.order_code,
-        user_id: currentUser.id,
-        total_amount: newOrder.total_amount,
-        status: newOrder.status,
-        payment_method: newOrder.payment_method,
-        vietqr_content: newOrder.vietqr_content,
-      }).then(({ error: orderErr }) => {
-        if (orderErr) {
-          console.error("[createOrder] Failed to insert orders record:", orderErr);
-          return;
-        }
-        supabase.from("order_items").insert({
-          order_id: newOrder.id,
-          product_id: product.id,
-          unit_price: product.price,
-          product_title: product.title,
-          product_category: product.category,
-        }).then(({ error: itemErr }) => {
-          if (itemErr) {
-            console.error("[createOrder] Failed to insert order_items record:", itemErr);
-          } else {
-            console.log(`[createOrder] Order ${newOrder.order_code} & item "${product.title}" saved successfully to DB.`);
+    // Call Secure Server API to guarantee immutable DB price & secure persistence (Spec 015)
+    if (isSupabaseConfigured) {
+      (async () => {
+        try {
+          const headers: Record<string, string> = { "Content-Type": "application/json" };
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            headers["Authorization"] = `Bearer ${session.access_token}`;
           }
-        });
-      });
+
+          const res = await fetch("/api/orders", {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              productId: product.id,
+              customerEmail: (currentUser?.email && currentUser.email !== "guest@codevault.io") ? currentUser.email : undefined,
+              customerName: currentUser?.full_name || undefined,
+            }),
+          });
+
+          if (res.ok) {
+            const resData = await res.json();
+            if (resData.success && resData.order) {
+              const serverOrder: Order = resData.order;
+              // Synchronize local active order with verified server data
+              setActiveOrderForPayment(serverOrder);
+              setOrders((prev) => {
+                const filtered = prev.filter((o) => o.id !== newOrder.id && o.id !== serverOrder.id);
+                const nextList = [serverOrder, ...filtered];
+                persist(STORAGE_KEYS.ORDERS, nextList);
+                return nextList;
+              });
+              console.log(`[createOrder] Server verified order ${serverOrder.order_code} registered. Price: ${serverOrder.total_amount}`);
+            }
+          } else {
+            console.warn("[createOrder] Server order creation returned non-200:", await res.text());
+          }
+        } catch (apiErr) {
+          console.error("[createOrder] Server API call failed:", apiErr);
+        }
+      })();
     }
 
     return newOrder;

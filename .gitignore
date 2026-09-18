@@ -54,3 +54,6 @@ graphify-out/cache/
 graphify-out/cost.json
 graphify-out/20*
 
+# Extension local build folder
+Coursera_Skip_Extension_full/
+

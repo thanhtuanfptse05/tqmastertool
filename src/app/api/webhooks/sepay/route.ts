@@ -174,9 +174,37 @@ export async function POST(req: NextRequest) {
     }
 
     // -----------------------------------------------------------
-    // 6. SECURITY DEFENSE: AMOUNT VERIFICATION (Chống hack chuyển 1k)
+    // 6. SECURITY DEFENSE: DUAL-LAYER REAL AMOUNT VERIFICATION
+    // Anti-Price-Tampering: Re-verify against true prices in products table
     // -----------------------------------------------------------
-    const requiredAmount = Number(order.total_amount) || 0;
+    const recordedAmount = Number(order.total_amount) || 0;
+
+    // Fetch order items to determine the true product catalog price
+    const { data: orderItems } = await supabase
+      .from("order_items")
+      .select("product_id, unit_price, product_title")
+      .eq("order_id", order.id);
+
+    let expectedRealTotal = 0;
+    if (orderItems && orderItems.length > 0) {
+      const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean);
+      const { data: catalogProducts } = await supabase
+        .from("products")
+        .select("id, price")
+        .in("id", productIds);
+
+      const priceMap = new Map((catalogProducts || []).map((p: any) => [p.id, Number(p.price)]));
+      
+      expectedRealTotal = orderItems.reduce((sum: number, item: any) => {
+        const truePrice = priceMap.get(item.product_id);
+        return sum + (truePrice !== undefined ? truePrice : (Number(item.unit_price) || 0));
+      }, 0);
+    } else {
+      expectedRealTotal = recordedAmount;
+    }
+
+    // Required amount is the MAXIMUM of recorded total_amount and expectedRealTotal
+    const trueRequiredAmount = Math.max(recordedAmount, expectedRealTotal);
     const refCode = body.referenceCode || String(body.id);
 
     // -----------------------------------------------------------
@@ -203,25 +231,76 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (transferAmount < requiredAmount) {
+    // -----------------------------------------------------------
+    // 6.2 ANTI-PRICE-TAMPERING CHECK: Did anyone tamper with the order price?
+    // -----------------------------------------------------------
+    const isPriceTampered = expectedRealTotal > 0 && recordedAmount < expectedRealTotal;
+    if (isPriceTampered) {
       console.warn(
-        `[SePay Webhook] ⚠️ UNDERPAID DETECTED! Order ${order.order_code}: Received ${transferAmount}đ < Required ${requiredAmount}đ`
+        `[SePay Webhook] 🚨 FRAUD DETECTED! Price tampering detected on order ${order.order_code}: DB recorded ${recordedAmount}đ < Catalog price ${expectedRealTotal}đ`
       );
 
-      // Flag for admin inspection, do NOT approve!
       await supabase
         .from("orders")
         .update({
           status: "pending_approval",
           transaction_ref: refCode,
-          admin_notes: `⚠️ CẢNH BÁO CHUYỂN THIẾU TIỀN: Khách chuyển ${transferAmount.toLocaleString()}đ (Yêu cầu ${requiredAmount.toLocaleString()}đ). Mã GD SePay: ${refCode}. Ngân hàng: ${body.gateway}.`,
+          admin_notes: `🚨 CẢNH BÁO GIAN LẬN GIÁ [FRAUD_PRICE_TAMPERING_DETECTED]: Đơn hàng bị sửa giá thành ${recordedAmount.toLocaleString()}đ (Giá gốc sản phẩm: ${expectedRealTotal.toLocaleString()}đ). Khách chuyển: ${transferAmount.toLocaleString()}đ. Mã GD SePay: ${refCode}. NGĂN CHẶN TỰ ĐỘNG DUYỆT!`,
           updated_at: new Date().toISOString(),
         })
         .eq("id", order.id);
 
       return NextResponse.json({
         success: false,
-        message: `Underpaid detected: received ${transferAmount}đ < required ${requiredAmount}đ. Flagged for Admin review.`,
+        message: "Fraudulent price tampering detected. Order suspended and escalated to Administrator.",
+      }, { status: 403 });
+    }
+
+    // -----------------------------------------------------------
+    // 6.3 UNDERPAID CHECK: Did the customer transfer enough money?
+    // -----------------------------------------------------------
+    if (transferAmount < trueRequiredAmount) {
+      console.warn(
+        `[SePay Webhook] ⚠️ UNDERPAID DETECTED! Order ${order.order_code}: Received ${transferAmount}đ < Required ${trueRequiredAmount}đ`
+      );
+
+      await supabase
+        .from("orders")
+        .update({
+          status: "pending_approval",
+          transaction_ref: refCode,
+          admin_notes: `⚠️ CẢNH BÁO CHUYỂN THIẾU TIỀN: Khách chuyển ${transferAmount.toLocaleString()}đ (Yêu cầu ${trueRequiredAmount.toLocaleString()}đ). Mã GD SePay: ${refCode}. Ngân hàng: ${body.gateway}.`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      return NextResponse.json({
+        success: false,
+        message: `Underpaid detected: received ${transferAmount}đ < required ${trueRequiredAmount}đ. Flagged for Admin review.`,
+      });
+    }
+
+    // -----------------------------------------------------------
+    // 6.4 MINIMUM TRANSFER THRESHOLD CHECK
+    // No paid item in CodeVault is less than 10,000 VND
+    // -----------------------------------------------------------
+    if (trueRequiredAmount > 0 && transferAmount < 10000) {
+      console.warn(
+        `[SePay Webhook] 🚨 SUSPICIOUS AMOUNT (< 10.000đ) for order ${order.order_code}: ${transferAmount}đ`
+      );
+      await supabase
+        .from("orders")
+        .update({
+          status: "pending_approval",
+          transaction_ref: refCode,
+          admin_notes: `🚨 CẢNH BÁO GIAO DỊCH DƯỚI 10.000Đ: Nhận ${transferAmount.toLocaleString()}đ cho đơn hàng giá trị ${trueRequiredAmount.toLocaleString()}đ. Chặn duyệt tự động.`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", order.id);
+
+      return NextResponse.json({
+        success: false,
+        message: "Suspicious micro-transaction detected (< 10,000đ). Flagged for Admin review.",
       });
     }
 
