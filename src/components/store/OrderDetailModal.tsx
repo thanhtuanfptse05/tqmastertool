@@ -183,7 +183,11 @@ export default function OrderDetailModal({
                   Tài Khoản / Đơn Hàng Đang Bị Chặn Quyền Truy Cập
                 </strong>
                 <p className="text-rose-700 leading-relaxed">
-                  {order.admin_notes ||
+                  {(order.admin_notes || "")
+                    .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+                    .replace(/\[KEY:[^\]]+\]/gi, "")
+                    .replace(/\[BLOCKED\]/gi, "")
+                    .trim() ||
                     "Quản trị viên đã khóa quyền truy cập đơn hàng này do vi phạm quy chế hoặc nghi vấn gian lận. Vui lòng liên hệ hỗ trợ để được giải đáp."}
                 </p>
               </div>
@@ -507,12 +511,20 @@ export default function OrderDetailModal({
                 <span className="font-mono font-bold text-blue-600">{order.transaction_ref}</span>
               </div>
             )}
-            {order.admin_notes && (
-              <div className="sm:col-span-2">
-                <span className="text-slate-400 block text-[10px]">Ghi chú hệ thống / Admin:</span>
-                <span className="text-slate-700 italic">{order.admin_notes}</span>
-              </div>
-            )}
+            {(() => {
+              const displayNote = (order.admin_notes || "")
+                .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+                .replace(/\[KEY:[^\]]+\]/gi, "")
+                .replace(/\[BLOCKED\]/gi, "")
+                .trim();
+              if (!displayNote) return null;
+              return (
+                <div className="sm:col-span-2">
+                  <span className="text-slate-400 block text-[10px]">Ghi chú hệ thống / Admin:</span>
+                  <span className="text-slate-700 italic">{displayNote}</span>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

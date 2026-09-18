@@ -336,7 +336,7 @@ export async function POST(req: NextRequest) {
       .eq("order_id", order.id);
 
     const hasCourseraTool =
-      (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
+      (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
       order.total_amount === 40000 ||
       order.total_amount === 149000;
 

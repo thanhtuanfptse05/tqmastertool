@@ -165,8 +165,8 @@ export default function CheckoutModal() {
           status: "pending_approval",
           payment_proof_image: billImage,
           transaction_ref: ref,
-          customer_email: cleanEmail || undefined,
-          admin_notes: cleanEmail ? `[COURSERA_EMAIL: ${cleanEmail}]` : undefined,
+          customer_email: isLicenseRequired ? (cleanEmail || undefined) : undefined,
+          admin_notes: (isLicenseRequired && cleanEmail) ? `[COURSERA_EMAIL: ${cleanEmail}]` : undefined,
         }),
       });
 
@@ -194,7 +194,7 @@ export default function CheckoutModal() {
         order.id,
         billImage,
         ref,
-        cleanEmail,
+        isLicenseRequired ? cleanEmail : undefined,
         autoApproved ? "completed" : "pending_approval",
         orderData.admin_notes,
         licenseKey

@@ -12288,7 +12288,7 @@
       "file_type": "code",
       "norm_label": "usestore()",
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1509"
+      "source_location": "L1512"
     },
     {
       "id": "public_landing_pages_secret_pathways_assets_three_min_a_constructor",
@@ -25422,7 +25422,7 @@
       "file_type": "code",
       "norm_label": "post()",
       "source_file": "src/app/api/orders/route.ts",
-      "source_location": "L428"
+      "source_location": "L429"
     },
     {
       "id": "src_app_api_orders_upload_proof_route_post",
@@ -33967,14 +33967,14 @@
       "source_location": "L99"
     },
     {
-      "id": "specs_013_tool_coursera_skip_extension_and_license_keygen_spec_4_1_b\u1eaft_bu\u1ed9c_t\u1ef1_nh\u1eadp_email_t\u00e0i_kho\u1ea3n_coursera_c\u1ea5m_tuy\u1ec7t_\u0111\u1ed1i_t\u1ef1_\u0111\u1ed9ng_\u0111i\u1ec1n_strict_no_auto_fill",
-      "label": "4.1. B\u1eaft Bu\u1ed9c T\u1ef1 Nh\u1eadp Email T\u00e0i Kho\u1ea3n Coursera \u2014 C\u1ea4M TUY\u1ec6T \u0110\u1ed0I T\u1ef0 \u0110\u1ed8NG \u0110I\u1ec0N (STRICT NO AUTO-FILL)",
+      "id": "specs_013_tool_coursera_skip_extension_and_license_keygen_spec_4_1_ph\u1ea1m_vi_\u00e1p_d\u1ee5ng_email_coursera_ch\u1ec9_d\u00e0nh_cho_s\u1ea3n_ph\u1ea9m_coursera",
+      "label": "4.1. Ph\u1ea1m Vi \u00c1p D\u1ee5ng Email Coursera \u2014 CH\u1ec8 D\u00c0NH CHO S\u1ea2N PH\u1ea8M COURSERA",
       "_origin": "ast",
       "community": 173,
       "community_name": "Feature Specification: Tool Coursera Auto Skip & AI Quiz Solver \u2014 Product Data, Deliverables Vault & Automated License Keygen (Spec 013)",
       "file_type": "document",
       "node_kind": "heading",
-      "norm_label": "4.1. bat buoc tu nhap email tai khoan coursera \u2014 cam tuyet \u0111oi tu \u0111ong \u0111ien (strict no auto-fill)",
+      "norm_label": "4.1. pham vi ap dung email coursera \u2014 chi danh cho san pham coursera",
       "source_file": "specs/013-tool-coursera-skip-extension-and-license-keygen/spec.md",
       "source_location": "L152"
     },
@@ -35299,7 +35299,7 @@
       "source_location": "L1"
     },
     {
-      "id": "src_lib_store_rationale_1171",
+      "id": "src_lib_store_rationale_1174",
       "label": "NOTE: DB update is handled by the caller (CheckoutModal) via /api/orders PATCH",
       "_origin": "ast",
       "community": 21,
@@ -35307,7 +35307,7 @@
       "file_type": "rationale",
       "norm_label": "note: db update is handled by the caller (checkoutmodal) via /api/orders patch",
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1171"
+      "source_location": "L1174"
     },
     {
       "id": "src_app_admin_layout",
@@ -73559,7 +73559,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/orders/route.ts",
-      "source_location": "L326",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -73571,7 +73571,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/orders/route.ts",
-      "source_location": "L327",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -73583,7 +73583,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/app/api/orders/route.ts",
-      "source_location": "L441",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -73895,7 +73895,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/store/OrderDetailModal.tsx",
-      "source_location": "L206",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -73907,7 +73907,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/store/OrderDetailModal.tsx",
-      "source_location": "L332",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -73919,7 +73919,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/store/OrderDetailModal.tsx",
-      "source_location": "L377",
+      "source_location": "L381",
       "weight": 1.0
     },
     {
@@ -73943,7 +73943,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/components/store/OrderDetailModal.tsx",
-      "source_location": "L498",
+      "source_location": "L502",
       "weight": 1.0
     },
     {
@@ -74063,7 +74063,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1201",
+      "source_location": "L1204",
       "weight": 1.0
     },
     {
@@ -74075,7 +74075,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1202",
+      "source_location": "L1205",
       "weight": 1.0
     },
     {
@@ -102509,7 +102509,7 @@
     },
     {
       "source": "specs_013_tool_coursera_skip_extension_and_license_keygen_spec_4_end_to_end_user_flow_integration_points",
-      "target": "specs_013_tool_coursera_skip_extension_and_license_keygen_spec_4_1_b\u1eaft_bu\u1ed9c_t\u1ef1_nh\u1eadp_email_t\u00e0i_kho\u1ea3n_coursera_c\u1ea5m_tuy\u1ec7t_\u0111\u1ed1i_t\u1ef1_\u0111\u1ed9ng_\u0111i\u1ec1n_strict_no_auto_fill",
+      "target": "specs_013_tool_coursera_skip_extension_and_license_keygen_spec_4_1_ph\u1ea1m_vi_\u00e1p_d\u1ee5ng_email_coursera_ch\u1ec9_d\u00e0nh_cho_s\u1ea3n_ph\u1ea9m_coursera",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -103186,7 +103186,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/api/orders/route.ts",
-      "source_location": "L428",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -103934,7 +103934,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1509",
+      "source_location": "L1512",
       "weight": 1.0
     },
     {
@@ -122126,14 +122126,14 @@
       "weight": 1.0
     },
     {
-      "source": "src_lib_store_rationale_1171",
+      "source": "src_lib_store_rationale_1174",
       "target": "src_lib_store",
       "relation": "rationale_for",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/lib/store.tsx",
-      "source_location": "L1171",
+      "source_location": "L1174",
       "weight": 1.0
     },
     {
@@ -126309,5 +126309,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "3a382fc55b9454f5cf3019e6521a86b524c880b3"
+  "built_at_commit": "dac94d741fdcd1afbfd38b51344df12dab82463f"
 }

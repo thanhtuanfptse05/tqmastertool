@@ -1,7 +1,7 @@
 # Graph Report - WEB mới  (2026-09-18)
 
 ## Corpus Check
-- 203 files · ~491,362 words
+- 203 files · ~491,510 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 23 file(s) not represented in the graph (top: .zip 14, (none) 3, .css 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3a382fc5`
+- Built from commit: `dac94d74`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -668,7 +668,7 @@ Nodes (3): InputValidator, Main, WorkerController
 
 ### Community 173 - "Feature Specification: Tool Coursera Auto Skip & AI Quiz Solver — Product Data, Deliverables Vault & Automated License Keygen (Spec 013)"
 Cohesion: 0.14
-Nodes (13): 1. Context & Business Goals, 2. Product Schema & Metadata, 3. Thuật Toán Sinh License Key (License Keygen Algorithm), 4.1. Bắt Buộc Tự Nhập Email Tài Khoản Coursera — CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN (STRICT NO AUTO-FILL), 4.2. Tự Động Sinh Key Khi Đơn Hàng Hoàn Thành (`status === 'completed'`), 4.3. Bàn Giao Tài Nguyên Tại Kho Lưu Trữ (`/customer/vault`) & Bảo Mật Link Drive, 4.4. Chi Tiết Đơn Hàng (`OrderDetailModal.tsx`), 4. End-to-End User Flow & Integration Points (+5 more)
+Nodes (13): 1. Context & Business Goals, 2. Product Schema & Metadata, 3. Thuật Toán Sinh License Key (License Keygen Algorithm), 4.1. Phạm Vi Áp Dụng Email Coursera — CHỈ DÀNH CHO SẢN PHẨM COURSERA, 4.2. Tự Động Sinh Key Khi Đơn Hàng Hoàn Thành (`status === 'completed'`), 4.3. Bàn Giao Tài Nguyên Tại Kho Lưu Trữ (`/customer/vault`) & Bảo Mật Link Drive, 4.4. Chi Tiết Đơn Hàng (`OrderDetailModal.tsx`), 4. End-to-End User Flow & Integration Points (+5 more)
 
 ### Community 177 - "3. User Scenarios & Acceptance Criteria"
 Cohesion: 0.17

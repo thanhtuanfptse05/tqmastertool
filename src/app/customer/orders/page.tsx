@@ -397,20 +397,30 @@ export default function CustomerOrdersPage() {
                           </a>
                         )}
 
-                        {/* Admin note */}
-                        {order.admin_notes && (
-                          <div className={`flex items-start gap-2 p-3 rounded-2xl text-xs ${
-                            order.status === "completed" ? "bg-emerald-50 border border-emerald-200 text-emerald-800" :
-                            order.status === "rejected" || order.status === "blocked" ? "bg-rose-50 border border-rose-200 text-rose-800" :
-                            "bg-slate-50 border border-slate-200 text-slate-700"
-                          }`}>
-                            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-extrabold text-[10px] uppercase tracking-wide mb-0.5">Ghi chú Admin</p>
-                              <p className="font-medium leading-relaxed">{order.admin_notes}</p>
+                        {/* Admin note (clean internal metadata tags before presenting to customer) */}
+                        {(() => {
+                          const displayNote = (order.admin_notes || "")
+                            .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+                            .replace(/\[KEY:[^\]]+\]/gi, "")
+                            .replace(/\[BLOCKED\]/gi, "")
+                            .trim();
+
+                          if (!displayNote) return null;
+
+                          return (
+                            <div className={`flex items-start gap-2 p-3 rounded-2xl text-xs ${
+                              order.status === "completed" ? "bg-emerald-50 border border-emerald-200 text-emerald-800" :
+                              order.status === "rejected" || order.status === "blocked" ? "bg-rose-50 border border-rose-200 text-rose-800" :
+                              "bg-slate-50 border border-slate-200 text-slate-700"
+                            }`}>
+                              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="font-extrabold text-[10px] uppercase tracking-wide mb-0.5">Ghi chú Admin</p>
+                                <p className="font-medium leading-relaxed">{displayNote}</p>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -446,7 +456,11 @@ export default function CustomerOrdersPage() {
                       {order.status === "rejected" && (
                         <span className="text-rose-700 flex items-center gap-1.5">
                           <AlertCircle className="w-3.5 h-3.5" />
-                          Lý do: {order.admin_notes || "Không tìm thấy giao dịch phù hợp."}
+                          Lý do: {(order.admin_notes || "")
+                            .replace(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):[^\]]+\]/gi, "")
+                            .replace(/\[KEY:[^\]]+\]/gi, "")
+                            .replace(/\[BLOCKED\]/gi, "")
+                            .trim() || "Không tìm thấy giao dịch phù hợp."}
                         </span>
                       )}
                       {order.status === "cancelled" && (

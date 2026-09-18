@@ -1095,7 +1095,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             headers,
             body: JSON.stringify({
               productId: product.id,
-              customerEmail: (currentUser?.email && currentUser.email !== "guest@codevault.io") ? currentUser.email : undefined,
+              customerEmail: undefined, // Coursera email is entered manually during checkout, never auto-filled
               customerName: currentUser?.full_name || undefined,
             }),
           });
@@ -1140,15 +1140,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
       let updatedNotes = adminNotes || o.admin_notes;
-      if (cleanEmail && (!updatedNotes || !updatedNotes.includes("[COURSERA_EMAIL:"))) {
-        updatedNotes = updatedNotes ? `${updatedNotes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`;
+      const isCourseraOrder = o.items?.some(i => i.product_title.toLowerCase().includes("coursera")) || o.total_amount === 40000 || o.total_amount === 149000;
+      if (isCourseraOrder && cleanEmail && cleanEmail !== "guest@codevault.io" && !cleanEmail.startsWith("guest@")) {
+        if (!updatedNotes || !updatedNotes.includes("[COURSERA_EMAIL:")) {
+          updatedNotes = updatedNotes ? `${updatedNotes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`;
+        }
       }
       return {
         ...o,
         status: finalStatus,
         payment_proof_image: proofUrl,
         transaction_ref: transactionRef || o.transaction_ref || `MB${Date.now()}`,
-        user_email: cleanEmail || o.user_email,
+        user_email: isCourseraOrder && cleanEmail ? cleanEmail : o.user_email,
         admin_notes: updatedNotes,
         license_key: licenseKey || o.license_key,
         reviewed_at: finalStatus === "completed" ? (o.reviewed_at || new Date().toISOString()) : o.reviewed_at,
@@ -1195,7 +1198,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (action === "approve" && targetOrder) {
       const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera")) || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
       if (isCoursera && courseraEmail) {
         try {
           generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);
@@ -1245,7 +1248,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "completed" && targetOrder) {
       const { courseraEmail, licenseKey } = extractOrderLicenseInfo(targetOrder);
-      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool") || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
+      const isCoursera = targetOrder.items?.some(i => i.product_title?.toLowerCase().includes("coursera")) || targetOrder.total_amount === 40000 || targetOrder.total_amount === 149000;
       if (isCoursera && courseraEmail) {
         try {
           generatedKey = licenseKey || generateCourseraLicenseKey(courseraEmail, 30);

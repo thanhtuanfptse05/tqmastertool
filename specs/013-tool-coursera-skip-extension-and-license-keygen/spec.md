@@ -149,16 +149,16 @@ export function generateCourseraLicenseKey(
 
 ## 4. End-to-End User Flow & Integration Points
 
-### 4.1. Bắt Buộc Tự Nhập Email Tài Khoản Coursera — CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN (STRICT NO AUTO-FILL)
-1. Trong Modal Checkout (`CheckoutModal.tsx`), khi sản phẩm đặt mua có `deliverable_type === 'license_key'` hoặc category là `'tool'`:
-   - Hiển thị input bắt buộc: **"Email Coursera Kích Hoạt Key"**.
-   - **QUY TẮC BẢO MẬT & TRẢI NGHIỆM TỐI THƯỢNG (STRICT NO AUTO-FILL RULE)**:
-     - **CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL**: Bất kể người dùng đã đăng nhập hay chưa, dù là Admin hay Khách hàng, ô nhập email Coursera **BẮT BUỘC LUÔN PHẢI BẮT ĐẦU TRỐNG HOÀN TOÀN (`""`)**.
-     - **TUYỆT ĐỐI KHÔNG** lấy `currentUser?.email` hay `order.user_email` để tự động điền sẵn. Khách hàng/sinh viên phải tự tay nhập đúng email tài khoản Coursera của họ (vì tài khoản Coursera rất thường khác với email đăng nhập website hoặc tài khoản Google cá nhân).
-     - Thêm các thuộc tính `autoComplete="off"`, `autoCorrect="off"`, `spellCheck={false}` để ngăn trình duyệt tự điền cache.
-     - **Chặn chuyển bước**: Người dùng **không thể bấm tiếp tục** sang bước "Tôi đã chuyển khoản — Tải ảnh bill" nếu chưa tự tay nhập email hoặc email chứa `guest@` hoặc email sai định dạng regex.
-   - Hiển thị thông báo hướng dẫn: *"License Key sẽ được hệ thống mã hóa gắn liền với Email này. Vui lòng điền chính xác email bạn dùng trên Coursera."*
-   - Cập nhật chính xác email này vào `order.user_email` và `admin_notes: [COURSERA_EMAIL: {email}]` khi gửi thanh toán.
+### 4.1. Phạm Vi Áp Dụng Email Coursera — CHỈ DÀNH CHO SẢN PHẨM COURSERA
+1. **Phạm vi nghiêm ngặt**:
+   - Yêu cầu nhập email Coursera và gắn tag `[COURSERA_EMAIL: ...]` **CHỈ ĐƯỢC PHÉP ÁP DỤNG DUY NHẤT** cho sản phẩm Coursera Tool (`title` hoặc `slug` chứa `"coursera"`).
+   - Tuyệt đối **KHÔNG ÁP DỤNG** cho các sản phẩm khác như Tool EDX IOT102, Mã nguồn LAB211, Đồ án Capstone/Project,... Các đơn hàng này không được phép tạo hay gắn tag `[COURSERA_EMAIL: ...]` trong database cũng như trong store.
+2. **CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN HOẶC GÁN MẶC ĐỊNH (STRICT NO AUTO-FILL / NO DEFAULT ASSIGNMENT)**:
+   - Khi tạo đơn hàng mới (`POST /api/orders`), máy chủ tuyệt đối KHÔNG được tự động gán email của user đăng nhập (`user.email`) làm `[COURSERA_EMAIL: ...]`.
+   - Trong `CheckoutModal.tsx`, chỉ hiển thị input nhập email Coursera nếu `isLicenseRequired` (sản phẩm Coursera). Ô nhập luôn bắt đầu bằng chuỗi rỗng `""`, khách bắt buộc tự tay nhập email tài khoản Coursera của họ.
+3. **Làm sạch hiển thị Ghi Chú Admin (Sanitize Public Admin Notes)**:
+   - Thẻ `[COURSERA_EMAIL: ...]`, `[KEY: ...]`, `[BLOCKED]` là metadata phục vụ hệ thống và xử lý logic nội bộ.
+   - Khi hiển thị "Ghi chú Admin" cho khách hàng tại `/customer/orders` hoặc modal chi tiết đơn hàng, hệ thống phải tự động bóc tách và loại bỏ các thẻ này. Nếu đơn hàng không có nội dung ghi chú thực tế nào từ Admin, **TUYỆT ĐỐI KHÔNG HIỂN THỊ** khung "Ghi chú Admin".
 
 ### 4.2. Tự Động Sinh Key Khi Đơn Hàng Hoàn Thành (`status === 'completed'`)
 1. **Luồng SePay Tự Động (`/api/webhooks/sepay`)**:

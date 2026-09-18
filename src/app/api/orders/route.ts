@@ -281,7 +281,18 @@ export async function PATCH(req: NextRequest) {
     // Handle customer_email from checkout submission (customer_email is not a DB column)
     delete payload.customer_email;
     const rawCustomerEmail = body.customer_email ? String(body.customer_email).trim().toLowerCase() : "";
-    if (rawCustomerEmail) {
+
+    const { data: orderItems } = await supabaseAdmin
+      .from("order_items")
+      .select("product_title, product_category")
+      .eq("order_id", orderId);
+
+    const isCoursera =
+      (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
+      existingOrder.total_amount === 40000 ||
+      existingOrder.total_amount === 149000;
+
+    if (isCoursera && rawCustomerEmail && rawCustomerEmail !== "guest@codevault.io" && !rawCustomerEmail.startsWith("guest@")) {
       const baseNotes = payload.admin_notes || existingOrder.admin_notes || "";
       if (!baseNotes.includes("[COURSERA_EMAIL:")) {
         payload.admin_notes = baseNotes
@@ -292,7 +303,7 @@ export async function PATCH(req: NextRequest) {
 
     // Handle auto license key generation when order status is completed (or was already completed by SePay)
     const isOrderCompleted = payload.status === "completed" || existingOrder.status === "completed";
-    if (isOrderCompleted) {
+    if (isOrderCompleted && isCoursera) {
       const currentNotes = payload.admin_notes || existingOrder.admin_notes || "";
       let targetEmail = "";
       const emailMatch = currentNotes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
@@ -311,17 +322,7 @@ export async function PATCH(req: NextRequest) {
         } catch {}
       }
 
-      const { data: orderItems } = await supabaseAdmin
-        .from("order_items")
-        .select("product_title, product_category")
-        .eq("order_id", orderId);
-
-      const isCoursera =
-        (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera") || i.product_category === "tool")) ||
-        existingOrder.total_amount === 40000 ||
-        existingOrder.total_amount === 149000;
-
-      if (isCoursera && targetEmail && !currentNotes.includes("[KEY:")) {
+      if (targetEmail && !currentNotes.includes("[KEY:")) {
         try {
           const key = generateCourseraLicenseKey(targetEmail, 30);
           payload.admin_notes = formatOrderNotesWithLicense(payload.admin_notes || existingOrder.admin_notes, key, targetEmail);
@@ -446,7 +447,7 @@ export async function POST(req: NextRequest) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId);
     let query = supabaseAdmin
       .from("products")
-      .select("id, title, category, price, status, thumbnail_url");
+      .select("id, title, category, price, status, thumbnail_url, slug");
 
     if (isUuid) {
       query = query.eq("id", productId);
@@ -490,9 +491,17 @@ export async function POST(req: NextRequest) {
     const cleanEmail = (customerEmail || user?.email || "").trim().toLowerCase();
     const cleanName = (customerName || user?.user_metadata?.full_name || "Khách Hàng").trim();
 
+    const isCourseraProduct =
+      product.title?.toLowerCase().includes("coursera") ||
+      Boolean(product.slug && String(product.slug).toLowerCase().includes("coursera"));
+
     let adminNotes = "";
-    if (cleanEmail) {
-      adminNotes = `[COURSERA_EMAIL: ${cleanEmail}]`;
+    // Only Coursera tools require coursera email in adminNotes, and ONLY if customer explicitly entered it
+    if (isCourseraProduct && customerEmail) {
+      const explicitEmail = customerEmail.trim().toLowerCase();
+      if (explicitEmail && explicitEmail !== "guest@codevault.io" && !explicitEmail.startsWith("guest@")) {
+        adminNotes = `[COURSERA_EMAIL: ${explicitEmail}]`;
+      }
     }
 
     // 4. Insert order via Supabase Service Role (Total amount strictly locked to DB price)
