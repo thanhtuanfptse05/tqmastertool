@@ -368,9 +368,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const token = session?.access_token;
       if (!token) return;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const res = await fetch("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.users)) {
@@ -379,8 +386,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           console.log(`[fetchUsersFromDB] Loaded ${data.users.length} live users from database.`);
         }
       }
-    } catch (e) {
-      console.warn("Could not query users from Supabase API:", e);
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        console.warn("[fetchUsersFromDB] Request timed out after 6s. Keeping existing users in view.");
+      } else {
+        console.warn("Could not query users from Supabase API:", e);
+      }
     }
   }, []);
 

@@ -18,22 +18,24 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 1. Fetch all profiles from PostgreSQL
-    const { data: profiles, error: profErr } = await supabaseAdmin
-      .from("profiles")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // 1. Fetch profiles and registered auth users in parallel (cut latency in half)
+    const [profilesRes, authDataRes] = await Promise.all([
+      supabaseAdmin
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      }),
+    ]);
+
+    const { data: profiles, error: profErr } = profilesRes;
+    const { data: authData, error: authErr } = authDataRes;
 
     if (profErr) {
       console.error("[API /api/admin/users GET] Profiles error:", profErr);
     }
-
-    // 2. Fetch all registered auth users from Supabase Auth
-    const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-
     if (authErr) {
       console.error("[API /api/admin/users GET] Auth list error:", authErr);
     }

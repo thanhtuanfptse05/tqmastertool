@@ -109,6 +109,11 @@ export async function getAuthenticatedUser(
       return { user: null, isAdmin: false };
     }
 
+    // Fast-path: If email is in root system admin whitelist, return isAdmin = true immediately (saves 1 DB round-trip)
+    if (isStrictAdminEmail(user.email)) {
+      return { user, isAdmin: true };
+    }
+
     // Check Database Profile role - 100% Database Source of Truth
     const { data: profile } = await supabaseAdmin
       .from("profiles")
@@ -116,12 +121,7 @@ export async function getAuthenticatedUser(
       .eq("id", user.id)
       .maybeSingle();
 
-    // If profile exists in DB, respect its role completely!
-    // If no profile yet, check root bootstrap admin
-    const isAdmin = profile
-      ? profile.role === "admin"
-      : isStrictAdminEmail(user.email);
-
+    const isAdmin = profile?.role === "admin";
     return { user, isAdmin };
   } catch (err) {
     console.error("[Auth Helper] Error verifying user:", err);

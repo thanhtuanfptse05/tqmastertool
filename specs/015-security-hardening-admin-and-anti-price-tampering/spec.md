@@ -104,6 +104,7 @@
 4. Tài khoản bị hạ quyền xuống `customer` sẽ mất toàn bộ quyền truy cập vào các trang quản trị `/admin` và các API bảo mật của Admin.
 5. Ngoại lệ an toàn duy nhất: Admin đang đăng nhập không thể tự hạ quyền hoặc tự xóa tài khoản của chính mình (`userId === requestingAdmin.id`) nhằm chống vô tình khóa tài khoản quản trị viên tối cao.
 6. Khi Admin bấm "Đặt lại MK", hệ thống gọi API `PATCH /api/admin/users` cập nhật mật khẩu mới qua `auth.admin.updateUserById`.
+7. Tối ưu hiệu năng đồng bộ: API `GET /api/admin/users` phải chạy song song (`Promise.all`) giữa truy vấn profiles và auth list, kết hợp Fast-Path Admin Check cho root admin để giảm độ trễ dưới 1 giây, có cơ chế timeout phía client tối đa 5s chống treo nút làm mới.
 
 ---
 

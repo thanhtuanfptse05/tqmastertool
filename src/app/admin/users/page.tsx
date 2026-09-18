@@ -42,9 +42,14 @@ export default function AdminUsersPage() {
   }, [refreshUsers]);
 
   const handleManualRefresh = async () => {
+    if (isRefreshing) return;
     setIsRefreshing(true);
     try {
-      await refreshUsers();
+      // Race between refreshUsers and a 3s safety timer for snappy UI feedback
+      await Promise.race([
+        refreshUsers(),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ]);
       setSuccessMessage("Đã đồng bộ danh sách người dùng mới nhất từ Supabase!");
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch {

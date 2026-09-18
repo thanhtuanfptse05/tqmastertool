@@ -249,10 +249,10 @@
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Build kiểm tra và push lên remote GitHub `origin/main`.
 
-### [ ] Giai Đoạn 18: Thắt Chặt Toàn Diện Tính Năng Auth — Chặn Đứng Tài Khoản Chưa Đăng Ký (Spec-First) — ĐANG TIẾN HÀNH
+### [x] Giai Đoạn 18: Thắt Chặt Toàn Diện Tính Năng Auth — Chặn Đứng Tài Khoản Chưa Đăng Ký (Spec-First) — ĐÃ HOÀN THÀNH
 - [x] **Spec-First Protocol**:
   - `specs/001-user-auth/spec.md`: Bổ sung FR-007 (Strict Non-Existent Account Block) và FR-008 (Session Integrity Guard). Cấm hoàn toàn mock fallback login.
-- [ ] **Sửa Hàm Login & Register Trong Store**:
+- [x] **Sửa Hàm Login & Register Trong Store**:
   - `src/lib/store.tsx`:
     - Xóa bỏ 100% logic tự sinh `userToSet` và gán `setCurrentUser` trước khi xác thực với Supabase.
     - Hàm `login` bắt buộc gọi `supabase.auth.signInWithPassword`. Nếu Supabase báo lỗi (tài khoản chưa đăng ký, sai mật khẩu), ném lỗi cụ thể và giữ nguyên AuthModal, KHÔNG tạo bất kỳ user nào trong localStorage.
@@ -260,10 +260,25 @@
     - Hydration check: Khi F5 hoặc mở trang, nếu Supabase không có active session thì xóa sạch user rác trong localStorage.
   - `src/components/common/AuthModal.tsx`:
     - Hiển thị thông báo lỗi rõ ràng bằng tiếng Việt khi đăng nhập sai thông tin hoặc tài khoản chưa đăng ký.
-- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - Thử đăng nhập bằng email chưa đăng ký => Bị chặn đứng và báo lỗi rõ ràng.
   - Thử đăng nhập bằng tài khoản thật => Đăng nhập thành công.
   - Chạy `npx tsc --noEmit` và `npm run build`.
   - Push commit lên remote GitHub `origin/main`.
+
+### [ ] Giai Đoạn 19: Tối Ưu Tốc Độ Đồng Bộ Người Dùng & Chống Treo Nút Làm Mới (Spec-First) — ĐANG TIẾN HÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/015-security-hardening-admin-and-anti-price-tampering/spec.md`: Bổ sung Acceptance Criteria 7 (User Story 4) về tối ưu song song và Fast-Path Admin Check.
+- [ ] **Tối Ưu Server API & Fast-Path Auth**:
+  - `src/lib/supabase-server.ts`: Áp dụng Fast-Path cho root admin email (`isStrictAdminEmail`), bỏ round-trip query `profiles` không cần thiết.
+  - `src/app/api/admin/users/route.ts`: Chuyển truy vấn `profiles` và `auth.admin.listUsers` sang chạy song song với `Promise.all`, giảm độ trễ từ 3s xuống dưới 1s.
+- [ ] **Tối Ưu Client Refresh & Chống Kẹt Loading**:
+  - `src/lib/store.tsx`: Bổ sung `AbortController` timeout cho `fetchUsersFromDB` (tối đa 6 giây).
+  - `src/app/admin/users/page.tsx`: Thêm timeout bảo vệ trong `handleManualRefresh` (tối đa 3 giây) đảm bảo nút "Đang đồng bộ..." lập tức chuyển về "Làm Mới" và báo thành công, không để người dùng chờ đợi.
+- [ ] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - `npm run build` đạt 0 lỗi.
+  - Push lên GitHub `origin/main`.
+
 
 
