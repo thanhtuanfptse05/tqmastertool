@@ -1518,12 +1518,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const openCheckout = (product: Product, quantity: number = 1) => {
+    setActiveOrderForPayment(null);
     setCheckoutQuantity(Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))));
     setCheckoutProduct(product);
   };
 
   const closeCheckout = () => {
     setCheckoutProduct(null);
+    setActiveOrderForPayment(null);
     setCheckoutQuantity(1);
   };
 

@@ -338,6 +338,18 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Chạy script kiểm thử logic vòng đời `test_spec019_lifecycle.js` đạt 100% assertions.
   - Commit và push lên remote `origin/main`.
-
-
+### [x] Giai Đoạn 24: Cơ Chế Xác Nhận Đơn Hàng Có Chủ Đích Trước Khi Tạo (Spec 020) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/020-explicit-order-confirmation-before-creation/spec.md`.
+- [x] **Loại Bỏ Auto-Create Order Khi Mới Bấm Mua Ngay**:
+  - `CheckoutModal.tsx`: Xóa bỏ `useEffect` tự động gọi `createOrder` khi mở modal.
+  - Xóa bỏ việc gọi `createOrder` khi thay đổi số lượng `handleQuantityChange`.
+- [x] **Thêm Màn Hình Xác Nhận Đơn Hàng (`step = "confirm"`)**:
+  - Khách hàng xem lại thông tin sản phẩm, số lượng, email, thành tiền.
+  - Nút "Hủy bỏ": Đóng modal, tuyệt đối không tạo đơn hàng nào trong DB.
+  - Nút "Xác Nhận Đặt Hàng & Tiếp Tục Thanh Toán": Chỉ khi khách bấm nút này mới tạo đơn hàng duy nhất trong DB và chuyển sang `step = "qr"`.
+- [x] **Tương Thích Mượt Với Nút "Tiếp Tục Thanh Toán"**:
+  - Nếu mở từ đơn hàng đã tồn tại trong lịch sử (`activeOrderForPayment`), mở thẳng vào `step = "qr"`.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên remote `origin/main`.
 

@@ -26,6 +26,7 @@ import {
   Plus,
   Minus,
   RefreshCw,
+  ShoppingCart,
 } from "lucide-react";
 import {
   extractOrderLicenseInfo,
@@ -44,7 +45,7 @@ export default function CheckoutModal() {
     checkoutQuantity,
   } = useStore();
 
-  const [step, setStep] = useState<"qr" | "upload" | "success">("qr");
+  const [step, setStep] = useState<"confirm" | "qr" | "upload" | "success">("confirm");
   const [copiedField, setCopiedField] = useState<string | null>(null);
   // Không có ảnh mặc định — user phải tải ảnh thực
   const [billImage, setBillImage] = useState<string>("");
@@ -52,6 +53,7 @@ export default function CheckoutModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingBill, setIsUploadingBill] = useState(false);
   const [billUploadError, setBillUploadError] = useState<string | null>(null);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   const isLicenseRequired =
     checkoutProduct?.deliverable_type === "license_key" ||
@@ -96,21 +98,26 @@ export default function CheckoutModal() {
     }
   };
 
-  // CẤM TUYỆT ĐỐI TỰ ĐỘNG ĐIỀN EMAIL:
-  // Luôn reset ô nhập email về rỗng khi mở sản phẩm, khách bắt buộc phải tự tay điền email Coursera
+  // CẤM TUYỆT ĐỐI TỰ ĐỘNG TẠO ĐƠN HÀNG KHI MỚI BẤM MUA NGAY (SPEC 020):
+  // Khi mở modal: Nếu có activeOrderForPayment sẵn (từ Lịch sử đơn hàng bấm Tiếp tục thanh toán) => mở "qr".
+  // Nếu là đơn mới bấm Mua ngay => Luôn bắt đầu ở "confirm" để khách xác nhận, KHÔNG TẠO ĐƠN RÁC!
   React.useEffect(() => {
     const initQty = Math.max(1, Math.min(20, checkoutQuantity || 1));
     setQuantity(initQty);
     setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
     setEmailError(null);
     setEmailCheckStatus({});
-    setStep("qr");
+    if (activeOrderForPayment) {
+      setStep("qr");
+    } else {
+      setStep("confirm");
+    }
     setBillImage("");
     setTransactionRef("");
     setBillUploadError(null);
     setGeneratedLicenseKey(null);
     setGeneratedLicenses([]);
-  }, [checkoutProduct?.id, checkoutQuantity]);
+  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,13 +148,6 @@ export default function CheckoutModal() {
       e.target.value = "";
     }
   };
-
-  // If there's a checkout product and no active order yet, create one
-  React.useEffect(() => {
-    if (checkoutProduct && !activeOrderForPayment) {
-      createOrder(checkoutProduct, quantity);
-    }
-  }, [checkoutProduct, activeOrderForPayment, quantity]);
 
   // AUTO-POLLING (SPEC 017): Tự động lắng nghe trạng thái đơn hàng khi khách đang ở màn hình QR
   React.useEffect(() => {
@@ -249,14 +249,16 @@ export default function CheckoutModal() {
     }
   };
 
-  if (!checkoutProduct || !activeOrderForPayment) return null;
+  if (!checkoutProduct && !activeOrderForPayment) return null;
 
   const order = activeOrderForPayment;
 
-  const qrUrl = generateVietQRUrl({
-    amount: order.total_amount,
-    memo: order.vietqr_content,
-  });
+  const qrUrl = order
+    ? generateVietQRUrl({
+        amount: order.total_amount,
+        memo: order.vietqr_content,
+      })
+    : "";
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -272,9 +274,28 @@ export default function CheckoutModal() {
       while (next.length < clampedQty) next.push("");
       return next.slice(0, clampedQty);
     });
-    if (checkoutProduct) {
-      const cleanEmails = customerEmails.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
-      createOrder(checkoutProduct, clampedQty, cleanEmails);
+    // TUYỆT ĐỐI KHÔNG GỌI createOrder Ở ĐÂY (SPEC 020)
+  };
+
+  const handleConfirmOrder = async () => {
+    if (!checkoutProduct) return;
+    if (isLicenseRequired) {
+      if (!validateEmails()) return;
+    }
+
+    setIsCreatingOrder(true);
+    try {
+      const cleanEmails = customerEmails
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => e.includes("@"));
+
+      await createOrder(checkoutProduct, quantity, cleanEmails);
+      setStep("qr");
+    } catch (err: any) {
+      console.error("Order creation failed:", err);
+      alert("Không thể khởi tạo đơn hàng: " + (err.message || "Vui lòng thử lại"));
+    } finally {
+      setIsCreatingOrder(false);
     }
   };
 
@@ -317,6 +338,10 @@ export default function CheckoutModal() {
 
   const handleBillSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!order) {
+      setBillUploadError("Không tìm thấy thông tin đơn hàng hợp lệ.");
+      return;
+    }
     if (!billImage) {
       setBillUploadError("Vui lòng tải ảnh biên lai chuyển khoản trước khi xác nhận.");
       return;
@@ -439,15 +464,27 @@ export default function CheckoutModal() {
       <div className="relative w-full max-w-2xl bg-white rounded-card shadow-2xl border border-slate-200 overflow-hidden my-auto flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <QrCode className="w-4 h-4" />
+          <div className="flex items-center gap-2.5">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
+              step === "confirm"
+                ? "bg-blue-50 text-blue-600"
+                : "bg-emerald-50 text-emerald-600"
+            }`}>
+              {step === "confirm" ? (
+                <ShoppingCart className="w-4 h-4" />
+              ) : (
+                <QrCode className="w-4 h-4" />
+              )}
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">
-                Thanh Toán VietQR (Napas 247)
+                {step === "confirm" ? "Xác Nhận Đơn Hàng" : "Thanh Toán VietQR (Napas 247)"}
               </h3>
-              <p className="text-[11px] text-slate-500">Mã đơn: {order.order_code}</p>
+              <p className="text-[11px] text-slate-500">
+                {step === "confirm"
+                  ? "Vui lòng kiểm tra thông tin & số lượng trước khi tạo mã QR"
+                  : `Mã đơn: ${order?.order_code || "..."}`}
+              </p>
             </div>
           </div>
 
@@ -459,24 +496,215 @@ export default function CheckoutModal() {
           </button>
         </div>
 
-        {/* Progress Stepper */}
+        {/* Progress Stepper (Spec 020) */}
         <div className="grid grid-cols-3 border-b border-slate-100 text-xs font-bold text-center py-2.5 bg-slate-50/40">
-          <div className={`flex items-center justify-center gap-1.5 ${step === "qr" ? "text-blue-600" : "text-slate-400"}`}>
-            <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px]">1</span>
-            <span>Quét Mã QR</span>
+          <div className={`flex items-center justify-center gap-1.5 ${step === "confirm" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "confirm" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>1</span>
+            <span>1. Xác Nhận Đơn</span>
           </div>
-          <div className={`flex items-center justify-center gap-1.5 ${step === "upload" ? "text-blue-600" : "text-slate-400"}`}>
-            <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-[10px]">2</span>
-            <span>Gửi Bằng Chứng</span>
+          <div className={`flex items-center justify-center gap-1.5 ${step === "qr" || step === "upload" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "qr" || step === "upload" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>2</span>
+            <span>2. Quét Mã QR</span>
           </div>
-          <div className={`flex items-center justify-center gap-1.5 ${step === "success" ? "text-emerald-600" : "text-slate-400"}`}>
-            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]">3</span>
-            <span>Chờ Duyệt Đơn</span>
+          <div className={`flex items-center justify-center gap-1.5 ${step === "success" ? "text-emerald-600 font-extrabold" : "text-slate-400"}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "success" ? "bg-emerald-100 text-emerald-700 font-black" : "bg-slate-100 text-slate-500"}`}>3</span>
+            <span>3. Nhận Key & Tải</span>
           </div>
         </div>
 
-        {/* Step 1: QR CODE & TRANSFER INFO */}
-        {step === "qr" && (
+        {/* STEP 1: EXPLICIT ORDER CONFIRMATION (SPEC 020) */}
+        {step === "confirm" && (
+          <div className="p-6 space-y-6">
+            {/* Product Card */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+                  Sản phẩm chọn mua
+                </span>
+                <h4 className="text-sm font-extrabold text-slate-900 line-clamp-2">
+                  {checkoutProduct?.title || "Sản phẩm"}
+                </h4>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <span>Đơn giá:</span>
+                  <span className="font-extrabold text-slate-900">
+                    {formatVND(checkoutProduct?.price || 0)}
+                  </span>
+                  <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-bold">
+                    {checkoutProduct?.deliverable_type === "license_key" ? "Bản quyền Key VIP" : "Tài nguyên số"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div className="flex flex-col items-end gap-1 shrink-0 self-end sm:self-center">
+                <span className="text-[11px] font-semibold text-slate-500">Số lượng:</span>
+                <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1}
+                    className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                    title="Giảm số lượng"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="px-3.5 py-1.5 font-mono font-black text-sm text-blue-600 min-w-[2.5rem] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= 20}
+                    className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                    title="Tăng số lượng"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mandatory Coursera License Emails (One input per account) */}
+            {isLicenseRequired && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
+                    <Mail className="w-4 h-4 text-indigo-600" />
+                    Email Coursera Kích Hoạt Key:
+                    <span className="text-rose-500">* Bắt buộc ({quantity} email)</span>
+                  </label>
+                  <span className="text-[10px] text-indigo-800 font-extrabold bg-indigo-200/60 px-2.5 py-0.5 rounded-full border border-indigo-300">
+                    Cấp {quantity} Key VIP (30 Ngày)
+                  </span>
+                </div>
+
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {Array.from({ length: quantity }).map((_, idx) => {
+                    const curEmail = (customerEmails[idx] || "").trim().toLowerCase();
+                    const checkStatus = emailCheckStatus[curEmail];
+                    return (
+                      <div key={idx} className="space-y-1.5 bg-white/80 p-3 rounded-xl border border-indigo-100 shadow-sm">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-indigo-950">
+                          <span>Tài khoản #{idx + 1}:</span>
+                          <span className="text-[10px] font-mono text-indigo-600">Gói 1 tháng (30 ngày)</span>
+                        </div>
+                        <input
+                          type="email"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          value={customerEmails[idx] || ""}
+                          onChange={(e) => handleEmailChange(idx, e.target.value)}
+                          onBlur={() => {
+                            const emailVal = (customerEmails[idx] || "").trim().toLowerCase();
+                            if (emailVal && emailVal.includes("@")) {
+                              handleCheckEmailLicense(emailVal);
+                            }
+                          }}
+                          placeholder={`Ví dụ: coursera.user${idx + 1}@gmail.com (Email đăng nhập Coursera #${idx + 1})`}
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all"
+                        />
+
+                        {/* Thông báo tình trạng bản quyền của email theo Spec 019 */}
+                        {checkStatus?.hasActiveLicense && (
+                          <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-1.5 animate-fadeIn">
+                            <span className="shrink-0 font-bold">ℹ️ Thông báo:</span>
+                            <div>
+                              Email này hiện vẫn còn <b>{checkStatus.daysRemaining} ngày</b> bản quyền (đến {checkStatus.formattedExpDate}).
+                              Khi hoàn tất thanh toán, hệ thống sẽ <b>giữ nguyên License Key đang hoạt động</b> và không trừ ngày của bạn.
+                            </div>
+                          </div>
+                        )}
+
+                        {checkStatus && !checkStatus.hasActiveLicense && checkStatus.isExpired && (
+                          <div className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[10px] flex items-start gap-1.5 animate-fadeIn">
+                            <span className="shrink-0 font-bold">🔄 Trạng thái:</span>
+                            <div>
+                              Khóa bản quyền trước đây của email này đã hết hạn ({checkStatus.formattedExpDate || "quá 30 ngày"}). Hệ thống sẽ cấp <b>License Key hoàn toàn mới (30 ngày)</b> ngay sau khi thanh toán.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
+                  <span className="font-bold shrink-0">⚠️ Lưu ý:</span>
+                  <span>
+                    Hệ thống sẽ mã hóa sinh <b>{quantity} mã License Key</b> gắn riêng biệt cho từng Email trên. Vui lòng nhập <b>chính xác email đăng nhập Coursera</b> cho mỗi tài khoản và không nhập trùng email.
+                  </span>
+                </p>
+
+                {emailError && (
+                  <p className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    {emailError}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Order Summary Box */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Tạm tính ({quantity} × {formatVND(checkoutProduct?.price || 0)}):</span>
+                <span className="font-bold text-slate-900">{formatVND((checkoutProduct?.price || 0) * quantity)}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Phí dịch vụ &amp; Kích hoạt 24/7:</span>
+                <span className="font-bold text-emerald-600">Miễn phí (0đ)</span>
+              </div>
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-sm">
+                <span className="font-extrabold text-slate-900">Tổng thanh toán:</span>
+                <span className="font-black text-blue-600 text-base">
+                  {formatVND((checkoutProduct?.price || 0) * quantity)}
+                </span>
+              </div>
+            </div>
+
+            {/* Notice */}
+            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-blue-900 text-xs flex items-start gap-2">
+              <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <span>
+                <b>Chính sách tạo đơn:</b> Chỉ khi bạn bấm nút <b>"Xác Nhận Đặt Hàng &amp; Tiếp Tục"</b>, đơn hàng mới chính thức được khởi tạo trong hệ thống và sinh mã VietQR. Nếu bạn bấm "Hủy bỏ", không có đơn hàng nào được tạo.
+              </span>
+            </div>
+
+            {/* Confirmation Actions */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={closeCheckout}
+                className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors order-2 sm:order-1 text-center"
+              >
+                Hủy bỏ
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmOrder}
+                disabled={isCreatingOrder}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-60 order-1 sm:order-2"
+              >
+                {isCreatingOrder ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Đang khởi tạo đơn hàng...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Xác Nhận Đặt Hàng &amp; Tiếp Tục</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: QR CODE & TRANSFER INFO (Only rendered after order confirmed) */}
+        {step === "qr" && order && (
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
               {/* VietQR Code Image */}
@@ -495,135 +723,29 @@ export default function CheckoutModal() {
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="text-slate-400 font-semibold block mb-0.5">Sản phẩm đặt mua:</span>
-                  <p className="font-extrabold text-slate-900 line-clamp-1">{checkoutProduct.title}</p>
+                  <p className="font-extrabold text-slate-900 line-clamp-1">
+                    {checkoutProduct?.title || order.items?.[0]?.product_title || "Sản phẩm"}
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Số lượng: <b className="text-blue-600">{quantity}</b> gói tài khoản
+                  </p>
                 </div>
 
-                {/* Quantity Selector for Coursera / Products */}
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-sm">
-                  <div>
-                    <span className="text-slate-500 font-semibold block text-[11px]">Số lượng tài khoản mua:</span>
-                    <span className="text-xs font-black text-slate-900">
-                      {quantity} tài khoản × {formatVND(checkoutProduct.price)} ={" "}
-                      <span className="text-blue-600 font-extrabold">{formatVND(checkoutProduct.price * quantity)}</span>
+                {isLicenseRequired && customerEmails.some((e) => e.trim()) && (
+                  <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-[11px] space-y-1">
+                    <span className="font-bold text-indigo-900 flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5 text-indigo-600" />
+                      Email kích hoạt bản quyền:
                     </span>
-                  </div>
-                  <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
-                    <button
-                      type="button"
-                      onClick={() => handleQuantityChange(quantity - 1)}
-                      disabled={quantity <= 1}
-                      className="p-1.5 px-2.5 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
-                      title="Giảm số lượng"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="px-3 py-1 font-mono font-black text-xs text-blue-600">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleQuantityChange(quantity + 1)}
-                      disabled={quantity >= 20}
-                      className="p-1.5 px-2.5 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
-                      title="Tăng số lượng"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mandatory Coursera License Emails (One input per account) */}
-                {isLicenseRequired && (
-                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/90 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
-                        <Mail className="w-4 h-4 text-indigo-600" />
-                        Email Coursera Kích Hoạt Key:
-                        <span className="text-rose-500">* Bắt buộc ({quantity} email)</span>
-                      </label>
-                      <span className="text-[10px] text-indigo-800 font-extrabold bg-indigo-200/60 px-2.5 py-0.5 rounded-full border border-indigo-300">
-                        Cấp {quantity} Key VIP (30 Ngày)
-                      </span>
-                    </div>
-
-                    <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                      {Array.from({ length: quantity }).map((_, idx) => {
-                        const curEmail = (customerEmails[idx] || "").trim().toLowerCase();
-                        const checkStatus = emailCheckStatus[curEmail];
-                        return (
-                          <div key={idx} className="space-y-1.5 bg-white/70 p-2.5 rounded-xl border border-indigo-100">
-                            <div className="flex items-center justify-between text-[11px] font-bold text-indigo-950">
-                              <span>Tài khoản #{idx + 1}:</span>
-                              <span className="text-[10px] font-mono text-indigo-600">Gói 1 tháng (30 ngày)</span>
-                            </div>
-                            <input
-                              type="email"
-                              autoComplete="off"
-                              autoCorrect="off"
-                              spellCheck={false}
-                              value={customerEmails[idx] || ""}
-                              onChange={(e) => handleEmailChange(idx, e.target.value)}
-                              onBlur={() => {
-                                const emailVal = (customerEmails[idx] || "").trim().toLowerCase();
-                                if (emailVal && emailVal.includes("@")) {
-                                  handleCheckEmailLicense(emailVal);
-                                }
-                                const cleanEmails = customerEmails
-                                  .map((e) => e.trim().toLowerCase())
-                                  .filter((e) => e.includes("@"));
-                                if (cleanEmails.length > 0 && order?.id) {
-                                  fetch("/api/orders", {
-                                    method: "PATCH",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                      orderId: order.id,
-                                      customer_emails: cleanEmails,
-                                      customer_email: cleanEmails[0],
-                                    }),
-                                  }).catch(() => {});
-                                }
-                              }}
-                              placeholder={`Ví dụ: coursera.user${idx + 1}@gmail.com (Email đăng nhập Coursera #${idx + 1})`}
-                              className="w-full px-3 py-2 text-xs rounded-lg border border-indigo-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-white font-mono font-bold text-slate-900 shadow-sm transition-all"
-                            />
-
-                            {/* Thông báo tình trạng bản quyền của email theo Spec 019 */}
-                            {checkStatus?.hasActiveLicense && (
-                              <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-1.5 animate-fadeIn">
-                                <span className="shrink-0 font-bold">ℹ️ Thông báo:</span>
-                                <div>
-                                  Email này hiện vẫn còn <b>{checkStatus.daysRemaining} ngày</b> bản quyền (đến {checkStatus.formattedExpDate}).
-                                  Khi hoàn tất thanh toán, hệ thống sẽ <b>giữ nguyên License Key đang hoạt động</b> và không trừ ngày của bạn.
-                                </div>
-                              </div>
-                            )}
-
-                            {checkStatus && !checkStatus.hasActiveLicense && checkStatus.isExpired && (
-                              <div className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-[10px] flex items-start gap-1.5 animate-fadeIn">
-                                <span className="shrink-0 font-bold">🔄 Trạng thái:</span>
-                                <div>
-                                  Khóa bản quyền trước đây của email này đã hết hạn ({checkStatus.formattedExpDate || "quá 30 ngày"}). Hệ thống sẽ cấp <b>License Key hoàn toàn mới (30 ngày)</b> ngay sau khi thanh toán.
-                                </div>
-                              </div>
-                            )}
+                    <div className="font-mono text-indigo-950 max-h-20 overflow-y-auto space-y-0.5">
+                      {customerEmails
+                        .filter((e) => e.trim())
+                        .map((em, i) => (
+                          <div key={i} className="truncate">
+                            #{i + 1}: {em}
                           </div>
-                        );
-                      })}
+                        ))}
                     </div>
-
-                    <p className="text-[10px] text-indigo-900/80 leading-relaxed flex items-start gap-1">
-                      <span className="font-bold shrink-0">⚠️ Lưu ý:</span>
-                      <span>
-                        Hệ thống sẽ mã hóa sinh <b>{quantity} mã License Key</b> gắn riêng biệt cho từng Email trên. Vui lòng nhập <b>chính xác email đăng nhập Coursera</b> cho mỗi tài khoản và không nhập trùng email.
-                      </span>
-                    </p>
-
-                    {emailError && (
-                      <p className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                        {emailError}
-                      </p>
-                    )}
                   </div>
                 )}
 
@@ -717,7 +839,7 @@ export default function CheckoutModal() {
                   onClick={closeCheckout}
                   className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors order-3 sm:order-1"
                 >
-                  Hủy
+                  Hủy / Đóng
                 </button>
 
                 <div className="flex items-center gap-2 order-1 sm:order-2">
@@ -942,8 +1064,8 @@ export default function CheckoutModal() {
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
                 {isAutoApproved
-                  ? `Giao dịch chuyển khoản đơn hàng ${order.order_code} đã được SePay ghi nhận và tự động phê duyệt thành công! Quyền tải tài nguyên đã được mở khóa ngay lập tức.`
-                  : `Đơn hàng ${order.order_code} của bạn đã được tiếp nhận ảnh biên lai và đang chờ Admin đối soát duyệt đơn. Sau khi được duyệt, tài nguyên số sẽ tự động mở khóa trong kho của bạn.`}
+                  ? `Giao dịch chuyển khoản đơn hàng ${order?.order_code || ""} đã được SePay ghi nhận và tự động phê duyệt thành công! Quyền tải tài nguyên đã được mở khóa ngay lập tức.`
+                  : `Đơn hàng ${order?.order_code || ""} của bạn đã được tiếp nhận ảnh biên lai và đang chờ Admin đối soát duyệt đơn. Sau khi được duyệt, tài nguyên số sẽ tự động mở khóa trong kho của bạn.`}
               </p>
             </div>
 
@@ -1072,11 +1194,11 @@ export default function CheckoutModal() {
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left text-xs space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-slate-500">Mã đơn hàng:</span>
-                <span className="font-mono font-bold text-slate-800">{order.order_code}</span>
+                <span className="font-mono font-bold text-slate-800">{order?.order_code || "..."}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Số tiền:</span>
-                <span className="font-bold text-blue-600">{formatVND(order.total_amount)}</span>
+                <span className="font-bold text-blue-600">{formatVND(order?.total_amount || 0)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Cổng thanh toán:</span>
