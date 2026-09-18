@@ -57,8 +57,12 @@
 - **FR-001 (Ubiquitous)**: THE system SHALL restrict payment proof uploads to MIME types: `image/jpeg`, `image/png`, `image/webp`, `image/gif`.
 - **FR-002 (Ubiquitous)**: THE system SHALL reject payment proof files exceeding 10MB (10 * 1024 * 1024 bytes) with HTTP 400.
 - **FR-003 (Event-Driven)**: WHEN an authorized proof image is uploaded via `POST /api/orders/upload-proof`, THE server SHALL store the file in `product-assets` under `receipts/bill_{timestamp}_{rand}.{ext}`.
-- **FR-004 (Event-Driven)**: WHEN the customer submits the payment proof form, THE system SHALL update order status from `pending_payment` to `pending_approval`.
-- **FR-005 (State-Driven)**: WHILE an order is in `pending_approval`, it SHALL appear in the Admin Review Queue with an alert badge.
+- **FR-004 (Event-Driven)**: WHEN the customer submits the payment proof form at Step 2, THE system SHALL submit the proof to `PATCH /api/orders` and transition the UI to Step 3 (Confirmation & Decision Screen) regardless of whether the order was already auto-approved by SePay or is pending manual approval.
+- **FR-005 (State-Driven)**: WHILE an order is in `pending_approval`, it SHALL appear in the Admin Review Queue with an alert badge and the uploaded proof image.
+- **FR-006 (Schema & Robustness)**: THE `PATCH /api/orders` handler SHALL strictly sanitize incoming update payload, stripping non-column fields (specifically `customer_email`, `items`, and client metadata) to prevent Supabase PostgREST schema cache rejection (`Could not find the 'customer_email' column of 'orders' in the schema cache`). Any provided customer/coursera email SHALL be safely encoded into `admin_notes` tag `[COURSERA_EMAIL: email]` instead of being directly written to non-existent DB columns.
+- **FR-007 (Step 3 Branching)**:
+  - If the order was auto-approved by SePay (`isAutoApproved === true` or `status === 'completed'`), Step 3 SHALL display "Thanh Toán & Kích Hoạt Tự Động Thành Công!", green badge, immediate License Key (if tool), and access to My Vault.
+  - If the order is pending manual verification (`status === 'pending_approval'`), Step 3 SHALL display "Đã Nhận Bằng Chứng Chuyển Khoản!", amber badge "Trạng thái: Chờ Admin Duyệt", expected review SLA (3-10 minutes), and order history button.
 
 ---
 
@@ -83,12 +87,31 @@
   }
   ```
 
+### `PATCH /api/orders` (Submit Bill Proof)
+- **Content-Type**: `application/json`
+- **Body**:
+  ```json
+  {
+    "orderId": "uuid",
+    "status": "pending_approval",
+    "payment_proof_image": "https://...",
+    "transaction_ref": "FT...",
+    "customer_email": "optional_coursera_email@domain.com"
+  }
+  ```
+- **Server Behavior**:
+  - Always strips `customer_email` from DB update payload and attaches `[COURSERA_EMAIL: ...]` to `admin_notes`.
+  - Whitelists only valid columns of table `public.orders` before executing `supabaseAdmin.from('orders').update(payload)`.
+  - If order is already `completed` via SePay webhook, maintains `status = 'completed'` and returns `{ isAutoApproved: true }`.
+  - If order is `pending_payment`, updates `status = 'pending_approval'`, attaches proof and returns `{ isAutoApproved: false }`.
+
 ---
 
 ## 6. Verification & Test Plan
 
-- **Automated**: Test endpoint bằng Next.js route handler.
+- **Automated**: Typecheck `npx tsc --noEmit`.
 - **Manual Verification**:
-  1. Đặt mua sản phẩm -> Chuyển sang Bước 2 -> Chọn file ảnh biên lai hợp lệ -> Kiểm tra preview ảnh hiển thị ngay.
-  2. Bấm "Xác Nhận & Gửi Đơn Hàng" -> Kiểm tra confetti nổ -> Chuyển sang Bước 3 thành công.
-  3. Mở `/admin/orders` kiểm tra đơn hàng mới xuất hiện ngay tại tab "Chờ duyệt" kèm ảnh bill.
+  1. Mua bất kỳ sản phẩm nào -> Chuyển sang Bước 2 -> Chọn file ảnh biên lai hợp lệ -> Preview hiển thị.
+  2. Bấm "Xác Nhận Đã Chuyển Khoản" -> Không còn lỗi schema cache `customer_email`.
+  3. Hệ thống chuyển ngay sang Bước 3 hiển thị đúng nhánh tương ứng (Duyệt tự động hoặc Chờ Admin duyệt).
+  4. Mở `/admin/orders` kiểm tra đơn hàng mới xuất hiện ngay tại tab "Chờ duyệt" kèm ảnh bill.

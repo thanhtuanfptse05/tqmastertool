@@ -119,6 +119,7 @@
 - **FR-005 (Coursera License Generation)**: THE system SHALL automatically generate a 30-day Coursera license key whenever an order containing Coursera tools transitions to `completed`, whether triggered by the SePay webhook OR by Admin manual approval.
 - **FR-006 (Anti-Deletion Rule)**: THE system SHALL prevent non-admin users from deleting orders with status `completed`, `pending_approval`, or `blocked`.
 - **FR-007 (Fallback Manual Approval)**: WHEN an order cannot be verified automatically by SePay, THE system SHALL transition the order to `pending_approval`, enabling administrators to review the uploaded proof image and approve manually with key generation.
+- **FR-008 (Schema Sanitization & Cache Safety)**: THE `PATCH /api/orders` endpoint SHALL unconditionally strip `customer_email` and non-column fields from the DB update payload to prevent PostgreSQL / Supabase PostgREST schema cache rejection (`Could not find the 'customer_email' column of 'orders' in the schema cache`). The customer Coursera email SHALL be safely parsed and recorded inside `admin_notes` tag `[COURSERA_EMAIL: email]` while maintaining existing notes.
 
 ---
 

@@ -278,17 +278,16 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Handle customer_email from checkout submission
-    if (body.customer_email) {
-      const email = String(body.customer_email).trim().toLowerCase();
-      if (email) {
-        if (!payload.admin_notes || !payload.admin_notes.includes("[COURSERA_EMAIL:")) {
-          payload.admin_notes = payload.admin_notes
-            ? `${payload.admin_notes} [COURSERA_EMAIL: ${email}]`
-            : `[COURSERA_EMAIL: ${email}]`;
-        }
+    // Handle customer_email from checkout submission (customer_email is not a DB column)
+    delete payload.customer_email;
+    const rawCustomerEmail = body.customer_email ? String(body.customer_email).trim().toLowerCase() : "";
+    if (rawCustomerEmail) {
+      const baseNotes = payload.admin_notes || existingOrder.admin_notes || "";
+      if (!baseNotes.includes("[COURSERA_EMAIL:")) {
+        payload.admin_notes = baseNotes
+          ? `${baseNotes} [COURSERA_EMAIL: ${rawCustomerEmail}]`
+          : `[COURSERA_EMAIL: ${rawCustomerEmail}]`;
       }
-      delete payload.customer_email;
     }
 
     // Handle auto license key generation when order status is completed (or was already completed by SePay)
@@ -299,8 +298,8 @@ export async function PATCH(req: NextRequest) {
       const emailMatch = currentNotes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
       if (emailMatch && emailMatch[1]) {
         targetEmail = emailMatch[1].trim().toLowerCase();
-      } else if (body.customer_email) {
-        targetEmail = String(body.customer_email).trim().toLowerCase();
+      } else if (rawCustomerEmail) {
+        targetEmail = rawCustomerEmail;
       } else if (existingOrder.user_id) {
         try {
           const { data: prof } = await supabaseAdmin
@@ -340,22 +339,49 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    console.log(`[API /api/orders] Updating order ${orderId} (${existingOrder.order_code}) by ${isAdmin ? "ADMIN" : user?.id || "customer"}:`, payload);
+    // Whitelist only valid PostgreSQL columns of 'orders' table to prevent schema cache errors
+    const ALLOWED_ORDER_COLUMNS = new Set([
+      "status",
+      "payment_method",
+      "vietqr_content",
+      "payment_proof_image",
+      "transaction_ref",
+      "reviewed_by_admin_id",
+      "reviewed_at",
+      "admin_notes",
+      "total_amount",
+      "order_code",
+      "user_id",
+      "updated_at",
+      "deleted_at",
+    ]);
+
+    const sanitizedPayload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(payload)) {
+      if (ALLOWED_ORDER_COLUMNS.has(key)) {
+        sanitizedPayload[key] = value;
+      }
+    }
+
+    console.log(
+      `[API /api/orders] Updating order ${orderId} (${existingOrder.order_code}) by ${isAdmin ? "ADMIN" : user?.id || "customer"}:`,
+      sanitizedPayload
+    );
 
     let { data, error } = await supabaseAdmin
       .from("orders")
-      .update(payload)
+      .update(sanitizedPayload)
       .eq("id", orderId)
       .select()
       .single();
 
     // Check constraint fallback for 'blocked' if DB constraint not yet migrated
-    if (error && error.code === "23514" && payload.status === "blocked") {
+    if (error && error.code === "23514" && sanitizedPayload.status === "blocked") {
       console.warn("[API /api/orders] DB constraint check active, storing status 'rejected' with [BLOCKED] tag");
-      payload.status = "rejected";
+      sanitizedPayload.status = "rejected";
       const fallback = await supabaseAdmin
         .from("orders")
-        .update(payload)
+        .update(sanitizedPayload)
         .eq("id", orderId)
         .select()
         .single();

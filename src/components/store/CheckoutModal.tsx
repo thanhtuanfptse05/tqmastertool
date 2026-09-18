@@ -165,7 +165,7 @@ export default function CheckoutModal() {
           status: "pending_approval",
           payment_proof_image: billImage,
           transaction_ref: ref,
-          customer_email: cleanEmail,
+          customer_email: cleanEmail || undefined,
           admin_notes: cleanEmail ? `[COURSERA_EMAIL: ${cleanEmail}]` : undefined,
         }),
       });
