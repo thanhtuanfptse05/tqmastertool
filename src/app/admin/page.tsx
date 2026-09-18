@@ -87,8 +87,15 @@ function thinLabels(labels: string[], maxVisible: number): (string | null)[] {
 }
 
 export default function AdminDashboardPage() {
-  const { orders, products, users } = useStore();
+  const { orders, products, users, refreshOrders, refreshProducts, refreshUsers } = useStore();
   const [chartTimeframe, setChartTimeframe] = useState<ChartTimeframe>("day");
+
+  // Luôn đồng bộ 100% dữ liệu mới nhất từ Database khi Admin vào Dashboard (Spec 015)
+  React.useEffect(() => {
+    refreshOrders();
+    refreshProducts();
+    refreshUsers();
+  }, [refreshOrders, refreshProducts, refreshUsers]);
 
   // ── Metrics from real data ──────────────────────────────────────────────
   const completedOrders = orders.filter((o) => o.status === "completed");

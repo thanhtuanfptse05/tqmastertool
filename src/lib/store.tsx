@@ -245,22 +245,63 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         const allFallbackItems = [...standaloneItems, ...serverItems];
 
+        // 4. Lấy link Google Drive & hướng dẫn từ bảng products trong database cho các đơn đã hoàn thành (Spec 015)
+        const completedProductIds = Array.from(
+          new Set(
+            ordersData
+              .filter((o: any) => o.status === "completed")
+              .flatMap((o: any) => {
+                const items = o.order_items && o.order_items.length > 0
+                  ? o.order_items
+                  : allFallbackItems.filter((i: any) => i.order_id === o.id);
+                return items.map((i: any) => i.product_id);
+              })
+              .filter(Boolean)
+          )
+        );
+
+        const deliverableMap = new Map<string, { git_repo_url?: string; access_instructions?: string }>();
+        if (completedProductIds.length > 0) {
+          try {
+            const { data: prodDeliverables } = await supabase
+              .from("products")
+              .select("id, git_repo_url, access_instructions")
+              .in("id", completedProductIds);
+
+            if (prodDeliverables) {
+              prodDeliverables.forEach((p: any) => {
+                deliverableMap.set(p.id, {
+                  git_repo_url: p.git_repo_url || undefined,
+                  access_instructions: p.access_instructions || undefined,
+                });
+              });
+            }
+          } catch (e) {
+            console.warn("[fetchOrdersFromDB] Could not query deliverables from DB:", e);
+          }
+        }
+
         const mappedOrders: Order[] = ordersData.map((o: any) => {
           const rawItems =
             o.order_items && o.order_items.length > 0
               ? o.order_items
               : allFallbackItems.filter((i: any) => i.order_id === o.id);
 
-          let resolvedItems = rawItems.map((item: any) => ({
-            id: item.id || `item-${item.product_id}`,
-            order_id: o.id,
-            product_id: item.product_id,
-            product_title: item.product_title || "Sản phẩm CodeVault",
-            product_category: item.product_category || "lab211",
-            product_thumbnail: item.product_thumbnail || "",
-            unit_price: Number(item.unit_price) || 0,
-            created_at: item.created_at || o.created_at,
-          }));
+          let resolvedItems = rawItems.map((item: any) => {
+            const deliv = deliverableMap.get(item.product_id);
+            return {
+              id: item.id || `item-${item.product_id}`,
+              order_id: o.id,
+              product_id: item.product_id,
+              product_title: item.product_title || "Sản phẩm CodeVault",
+              product_category: item.product_category || "lab211",
+              product_thumbnail: item.product_thumbnail || "",
+              unit_price: Number(item.unit_price) || 0,
+              git_repo_url: deliv?.git_repo_url,
+              access_instructions: deliv?.access_instructions,
+              created_at: item.created_at || o.created_at,
+            };
+          });
 
           // Robust Fallback: If DB join returned no items, match product by total_amount
           if (resolvedItems.length === 0) {

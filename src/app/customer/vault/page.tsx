@@ -27,7 +27,11 @@ import LabDeliverableModal from "@/components/store/LabDeliverableModal";
 import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
 
 export default function DeliverableVaultPage() {
-  const { currentUser, orders, products } = useStore();
+  const { currentUser, orders, products, refreshOrders } = useStore();
+
+  React.useEffect(() => {
+    refreshOrders();
+  }, [refreshOrders]);
   const [activeLabModal, setActiveLabModal] = useState<{
     isOpen: boolean;
     orderId: string;
@@ -114,6 +118,8 @@ export default function DeliverableVaultPage() {
       product_title: string;
       product_category: string;
       product?: Product;
+      git_repo_url?: string;
+      access_instructions?: string;
       license_key?: string;
       coursera_email?: string;
     }> = [];
@@ -137,6 +143,8 @@ export default function DeliverableVaultPage() {
             product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
             product_category: product?.category || item.product_category || "lab211",
             product: product,
+            git_repo_url: (item as any).git_repo_url || product?.git_repo_url,
+            access_instructions: (item as any).access_instructions || product?.access_instructions,
             license_key: licenseKey || order.license_key,
             coursera_email: courseraEmail || order.user_email,
           });
@@ -151,6 +159,8 @@ export default function DeliverableVaultPage() {
           product_title: matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
           product_category: matchedProduct?.category || "lab211",
           product: matchedProduct,
+          git_repo_url: matchedProduct?.git_repo_url,
+          access_instructions: matchedProduct?.access_instructions,
           license_key: licenseKey || order.license_key,
           coursera_email: courseraEmail || order.user_email,
         });
@@ -208,17 +218,20 @@ export default function DeliverableVaultPage() {
       {/* Deliverables */}
       {deliverables.length > 0 ? (
         <div className="space-y-4">
-          {deliverables.map((item, idx) => {
+          {deliverables.map((item: any, idx) => {
             const lab = isLab211(item);
             const isTool = item.product_category === "tool";
             const catColor = getCategoryColor(item.product_category);
 
             const isCoursera = item.product_title.toLowerCase().includes("coursera");
 
-            // Secure private download drive links — only unlocked for completed orders in vault
-            const toolDriveUrl = isCoursera
-              ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
-              : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing";
+            // Lấy link Google Drive & Video trực tiếp từ Database sản phẩm (Spec 015 - Anti-Hardcode)
+            const toolDriveUrl =
+              item.git_repo_url ||
+              item.product?.git_repo_url ||
+              (isCoursera
+                ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
+                : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing");
 
             const toolVideoUrl =
               item.product?.demo?.video_demo_url ||
@@ -292,7 +305,7 @@ export default function DeliverableVaultPage() {
                               isOpen: true,
                               productTitle: item.product_title,
                               orderCode: item.order_code,
-                              instructions: item.product?.access_instructions,
+                              instructions: item.access_instructions || item.product?.access_instructions,
                               driveUrl: toolDriveUrl,
                               videoUrl: toolVideoUrl,
                               licenseKey: item.license_key,

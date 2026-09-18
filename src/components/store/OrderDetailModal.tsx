@@ -331,22 +331,30 @@ export default function OrderDetailModal({
           {order.status === "completed" && isTool && (() => {
             const { licenseKey, courseraEmail } = extractOrderLicenseInfo(order);
             const effectiveKey = licenseKey || order.license_key;
+            const matchedItem = order.items?.find((i) => i.git_repo_url);
+            const matchedProduct = products.find(
+              (p) =>
+                p.id === order.items?.[0]?.product_id || p.price === order.total_amount
+            );
+
             const isCoursera =
               order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
               Boolean(order.admin_notes && order.admin_notes.includes("CSR-PERM")) ||
-              products.find(
-                (p) =>
-                  (p.id === order.items?.[0]?.product_id || p.price === order.total_amount) &&
-                  p.title.toLowerCase().includes("coursera")
-              ) !== undefined;
+              Boolean(matchedProduct?.title.toLowerCase().includes("coursera"));
 
-            const driveUrl = isCoursera
-              ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
-              : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing";
+            // Ưu tiên đọc trực tiếp từ Database (Spec 015 - Anti-Hardcode)
+            const driveUrl =
+              matchedItem?.git_repo_url ||
+              matchedProduct?.git_repo_url ||
+              (isCoursera
+                ? "https://drive.google.com/drive/folders/1NvEfBQGKhjjUD8-bbddFS_U9qJu_3N7M?usp=drive_link"
+                : "https://drive.google.com/drive/folders/1TypYY2ty9Sw0wMOGPSthKu4s7U9Col4F?usp=sharing");
 
-            const videoUrl = isCoursera
-              ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
-              : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt";
+            const videoUrl =
+              matchedProduct?.demo?.video_demo_url ||
+              (isCoursera
+                ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
+                : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt");
 
             return (
               <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border-2 border-emerald-400/40 shadow-sm space-y-3">

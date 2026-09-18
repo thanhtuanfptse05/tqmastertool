@@ -149,10 +149,33 @@
 
 ---
 
+### User Story 5: Triệt Tiêu Fix Cứng Dữ Liệu — Đồng Bộ 100% Từ Database
+- **Là** Quản trị viên và Khách hàng CodeVault,
+- **Tôi muốn** toàn bộ link Google Drive, Video YouTube, tài liệu hướng dẫn và số liệu thống kê được lấy chính xác từ cơ sở dữ liệu Supabase,
+- **Để** khi thêm hoặc sửa sản phẩm trong DB, toàn bộ giao diện Vault, Chi tiết đơn hàng, Mô tả sản phẩm và Dashboard tự động phản ánh dữ liệu mới nhất mà không bị fix cứng hay sai lệch nội dung.
+
+**Acceptance Criteria:**
+1. **Google Drive & Video Links:**
+   - Cột `git_repo_url` trong bảng `products` lưu trữ chính xác link Google Drive tải tool.
+   - Cột `video_demo_url` trong bảng `product_demos` lưu trữ chính xác link video hướng dẫn YouTube.
+   - `DeliverableVaultPage` (`/customer/vault`) và `OrderDetailModal.tsx` đọc `git_repo_url` và `video_demo_url` từ database của sản phẩm đó, loại bỏ hoàn toàn các đoạn code ternary fix cứng URL.
+2. **Dynamic Product Description & Deliverables Matrix:**
+   - Trong `ProductDescriptionRenderer.tsx`, loại bỏ toàn bộ các đoạn text và video bị fix cứng edX/IOT102.
+   - Giao diện render video banner dựa trên `product.demo.video_demo_url` và tiêu đề sản phẩm thực tế từ DB.
+   - Ma trận 4 đầu ra hiển thị thông tin chung, chuẩn xác cho mọi loại tool chứ không gán cứng tên môn học IOT102 cho các tool khác như Coursera.
+3. **Live Sync Admin Dashboard:**
+   - Trang `AdminDashboardPage` (`/admin`) tự động gọi `refreshOrders()`, `refreshProducts()`, `refreshUsers()` khi tải trang để số liệu doanh thu, biểu đồ và số lượng đơn hàng luôn đồng bộ 100% thời gian thực từ Database.
+
+---
+
 ## 4. CHECKLIST TRIỂN KHAI (DEFINITION OF DONE)
 - [x] Cập nhật tài liệu đặc tả kỹ thuật `spec.md`.
-- [ ] Triển khai `src/app/api/admin/users/route.ts`.
-- [ ] Cập nhật `src/lib/supabase-server.ts` bổ sung whitelist master admins.
-- [ ] Cập nhật `src/lib/store.tsx` và `src/app/admin/users/page.tsx` fetch và quản trị người dùng từ DB.
+- [x] Triển khai `src/app/api/admin/users/route.ts`.
+- [x] Cập nhật `src/lib/supabase-server.ts` bổ sung whitelist master admins.
+- [x] Cập nhật `src/lib/store.tsx` và `src/app/admin/users/page.tsx` fetch và quản trị người dùng từ DB.
+- [ ] Cập nhật cơ sở dữ liệu Supabase: gán `git_repo_url` cho các sản phẩm Tool (Coursera & edX).
+- [ ] Cập nhật `src/app/customer/vault/page.tsx` & `src/components/store/OrderDetailModal.tsx` lấy link Drive và Video trực tiếp từ sản phẩm DB.
+- [ ] Cập nhật `src/components/store/ProductDescriptionRenderer.tsx` xóa bỏ dữ liệu fix cứng edX/IOT102, hiển thị dynamic theo sản phẩm.
+- [ ] Cập nhật `src/app/admin/page.tsx` bổ sung `useEffect` fetch dữ liệu mới nhất từ DB khi mount.
 - [ ] Kiểm tra typecheck TypeScript (`tsc --noEmit`).
 - [ ] Push code lên GitHub.

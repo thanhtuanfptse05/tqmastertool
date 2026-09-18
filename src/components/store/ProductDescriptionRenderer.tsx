@@ -21,18 +21,41 @@ import {
 interface ProductDescriptionRendererProps {
   description: string;
   category?: string;
+  productTitle?: string;
+  videoUrl?: string;
   className?: string;
 }
 
 export default function ProductDescriptionRenderer({
   description,
   category = "lab211",
+  productTitle = "",
+  videoUrl,
   className = "",
 }: ProductDescriptionRendererProps) {
   if (!description) return null;
 
   const isTool = category === "tool";
   const isLab = category === "lab211" || (!isTool && category !== "project");
+
+  const isCoursera = productTitle ? productTitle.toLowerCase().includes("coursera") : false;
+  const isEdx = productTitle ? (productTitle.toLowerCase().includes("edx") || productTitle.toLowerCase().includes("iot102")) : false;
+
+  const effectiveVideoUrl = videoUrl || (isCoursera
+    ? "https://youtu.be/qld1bT_U8AQ?si=NjOoWFUhGmwrwc9U"
+    : "https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt");
+
+  const videoTitle = isCoursera
+    ? "Video Hướng Dẫn Kích Hoạt & Sử Dụng Tool Coursera Auto Skip"
+    : isEdx
+    ? "Video Hướng Dẫn Kích Hoạt & Ăn Trọn Điểm Bonus edX IOT102"
+    : `Video Hướng Dẫn Vận Hành ${productTitle || "Tiện Ích"}`;
+
+  const videoSubtitle = isCoursera
+    ? "Đầy đủ hướng dẫn từ lúc tải extension trên Google Drive, cài đặt dạng load unpacked đến lúc nhập License Key để tự động skip bài giảng."
+    : isEdx
+    ? "Đầy đủ hướng dẫn từ lúc tải mã nguồn trên Google Drive, cài đặt extension, import script cho tới lúc thanh Progress edX đạt 100% điểm thưởng."
+    : "Hướng dẫn cài đặt, kích hoạt bản quyền và sử dụng tool từng bước trực quan từ kênh chính chủ.";
 
   // Split by horizontal rules or major sections
   const rawSections = description.split(/\n---\n/).map((s) => s.trim()).filter(Boolean);
@@ -139,15 +162,15 @@ export default function ProductDescriptionRenderer({
                   <span className="text-xs text-emerald-700 font-bold">Kênh Tuấn và Quân FPT • Miễn Phí</span>
                 </div>
                 <h4 className="text-sm font-extrabold text-slate-900 mt-1">
-                  Video Hướng Dẫn Kích Hoạt &amp; Ăn Trọn Điểm Bonus edX
+                  {videoTitle}
                 </h4>
                 <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                  Đầy đủ hướng dẫn từ lúc tải mã nguồn trên Google Drive, cài đặt extension, import script cho tới lúc thanh Progress edX đạt 100% điểm thưởng.
+                  {videoSubtitle}
                 </p>
               </div>
             </div>
             <a
-              href="https://youtu.be/OxmUL2i8BX4?si=VKICEGOE39cqulVt"
+              href={effectiveVideoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs shadow-md shadow-rose-500/25 transition-all hover:scale-[1.02] active:scale-95"
@@ -263,9 +286,13 @@ export default function ProductDescriptionRenderer({
                 <Zap className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs font-bold text-white">3. Kích Hoạt 1-Click Siêu Tốc</p>
+                <p className="text-xs font-bold text-white">3. Kích Hoạt Nhanh Chóng &amp; Tự Động Hóa</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Tự động học bài, tua video an toàn và đồng bộ kết quả lên edX lập tức.
+                  {isCoursera
+                    ? "Tự động học bài, skip video an toàn, vượt quiz và cấp License Key chính chủ."
+                    : isEdx
+                    ? "Tự động học bài, tua video an toàn và đồng bộ kết quả lên edX lập tức."
+                    : "Cơ chế automation thông minh, vận hành êm ái và đạt hiệu quả tối đa."}
                 </p>
               </div>
             </div>
@@ -274,9 +301,13 @@ export default function ProductDescriptionRenderer({
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-white">4. Cam Kết Điểm Bonus &amp; Update</p>
+              <p className="text-xs font-bold text-white">4. Cam Kết Bản Quyền &amp; Update</p>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Bảo đảm nhận 100% điểm thưởng môn IOT102, cập nhật miễn phí khi edX update.
+                {isCoursera
+                  ? "Bảo đảm bản quyền hoạt động ổn định trọn gói, hỗ trợ kỹ thuật 24/7 và update khi Coursera đổi giao diện."
+                  : isEdx
+                  ? "Bảo đảm nhận 100% điểm thưởng môn IOT102, cập nhật miễn phí khi edX update."
+                  : "Bảo đảm bản quyền hoạt động ổn định, hỗ trợ kỹ thuật 24/7 và cập nhật bản mới miễn phí."}
               </p>
             </div>
           </div>

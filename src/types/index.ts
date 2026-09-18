@@ -105,6 +105,8 @@ export interface OrderItem {
   product_category: ProductCategory;
   product_thumbnail?: string;
   license_key?: string;
+  git_repo_url?: string;
+  access_instructions?: string;
   created_at: string;
 }
 

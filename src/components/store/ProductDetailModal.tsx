@@ -181,10 +181,12 @@ export default function ProductDetailModal({ product, onClose }: ProductDetailMo
                 </div>
               )}
 
-              {/* Detailed Description (Rich Cards Renderer with OOP Theory Gift Link) */}
+              {/* Detailed Description (Rich Cards Renderer with dynamic DB content) */}
               <ProductDescriptionRenderer
                 description={product.detailed_description || ""}
                 category={product.category}
+                productTitle={product.title}
+                videoUrl={demo?.video_demo_url}
               />
 
               {/* Tech Stack Tags */}
