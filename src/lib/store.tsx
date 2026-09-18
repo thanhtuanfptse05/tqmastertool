@@ -51,7 +51,15 @@ interface StoreContextType {
   clearCart: () => void;
   orders: Order[];
   createOrder: (product: Product) => Order;
-  submitPaymentProof: (orderId: string, proofUrl: string, transactionRef?: string, customerEmail?: string) => void;
+  submitPaymentProof: (
+    orderId: string,
+    proofUrl: string,
+    transactionRef?: string,
+    customerEmail?: string,
+    overrideStatus?: OrderStatus,
+    adminNotes?: string,
+    licenseKey?: string
+  ) => void;
 
   // Admin Order Review & CRUD
   adminReviewOrder: (orderId: string, action: "approve" | "reject", adminNotes?: string) => void;
@@ -869,9 +877,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const createOrder = (product: Product): Order => {
     const orderNum = Math.floor(1000 + Math.random() * 9000);
-    const orderCode = `CV-2026-${orderNum}`;
+    const orderCode = `TQ-2026-${orderNum}`;
     const orderId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `order-${Date.now()}`;
-    const cleanMemo = `CV2026${orderNum}`;
+    const cleanMemo = `TQ2026${orderNum}`;
 
     const newOrder: Order = {
       id: orderId,
@@ -937,20 +945,32 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return newOrder;
   };
 
-  const submitPaymentProof = (orderId: string, proofUrl: string, transactionRef?: string, customerEmail?: string) => {
+  const submitPaymentProof = (
+    orderId: string,
+    proofUrl: string,
+    transactionRef?: string,
+    customerEmail?: string,
+    overrideStatus?: OrderStatus,
+    adminNotes?: string,
+    licenseKey?: string
+  ) => {
     const cleanEmail = customerEmail?.trim().toLowerCase();
+    const finalStatus = overrideStatus || ("pending_approval" as const);
     const updated = orders.map((o) => {
       if (o.id !== orderId) return o;
-      const updatedNotes = cleanEmail
-        ? (o.admin_notes ? `${o.admin_notes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`)
-        : o.admin_notes;
+      let updatedNotes = adminNotes || o.admin_notes;
+      if (cleanEmail && (!updatedNotes || !updatedNotes.includes("[COURSERA_EMAIL:"))) {
+        updatedNotes = updatedNotes ? `${updatedNotes} [COURSERA_EMAIL: ${cleanEmail}]` : `[COURSERA_EMAIL: ${cleanEmail}]`;
+      }
       return {
         ...o,
-        status: "pending_approval" as const,
+        status: finalStatus,
         payment_proof_image: proofUrl,
-        transaction_ref: transactionRef || `MB${Date.now()}`,
+        transaction_ref: transactionRef || o.transaction_ref || `MB${Date.now()}`,
         user_email: cleanEmail || o.user_email,
         admin_notes: updatedNotes,
+        license_key: licenseKey || o.license_key,
+        reviewed_at: finalStatus === "completed" ? (o.reviewed_at || new Date().toISOString()) : o.reviewed_at,
         updated_at: new Date().toISOString(),
       };
     });
@@ -959,10 +979,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (activeOrderForPayment?.id === orderId) {
       setActiveOrderForPayment({
         ...activeOrderForPayment,
-        status: "pending_approval",
+        status: finalStatus,
         payment_proof_image: proofUrl,
-        transaction_ref: transactionRef,
+        transaction_ref: transactionRef || activeOrderForPayment.transaction_ref,
         user_email: cleanEmail || activeOrderForPayment.user_email,
+        admin_notes: adminNotes || activeOrderForPayment.admin_notes,
+        license_key: licenseKey || activeOrderForPayment.license_key,
       });
     }
     // NOTE: DB update is handled by the caller (CheckoutModal) via /api/orders PATCH

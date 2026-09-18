@@ -31,13 +31,11 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization") || req.headers.get("x-api-key") || "";
 
     // Header formats supported: "Apikey <TOKEN>", "Bearer <TOKEN>", or raw token
-    let receivedToken = "";
-    if (authHeader.startsWith("Apikey ")) {
-      receivedToken = authHeader.replace("Apikey ", "").trim();
-    } else if (authHeader.startsWith("Bearer ")) {
-      receivedToken = authHeader.replace("Bearer ", "").trim();
-    } else {
-      receivedToken = authHeader.trim();
+    let receivedToken = authHeader.trim();
+    if (/^Apikey\s+/i.test(receivedToken)) {
+      receivedToken = receivedToken.replace(/^Apikey\s+/i, "").trim();
+    } else if (/^Bearer\s+/i.test(receivedToken)) {
+      receivedToken = receivedToken.replace(/^Bearer\s+/i, "").trim();
     }
 
     if (!expectedApiKey) {
@@ -61,9 +59,9 @@ export async function POST(req: NextRequest) {
     // -----------------------------------------------------------
     const body: SePayWebhookBody = await req.json();
 
-    if (!body || !body.content) {
+    if (!body || (!body.content && !body.code)) {
       return NextResponse.json(
-        { success: false, error: "Invalid payload: missing content" },
+        { success: false, error: "Invalid payload: missing content and code" },
         { status: 400 }
       );
     }
@@ -85,23 +83,32 @@ export async function POST(req: NextRequest) {
     }
 
     // -----------------------------------------------------------
-    // 3. EXTRACT ORDER CODE FROM CONTENT
-    // Match patterns: CV2026xxxx, CV-2026-xxxx, CV 2026 xxxx
+    // 3. EXTRACT ORDER CODE FROM CODE OR CONTENT
+    // Match patterns: TQ2026xxxx, TQxxxx, CV2026xxxx, CV-2026-xxxx
     // -----------------------------------------------------------
-    const content = body.content.trim();
+    const content = (body.content || "").trim();
+    const explicitCode = (body.code || "").trim();
     const cleanContent = content.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    const cleanExplicitCode = explicitCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
-    const codeMatch = cleanContent.match(/CV2026\d{4}/i);
+    // Check explicit code first, then content
+    let codeMatch = cleanExplicitCode.match(/(?:TQ|CV)(?:2026)?\d{4}/i) || cleanExplicitCode.match(/(?:TQ|CV)\d{4,}/i);
     if (!codeMatch) {
-      console.log(`[SePay Webhook] Content "${content}" does not contain a recognized CV2026 order code.`);
+      codeMatch = cleanContent.match(/(?:TQ|CV)(?:2026)?\d{4}/i) || cleanContent.match(/(?:TQ|CV)\d{4,}/i);
+    }
+
+    if (!codeMatch) {
+      console.log(`[SePay Webhook] Neither code "${explicitCode}" nor content "${content}" contains a recognized TQ/CV order code.`);
       return NextResponse.json({
         success: true,
-        message: "Transaction received, but no matching CV2026 order code found in content.",
+        message: "Transaction received, but no matching order code found in code or content.",
       });
     }
 
-    const matchedMemo = codeMatch[0].toUpperCase(); // e.g. "CV20265198"
-    const matchedOrderCode = `CV-2026-${matchedMemo.slice(6)}`; // e.g. "CV-2026-5198"
+    const matchedMemo = codeMatch[0].toUpperCase(); // e.g. "TQ20265198" or "CV20265198"
+    const digitsOnly = matchedMemo.replace(/^(?:TQ|CV)(?:2026)?/, ""); // e.g. "5198"
+    const matchedOrderCode = `TQ-2026-${digitsOnly}`;
+    const legacyOrderCode = `CV-2026-${digitsOnly}`;
 
     // -----------------------------------------------------------
     // 4. DATABASE LOOKUP (SUPABASE)
@@ -125,7 +132,8 @@ export async function POST(req: NextRequest) {
     const { data: orders, error: findError } = await supabase
       .from("orders")
       .select("*")
-      .or(`vietqr_content.ilike.%${matchedMemo}%,order_code.eq.${matchedOrderCode}`)
+      .or(`vietqr_content.ilike.%${matchedMemo}%,order_code.eq.${matchedOrderCode},order_code.eq.${legacyOrderCode},vietqr_content.ilike.%${digitsOnly}%`)
+      .order("created_at", { ascending: false })
       .limit(1);
 
     if (findError) {
@@ -237,6 +245,10 @@ export async function POST(req: NextRequest) {
           targetEmail = profile.email.trim().toLowerCase();
         }
       } catch {}
+    }
+
+    if (!targetEmail && order.user_email && !order.user_email.startsWith("guest@") && order.user_email.includes("@")) {
+      targetEmail = order.user_email.trim().toLowerCase();
     }
 
     const { data: items } = await supabase

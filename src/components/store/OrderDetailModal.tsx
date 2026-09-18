@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Order, OrderStatus } from "@/types";
-import { formatVND, formatDateVN } from "@/lib/vietqr";
+import { formatVND, formatDateVN, generateVietQRUrl, DEFAULT_VIETQR_CONFIG } from "@/lib/vietqr";
 import { useStore } from "@/lib/store";
 import {
   X,
@@ -91,9 +91,10 @@ export default function OrderDetailModal({
     setActiveOrderForPayment(order);
   };
 
-  const qrUrl = `https://img.vietqr.io/image/BIDV-8816861222-compact2.png?amount=${order.total_amount}&addInfo=${encodeURIComponent(
-    order.vietqr_content
-  )}&accountName=CAO%20THANH%20TUAN`;
+  const qrUrl = generateVietQRUrl({
+    amount: order.total_amount,
+    memo: order.vietqr_content,
+  });
 
   const getStatusInfo = (status: OrderStatus) => {
     switch (status) {
@@ -219,15 +220,15 @@ export default function OrderDetailModal({
                 <div className="space-y-2.5 text-xs">
                   <div>
                     <span className="text-slate-400 block text-[10px]">Ngân hàng nhận:</span>
-                    <span className="font-bold text-slate-900">BIDV (Ngân hàng Đầu tư &amp; PT Việt Nam)</span>
+                    <span className="font-bold text-slate-900">{DEFAULT_VIETQR_CONFIG.bankId} (Ngân hàng Đầu tư &amp; PT Việt Nam)</span>
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px]">Số tài khoản:</span>
+                    <span className="text-slate-400 block text-[10px]">Số tài khoản định danh (VA SePay):</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-slate-900">8816861222</span>
+                      <span className="font-mono font-bold text-slate-900">{DEFAULT_VIETQR_CONFIG.accountNo}</span>
                       <button
-                        onClick={() => copyToClipboard("8816861222", "stk")}
+                        onClick={() => copyToClipboard(DEFAULT_VIETQR_CONFIG.accountNo, "stk")}
                         className="text-blue-600 hover:text-blue-700 font-semibold text-[11px]"
                       >
                         {copiedField === "stk" ? "Đã chép" : "Sao chép"}
@@ -237,7 +238,7 @@ export default function OrderDetailModal({
 
                   <div>
                     <span className="text-slate-400 block text-[10px]">Chủ tài khoản:</span>
-                    <span className="font-bold text-slate-900">CAO THANH TUAN</span>
+                    <span className="font-bold text-slate-900">{DEFAULT_VIETQR_CONFIG.accountName}</span>
                   </div>
 
                   <div>

@@ -12,9 +12,9 @@ export interface VietQRParams {
 }
 
 export const DEFAULT_VIETQR_CONFIG = {
-  bankId: process.env.NEXT_PUBLIC_VIETQR_BANK_ID || "MB",
-  accountNo: process.env.NEXT_PUBLIC_VIETQR_ACCOUNT_NO || "0988888999",
-  accountName: process.env.NEXT_PUBLIC_VIETQR_ACCOUNT_NAME || "NGUYEN THANH TUAN",
+  bankId: process.env.NEXT_PUBLIC_VIETQR_BANK_ID || "BIDV",
+  accountNo: process.env.NEXT_PUBLIC_VIETQR_ACCOUNT_NO || "96247TQMASTER",
+  accountName: process.env.NEXT_PUBLIC_VIETQR_ACCOUNT_NAME || "TQMASTER",
   template: process.env.NEXT_PUBLIC_VIETQR_TEMPLATE || "compact2",
 };
 

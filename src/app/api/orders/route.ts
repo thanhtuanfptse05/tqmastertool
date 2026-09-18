@@ -256,9 +256,12 @@ export async function PATCH(req: NextRequest) {
       delete payload.user_id;
 
       // Customer is only allowed:
-      // a) Nộp ảnh biên lai: status = 'pending_approval'
+      // a) Nộp ảnh biên lai: status = 'pending_approval' (nếu đơn chưa được SePay auto-approve)
       // b) Hủy đơn chưa thanh toán: status = 'cancelled'
-      if (payload.status === "cancelled") {
+      if (existingOrder.status === "completed") {
+        // Order was already auto-approved by SePay webhook! Retain completed status.
+        delete payload.status;
+      } else if (payload.status === "cancelled") {
         if (existingOrder.status !== "pending_payment") {
           return NextResponse.json(
             { error: "Chỉ có thể hủy đơn hàng đang chờ thanh toán." },
@@ -288,13 +291,16 @@ export async function PATCH(req: NextRequest) {
       delete payload.customer_email;
     }
 
-    // Handle auto license key generation when order status becomes completed
-    if (payload.status === "completed") {
+    // Handle auto license key generation when order status is completed (or was already completed by SePay)
+    const isOrderCompleted = payload.status === "completed" || existingOrder.status === "completed";
+    if (isOrderCompleted) {
       const currentNotes = payload.admin_notes || existingOrder.admin_notes || "";
       let targetEmail = "";
       const emailMatch = currentNotes.match(/\[(?:COURSERA_EMAIL|EMAIL_COURSERA):\s*([^\]\s]+@[^\]\s]+)\]/i);
       if (emailMatch && emailMatch[1]) {
         targetEmail = emailMatch[1].trim().toLowerCase();
+      } else if (body.customer_email) {
+        targetEmail = String(body.customer_email).trim().toLowerCase();
       } else if (existingOrder.user_id) {
         try {
           const { data: prof } = await supabaseAdmin
@@ -368,7 +374,10 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data,
-      message: "Cập nhật đơn hàng thành công.",
+      isAutoApproved: (data?.status || existingOrder.status) === "completed",
+      message: (data?.status || existingOrder.status) === "completed"
+        ? "Đơn hàng đã thanh toán thành công qua SePay."
+        : "Cập nhật đơn hàng thành công.",
     });
   } catch (err: any) {
     console.error("[API /api/orders] Patch exception:", err);

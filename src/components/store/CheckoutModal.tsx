@@ -52,6 +52,9 @@ export default function CheckoutModal() {
 
   const [customerEmail, setCustomerEmail] = useState<string>("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [isAutoApproved, setIsAutoApproved] = useState(false);
+  const [generatedLicenseKey, setGeneratedLicenseKey] = useState<string | null>(null);
+  const [copiedLicense, setCopiedLicense] = useState(false);
 
   React.useEffect(() => {
     // Only prefill if it is a genuine user email and not a guest placeholder
@@ -174,8 +177,30 @@ export default function CheckoutModal() {
         throw new Error(errData.error || "Không thể lưu thông tin thanh toán");
       }
 
+      const resData = await res.json();
+      const orderData = resData.data || {};
+      const autoApproved = Boolean(resData.isAutoApproved || orderData.status === "completed");
+
+      let licenseKey: string | undefined = undefined;
+      const combinedNotes = `${orderData.admin_notes || ""} ${activeOrderForPayment.admin_notes || ""}`;
+      const keyMatch = combinedNotes.match(/\[KEY:\s*([^\]]+)\]/i);
+      if (keyMatch) {
+        licenseKey = keyMatch[1].trim();
+        setGeneratedLicenseKey(licenseKey);
+      }
+
+      setIsAutoApproved(autoApproved);
+
       // 2. Cập nhật store local để UI phản ánh ngay
-      submitPaymentProof(order.id, billImage, ref, cleanEmail);
+      submitPaymentProof(
+        order.id,
+        billImage,
+        ref,
+        cleanEmail,
+        autoApproved ? "completed" : "pending_approval",
+        orderData.admin_notes,
+        licenseKey
+      );
 
       setStep("success");
 
@@ -183,8 +208,8 @@ export default function CheckoutModal() {
       try {
         const confetti = (await import("canvas-confetti")).default;
         confetti({
-          particleCount: 80,
-          spread: 70,
+          particleCount: autoApproved ? 120 : 70,
+          spread: 80,
           origin: { y: 0.6 },
         });
       } catch (err) {
@@ -326,14 +351,14 @@ export default function CheckoutModal() {
                 <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-slate-400 text-[10px] block">Ngân hàng:</span>
-                      <span className="font-bold text-slate-800">{DEFAULT_VIETQR_CONFIG.bankId} (Quân Đội)</span>
+                      <span className="text-slate-400 text-[10px] block">Ngân hàng thụ hưởng:</span>
+                      <span className="font-bold text-slate-800">{DEFAULT_VIETQR_CONFIG.bankId} (Ngân hàng Đầu tư &amp; PT Việt Nam)</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
                     <div>
-                      <span className="text-slate-400 text-[10px] block">Số tài khoản:</span>
+                      <span className="text-slate-400 text-[10px] block">Số tài khoản định danh (VA SePay):</span>
                       <span className="font-mono font-bold text-slate-900 text-sm">
                         {DEFAULT_VIETQR_CONFIG.accountNo}
                       </span>
@@ -389,9 +414,9 @@ export default function CheckoutModal() {
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>Vui lòng chuyển chính xác nội dung <b>{order.vietqr_content}</b> để Admin duyệt đơn nhanh nhất.</span>
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <span>Vui lòng chuyển chính xác nội dung <b>{order.vietqr_content}</b> để SePay đối soát và tự động duyệt đơn ngay lập tức.</span>
                 </div>
               </div>
             </div>
@@ -567,24 +592,82 @@ export default function CheckoutModal() {
           </form>
         )}
 
-        {/* Step 3: SUCCESS & PENDING REVIEW NOTICE */}
+        {/* Step 3: SUCCESS & AUTO-APPROVED / PENDING REVIEW NOTICE */}
         {step === "success" && (
-          <div className="p-8 text-center space-y-5">
-            <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-inner">
-              <Clock className="w-8 h-8 animate-pulse" />
-            </div>
+          <div className="p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            {isAutoApproved ? (
+              <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto shadow-inner shadow-emerald-500/20">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 animate-bounce" />
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-inner">
+                <Clock className="w-8 h-8 animate-pulse" />
+              </div>
+            )}
 
             <div>
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300 mb-2">
-                Trạng thái: Chờ Admin Duyệt (pending_approval)
-              </span>
+              {isAutoApproved ? (
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 mb-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-700" />
+                  Trạng thái: Đã duyệt tự động qua SePay (completed)
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300 mb-2">
+                  <Clock className="w-3.5 h-3.5 text-amber-700" />
+                  Trạng thái: Chờ Admin Duyệt (pending_approval)
+                </span>
+              )}
+
               <h3 className="text-xl font-black text-slate-900">
-                Đã Nhận Bằng Chứng Chuyển Khoản!
+                {isAutoApproved
+                  ? "Thanh Toán & Kích Hoạt Tự Động Thành Công!"
+                  : "Đã Nhận Bằng Chứng Chuyển Khoản!"}
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
-                Đơn hàng <b>{order.order_code}</b> của bạn đã được gửi đến Admin để đối chiếu thanh toán. Sau khi được duyệt, quyền tải mã nguồn sẽ tự động mở khóa trong <b>Kho tài nguyên số</b> của bạn.
+                {isAutoApproved
+                  ? `Giao dịch chuyển khoản đơn hàng ${order.order_code} đã được SePay ghi nhận và tự động phê duyệt thành công! Quyền tải tài nguyên đã được mở khóa ngay lập tức.`
+                  : `Đơn hàng ${order.order_code} của bạn đã được tiếp nhận ảnh biên lai và đang chờ Admin đối soát duyệt đơn. Sau khi được duyệt, tài nguyên số sẽ tự động mở khóa trong kho của bạn.`}
               </p>
             </div>
+
+            {/* If Coursera License Key exists, display prominent key box */}
+            {generatedLicenseKey && (
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 max-w-md mx-auto text-left shadow-sm">
+                <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold text-xs">
+                  <Key className="w-4 h-4 text-indigo-600" />
+                  <span>License Key Coursera (Thời Hạn 30 Ngày)</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-indigo-100 shadow-inner">
+                  <span className="font-mono font-bold text-xs text-indigo-700 break-all select-all">
+                    {generatedLicenseKey}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedLicenseKey);
+                      setCopiedLicense(true);
+                      setTimeout(() => setCopiedLicense(false), 2000);
+                    }}
+                    className="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95"
+                  >
+                    {copiedLicense ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Đã chép</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Sao chép</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[10px] text-indigo-600/80 mt-2">
+                  * Key cũng đã được lưu vĩnh viễn vào tài khoản của bạn tại mục Kho Quà Tặng (My Vault).
+                </p>
+              </div>
+            )}
 
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left text-xs space-y-1.5">
               <div className="flex justify-between">
@@ -596,26 +679,54 @@ export default function CheckoutModal() {
                 <span className="font-bold text-blue-600">{formatVND(order.total_amount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Thời gian duyệt trung bình:</span>
-                <span className="font-bold text-emerald-600">3 - 10 phút</span>
+                <span className="text-slate-500">Cổng thanh toán:</span>
+                <span className="font-bold text-slate-800">VietQR Napas 247 (SePay)</span>
               </div>
+              {!isAutoApproved && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Thời gian duyệt thủ công:</span>
+                  <span className="font-bold text-emerald-600">3 - 10 phút</span>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={closeCheckout}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
-              >
-                Đóng &amp; Tiếp Tục Xem Sản Phẩm
-              </button>
-              <a
-                href="/customer/orders"
-                onClick={closeCheckout}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all text-center"
-              >
-                Xem Lịch Sử Đơn Hàng
-              </a>
+              {isAutoApproved ? (
+                <>
+                  <a
+                    href="/customer/vault"
+                    onClick={closeCheckout}
+                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-500/25 transition-all text-center flex items-center justify-center gap-1.5"
+                  >
+                    <span>Vào Kho Quà Tặng (My Vault)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </a>
+                  <a
+                    href="/customer/orders"
+                    onClick={closeCheckout}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all text-center"
+                  >
+                    Xem Chi Tiết Đơn Hàng
+                  </a>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={closeCheckout}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all"
+                  >
+                    Đóng &amp; Tiếp Tục Xem Sản Phẩm
+                  </button>
+                  <a
+                    href="/customer/orders"
+                    onClick={closeCheckout}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition-all text-center"
+                  >
+                    Xem Lịch Sử Đơn Hàng
+                  </a>
+                </>
+              )}
             </div>
           </div>
         )}
