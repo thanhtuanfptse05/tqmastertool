@@ -236,3 +236,16 @@
 - [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - Chạy `npx tsc --noEmit` đạt 0 lỗi.
   - Push commit lên remote GitHub `origin/main`.
+
+### [x] Giai Đoạn 17: Phân Quyền 100% Database-Driven & Triệt Tiêu Hardcode Role Whitelist (Spec-First) — ĐANG TIẾN HÀNH
+- [x] **Spec-First Protocol**:
+  - `specs/015-security-hardening-admin-and-anti-price-tampering/spec.md`: Nâng cấp User Story 4, quy định vai trò (role) 100% phụ thuộc vào `profiles.role` trong Database. Triệt tiêu hoàn toàn danh sách hardcode email admin trong mã nguồn backend.
+- [ ] **Khắc Phục Lỗi Không Hạ Được Role Admin**:
+  - `src/lib/supabase-server.ts`: Loại bỏ danh sách `ADMIN_WHITELIST_EMAILS` hardcode các email khách/người dùng. Xóa bỏ logic auto-heal ép role admin khi người dùng đã bị hạ role trong DB.
+  - `src/app/api/admin/users/route.ts`: `GET /api/admin/users` lấy chính xác `profile.role` từ Database, không ghi đè thành admin. `PATCH` thực thi lưu `customer` vào DB tức thì.
+  - `src/lib/store.tsx`: Bỏ fallback `|| isAdmin` (role cũ từ cache) trong hàm `login`, đảm bảo role đồng bộ chuẩn xác với DB.
+- [ ] **Kiểm Thử & Triển Khai**:
+  - Xác nhận đổi vai trò của tài khoản thành công, không bị auto-promote.
+  - Chạy `npx tsc --noEmit` đạt 0 lỗi.
+  - Build kiểm tra và push lên remote GitHub `origin/main`.
+

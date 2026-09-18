@@ -14,22 +14,19 @@ export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 export const ADMIN_WHITELIST_EMAILS = [
-  "lequan12305@gmail.com",
-  "caotuan01122005@gmail.com",
-  "caothanhtuan576@gmail.com",
   "admin@gmail.com",
   "admin@codevault.io",
 ];
 
 /**
- * Checks if an email is strictly an authorized administrator.
- * Checks against both hardcoded server list and server environment variable ADMIN_EMAILS.
+ * Checks if an email is authorized administrator.
+ * Used for initial bootstrap registration or root system admins via process.env.ADMIN_EMAILS.
  */
 export function isStrictAdminEmail(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
 
-  // Check hardcoded secure server list
+  // Check hardcoded secure root system admin list
   if (ADMIN_WHITELIST_EMAILS.includes(clean)) return true;
 
   // Check server environment variable ADMIN_EMAILS (e.g. "admin1@domain.com,admin2@domain.com")
@@ -49,11 +46,9 @@ export function isStrictAdminEmail(email?: string | null): boolean {
  * Extracts and verifies the authenticated user from a NextRequest.
  * Checks Authorization header: Bearer <token> or Supabase cookies.
  * 
- * SECURITY GATE:
- * A user is recognized as Admin if:
- * 1. Their email is in the Master Admin Whitelist (isStrictAdminEmail), OR
- * 2. Their profile has role === 'admin' in PostgreSQL.
- * If a master admin email is detected, the database role is automatically healed to 'admin'.
+ * 100% DATABASE-DRIVEN RBAC:
+ * A user's administrative privilege is strictly determined by their `profiles.role === 'admin'` in PostgreSQL.
+ * If an admin changes a user's role to 'customer' in the database, it takes effect immediately with NO auto-heal overrides.
  */
 export async function getAuthenticatedUser(
   req: NextRequest
@@ -114,31 +109,18 @@ export async function getAuthenticatedUser(
       return { user: null, isAdmin: false };
     }
 
-    // 1. Check Master Admin Whitelist
-    const isEmailAdmin = isStrictAdminEmail(user.email);
-
-    // 2. Check Database Profile role
+    // Check Database Profile role - 100% Database Source of Truth
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .maybeSingle();
 
-    const isRoleAdmin = profile?.role === "admin";
-    const isAdmin = isEmailAdmin || isRoleAdmin;
-
-    // Auto-heal: If user is in Master Admin Whitelist, ensure profile.role in DB is 'admin'
-    if (isEmailAdmin && profile && profile.role !== "admin") {
-      try {
-        await supabaseAdmin
-          .from("profiles")
-          .update({ role: "admin", updated_at: new Date().toISOString() })
-          .eq("id", user.id);
-        console.log(`[Auth Helper] 🔄 Auto-promoted master admin ${user.email} to 'admin' in profiles table.`);
-      } catch (syncErr) {
-        console.warn("[Auth Helper] Could not auto-promote master admin:", syncErr);
-      }
-    }
+    // If profile exists in DB, respect its role completely!
+    // If no profile yet, check root bootstrap admin
+    const isAdmin = profile
+      ? profile.role === "admin"
+      : isStrictAdminEmail(user.email);
 
     return { user, isAdmin };
   } catch (err) {

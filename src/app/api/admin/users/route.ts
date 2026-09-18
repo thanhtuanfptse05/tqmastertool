@@ -60,10 +60,12 @@ export async function GET(req: NextRequest) {
       seenIds.add(authUser.id);
 
       const profile = profileMap.get(authUser.id);
-      const isMasterAdmin = isStrictAdminEmail(authUser.email);
-      const effectiveRole = isMasterAdmin || profile?.role === "admin" ? "admin" : "customer";
+      // 100% Database Source of Truth: Role strictly comes from profile.role in DB!
+      const effectiveRole: "admin" | "customer" = profile
+        ? (profile.role === "admin" ? "admin" : "customer")
+        : (isStrictAdminEmail(authUser.email) ? "admin" : "customer");
 
-      // Auto-heal missing profile in DB if needed
+      // Insert profile if missing from PostgreSQL (first time registration)
       if (!profile) {
         supabaseAdmin.from("profiles").upsert({
           id: authUser.id,
@@ -72,11 +74,6 @@ export async function GET(req: NextRequest) {
           role: effectiveRole,
           updated_at: new Date().toISOString(),
         }).then(() => {});
-      } else if (isMasterAdmin && profile.role !== "admin") {
-        supabaseAdmin.from("profiles").update({
-          role: "admin",
-          updated_at: new Date().toISOString(),
-        }).eq("id", authUser.id).then(() => {});
       }
 
       mergedUsers.push({
@@ -90,16 +87,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Add any standalone profile not found in auth list (legacy or mock data)
+    // Add any standalone profile not found in auth list
     for (const profile of profilesList) {
       if (!seenIds.has(profile.id) && profile.email) {
         seenIds.add(profile.id);
-        const isMasterAdmin = isStrictAdminEmail(profile.email);
         mergedUsers.push({
           id: profile.id,
           email: profile.email.toLowerCase(),
           full_name: profile.full_name || profile.email.split("@")[0].toUpperCase(),
-          role: isMasterAdmin || profile.role === "admin" ? "admin" : "customer",
+          role: profile.role === "admin" ? "admin" : "customer",
           avatar_url: profile.avatar_url || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150`,
           created_at: profile.created_at || new Date().toISOString(),
         });

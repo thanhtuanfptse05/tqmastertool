@@ -92,17 +92,18 @@
   }
   ```
 
-### User Story 4: Quản Lý Người Dùng Thực Tế Từ Cơ Sở Dữ Liệu (Real-Time Admin User Management)
+### User Story 4: Quản Lý Người Dùng & Phân Quyền Trực Tiếp Từ Database (100% Database-Driven RBAC)
 - **Là** Quản trị viên CodeVault,
-- **Tôi muốn** trang Quản lý người dùng phải hiển thị toàn bộ người dùng thực tế đang có trong cơ sở dữ liệu Supabase,
-- **Để** không bao giờ bị mất danh sách người dùng khi đổi trình duyệt hay xóa cache, và tài khoản Admin phải hiển thị đúng vai trò Quản Trị Viên chứ không bị gán thành Khách Hàng.
+- **Tôi muốn** trang Quản lý người dùng hiển thị đúng vai trò thực tế từ Database Supabase (`profiles.role`) và cho phép tôi nâng/hạ vai trò (Role) của bất kỳ tài khoản nào,
+- **Để** khi tôi hạ vai trò của một tài khoản xuống Khách Hàng (`customer`), hệ thống phải lưu đúng vào Database và không được tự ý biến người đó trở lại thành Quản Trị Viên (`admin`).
 
 **Acceptance Criteria:**
 1. Endpoint `GET /api/admin/users` được bảo vệ bởi xác thực Admin, truy vấn trực tiếp từ `public.profiles` và đồng bộ với `auth.users` của Supabase.
-2. Trang `/admin/users` tải dữ liệu trực tiếp từ API server, loại bỏ việc phụ thuộc vào dữ liệu tạm trong `localStorage`.
-3. Khi Admin bấm "Đổi Role: Admin/Customer", hệ thống gửi yêu cầu tới `PATCH /api/admin/users` để cập nhật cột `role` trong cơ sở dữ liệu bằng Supabase Service Role.
-4. Khi Admin bấm "Đặt lại MK", hệ thống gọi API `PATCH /api/admin/users` cập nhật mật khẩu mới qua `auth.admin.updateUserById`.
-5. Danh sách Master Admin Whitelist bao gồm: `admin@gmail.com`, `caotuan01122005@gmail.com`, `caothanhtuan576@gmail.com`, `lequan12305@gmail.com`, `admin@codevault.io` và các email trong `process.env.ADMIN_EMAILS`. Các tài khoản này luôn giữ vai trò `admin` chuẩn xác.
+2. Vai trò của tài khoản (`role`) được lấy **100% từ Database (`profiles.role`)**, TUYỆT ĐỐI KHÔNG hardcode danh sách email admin trong mã nguồn để ép role.
+3. Khi Admin bấm "Hạ role: Khách", hệ thống gọi `PATCH /api/admin/users` cập nhật `role = 'customer'` trong bảng `profiles`. Sau đó, API `GET /api/admin/users` trả về đúng `customer`, không có cơ chế auto-heal ghi đè ngược lại thành `admin`.
+4. Tài khoản bị hạ quyền xuống `customer` sẽ mất toàn bộ quyền truy cập vào các trang quản trị `/admin` và các API bảo mật của Admin.
+5. Ngoại lệ an toàn duy nhất: Admin đang đăng nhập không thể tự hạ quyền hoặc tự xóa tài khoản của chính mình (`userId === requestingAdmin.id`) nhằm chống vô tình khóa tài khoản quản trị viên tối cao.
+6. Khi Admin bấm "Đặt lại MK", hệ thống gọi API `PATCH /api/admin/users` cập nhật mật khẩu mới qua `auth.admin.updateUserById`.
 
 ---
 

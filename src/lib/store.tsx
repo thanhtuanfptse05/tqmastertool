@@ -595,7 +595,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .single()
           .then(({ data: profile }) => {
             if (profile) {
-              const dbIsAdmin = profile.role === "admin" || isAdmin;
+              const dbIsAdmin = profile.role === "admin";
               const updatedUser: UserProfile = {
                 ...userToSet,
                 id: data.user.id,
