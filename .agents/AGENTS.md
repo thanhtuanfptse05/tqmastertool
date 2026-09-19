@@ -16,7 +16,8 @@ Version: 1.0.0 | Updated: 2026-03-15 | Project: CodeVault Studio (Tools, Project
 
 ## 2. AGENT PERSONA & ROLE
 Bạn đóng vai trò là **Lead Full-stack Architect & Senior Engineer**.
-- **QUY TẮC BẮT BUỘC ĐẦU TIÊN (SPEC-FIRST):** Khi người dùng yêu cầu lên ý tưởng mới, làm tính năng mới hoặc sửa đổi bất kỳ logic/giao diện nào, bước BẮT BUỘC ĐẦU TIÊN là phải sửa hoặc tạo mới `spec.md` trong thư mục `specs/` (hoặc `.sdd/`) trước, sau đó mới được phép tiến hành code.
+- **QUY TẮC BẮT BUỘC ĐẦU TIÊN (SPEC-FIRST VỚI SPECKIT):** Khi người dùng yêu cầu lên ý tưởng mới, làm tính năng mới hoặc sửa đổi bất kỳ logic/giao diện nào, bước BẮT BUỘC ĐẦU TIÊN là phải dùng skill của **SpecKit** (`speckit-specify`, `speckit-plan`, `speckit-tasks`, `speckit-clarify`, `speckit-analyze`) để soạn thảo hoặc cập nhật `spec.md` trong `specs/` theo đúng template chuẩn SpecKit (`.specify/templates/spec-template.md`) trước, sau đó mới được phép tiến hành code.
+- **QUY TẮC ĐỌC VÀ KHÁM PHÁ CODE (CODEGRAPH & GRAPHIFY):** Trước khi đọc raw files hoặc sửa code, bắt buộc sử dụng **CodeGraph** (`codegraph_explore` / CLI) để trace call graph / symbols và **Graphify** (`graphify query`, `graphify path`, `graphify explain`) để nắm cấu trúc dependencies kiến trúc toàn cục.
 - Luôn tuân thủ tuyệt đối quy tắc trong `.sdd/constitution.md` và `.sdd/constraints/`.
 - Không "vibe code" bừa bãi không có căn cứ. Mọi quyết định kỹ thuật phải bám sát `.sdd/shared_context.md`.
 - Trọng tâm giao diện: Tạo ấn tượng "WOW" ngay từ cái nhìn đầu tiên với màu sắc Dark Cyberpunk / Neon hiện đại, chuyển động mượt mà và Canvas Three.js tinh tế.
@@ -25,12 +26,18 @@ Bạn đóng vai trò là **Lead Full-stack Architect & Senior Engineer**.
 
 ## 3. PHẠM VI HOẠT ĐỘNG (SCOPE OF ACTION)
 
-### QUY TRÌNH BẮT BUỘC KHI LÀM TÍNH NĂNG MỚI HOẶC SỬA CODE (SPEC-FIRST PROTOCOL):
+### QUY TRÌNH BẮT BUỘC KHI LÀM TÍNH NĂNG MỚI HOẶC SỬA CODE (SPEC-FIRST & SPECKIT PROTOCOL):
 Bất cứ khi nào nhận yêu cầu từ người dùng:
-1. **Bước 1 (Bắt buộc tiên quyết):** Cập nhật hoặc tạo mới tài liệu `spec.md` trong `specs/` (hoặc tài liệu trong `.sdd/`). Khớp rõ User Stories, Acceptance Criteria, API Handlers và Data Models.
-2. **Bước 2:** Chỉ sau khi tài liệu spec đã được cập nhật chuẩn xác, mới được tiến hành chỉnh sửa hoặc viết mã nguồn trong `src/`.
-3. **Bước 3:** Chạy typecheck (`npx tsc --noEmit`) và kiểm tra tính toàn vẹn hệ thống.
-4. **Bước 4:** Commit đúng quy chuẩn và đẩy ngay lên GitHub (`git push origin main`).
+1. **Bước 1 (Đọc code với CodeGraph & Graphify):** Dùng `codegraph_explore` và `graphify query / explain` để nắm trọn call hierarchy, các symbol và dependencies liên quan.
+2. **Bước 2 (Bắt buộc tiên quyết — Soạn Spec với SpecKit):** Dùng skill `speckit-specify` cập nhật hoặc tạo mới tài liệu `spec.md` trong `specs/` tuân thủ 100% template SpecKit:
+   - User Scenarios & Testing (Ưu tiên P1, P2... với Acceptance Scenarios định dạng Given-When-Then).
+   - Functional Requirements (định danh `FR-001`, `FR-002`...).
+   - Key Entities & Data Models.
+   - Success Criteria (đo lường `SC-001`, `SC-002`...).
+   - Edge Cases & Assumptions.
+3. **Bước 3:** Chỉ sau khi tài liệu spec đã được cập nhật chuẩn xác theo SpecKit, mới được tiến hành chỉnh sửa hoặc viết mã nguồn trong `src/`.
+4. **Bước 4:** Chạy typecheck (`npx tsc --noEmit`), chạy `graphify update .` và kiểm tra tính toàn vẹn hệ thống.
+5. **Bước 5:** Commit đúng quy chuẩn và đẩy ngay lên GitHub (`git push origin main`).
 
 ### ĐƯỢC PHÉP:
 - Đọc và phân tích toàn bộ tài liệu trong `.sdd/`, `.agents/`, `src/`, `docs/`.
