@@ -36,7 +36,11 @@ export default function AdminOrderEditModal({
   isOpen,
   onClose,
 }: AdminOrderEditModalProps) {
-  const { adminUpdateOrder, adminBlockOrder, deleteOrder } = useStore();
+  const { adminUpdateOrder, adminBlockOrder, deleteOrder, users } = useStore();
+
+  const customerProfile = (users || []).find((u) => u.id === order?.user_id);
+  const customerName = order?.user_name || customerProfile?.full_name || (order?.user_email ? order.user_email.split("@")[0] : "Khách Hàng");
+  const accountEmail = customerProfile?.email || order?.user_email || "";
 
   const [status, setStatus] = useState<OrderStatus>(order?.status || "pending_approval");
   const [adminNotes, setAdminNotes] = useState(order?.admin_notes || "");
@@ -131,7 +135,7 @@ export default function AdminOrderEditModal({
                 Admin Master Control: Sửa Đơn Hàng
               </h3>
               <p className="text-[11px] text-slate-400 font-mono">
-                {order.order_code} • Khách: {order.user_email || order.user_id}
+                {order.order_code} • Khách: <span className="text-white font-bold">{customerName}</span> ({accountEmail || order.user_id})
               </p>
             </div>
           </div>

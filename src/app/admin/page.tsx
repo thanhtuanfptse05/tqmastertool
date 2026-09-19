@@ -101,6 +101,14 @@ export default function AdminDashboardPage() {
   const completedOrders = orders.filter((o) => o.status === "completed");
   const pendingOrders = orders.filter((o) => o.status === "pending_approval");
 
+  const userMap = useMemo(() => {
+    const map = new Map<string, { full_name?: string; email?: string }>();
+    (users || []).forEach((u) => {
+      if (u.id) map.set(u.id, { full_name: u.full_name, email: u.email });
+    });
+    return map;
+  }, [users]);
+
   const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total_amount, 0);
   const totalOrdersCount = orders.length;
   const avgOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
@@ -487,8 +495,17 @@ export default function AdminDashboardPage() {
                 <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3.5 px-3 font-mono font-bold text-blue-600">{order.order_code}</td>
                   <td className="py-3.5 px-3">
-                    <p className="font-bold text-slate-800">{order.user_name || "Khách Hàng"}</p>
-                    <p className="text-[10px] text-slate-400">{order.user_email}</p>
+                    {(() => {
+                      const uProfile = userMap.get(order.user_id);
+                      const customerName = order.user_name || uProfile?.full_name || (order.user_email ? order.user_email.split("@")[0] : "Khách Hàng");
+                      const customerEmail = uProfile?.email || order.user_email;
+                      return (
+                        <>
+                          <p className="font-bold text-slate-800 truncate max-w-[150px]" title={customerName}>{customerName}</p>
+                          <p className="text-[10px] text-slate-400 truncate max-w-[150px]" title={customerEmail}>{customerEmail}</p>
+                        </>
+                      );
+                    })()}
                   </td>
                   <td className="py-3.5 px-3 max-w-[200px] truncate text-slate-700">
                     {order.items?.[0]?.product_title || "Sản phẩm số"}

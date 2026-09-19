@@ -35,6 +35,7 @@
 | **Phase 11** | **Tích Hợp SePay Webhook & Auto-Approval (Spec 011)** | SDD Pure | ✅ DONE | `/api/webhooks/sepay`, BIDV VA, TQ prefix, Bill upload |
 | **Phase 13** | **Tool Coursera & Auto License Keygen (Spec 013)** | SDD Pure | ✅ DONE | Keygen engine, Checkout, Vault, Supabase Seed |
 | **Phase 15** | **Gia Cố Bảo Mật Admin & Chống Sửa Giá SePay (Spec 015)** | SDD Pure | ✅ DONE | Server Admin Auth, POST /api/orders, Dual Price Check, RLS Hardening |
+| **Phase 26** | **Hiển Thị Tên Thật Khách Hàng Trong Admin (Spec 022)** | SDD Pure | ✅ DONE | `/admin/orders`, `store.tsx`, `profiles` mapping |
 
 ---
 
@@ -363,5 +364,16 @@
 - [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên remote `origin/main`.
-
-
+### [x] Giai Đoạn 26: Hiển Thị Tên Thật Khách Hàng Trong Quản Trị Đơn Hàng (Spec 022) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Soạn thảo `specs/022-admin-display-real-customer-name/spec.md` chuẩn 100% SpecKit template.
+- [x] **Truy Vấn & Ánh Xạ Hồ Sơ Khách Hàng (`fetchOrdersFromDB` trong `store.tsx`)**:
+  - Truy vấn bảng `profiles` cho toàn bộ `user_id` có trong danh sách đơn hàng để lấy `full_name` và `email`.
+  - Ánh xạ `user_name` thật cho từng đơn hàng thay vì để trống `""`.
+- [x] **Nâng Cấp Giao Diện Bảng Quản Trị Đơn Hàng (`AdminOrdersPage`)**:
+  - Cột Khách Hàng: Hiển thị tên thật nổi bật (`user_name` / `profiles.full_name`), avatar initial, email tài khoản mua và email nhận key (nếu khác nhau).
+  - Thanh tìm kiếm: Hỗ trợ tìm kiếm theo tên khách hàng, email tài khoản, email nhận key.
+  - Review Modal & Edit Modal: Hiển thị tên thật của người mua và email liên quan.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Chạy `graphify update .`.
+  - Commit và push lên remote `origin/main`.

@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
     // Fetch orders WITH items using admin client (bypasses RLS)
     const { data: orders, error } = await supabaseAdmin
       .from("orders")
-      .select("id, user_id, user_email, order_code, status, total_amount, order_items(*)")
+      .select("id, user_id, order_code, status, total_amount, admin_notes, created_at, updated_at, order_items(*)")
       .in("id", orderIds);
 
     if (error) {

@@ -34,6 +34,7 @@ import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera
 export default function AdminOrdersPage() {
   const {
     orders,
+    users,
     adminReviewOrder,
     adminBlockOrder,
     adminUpdateOrderStatus,
@@ -50,15 +51,56 @@ export default function AdminOrdersPage() {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Filtered orders
+  // Map user ID to user profile for real-time customer name lookup (Spec 022)
+  const userMap = React.useMemo(() => {
+    const map = new Map<string, { full_name?: string; email?: string }>();
+    (users || []).forEach((u) => {
+      if (u.id) map.set(u.id, { full_name: u.full_name, email: u.email });
+    });
+    return map;
+  }, [users]);
+
+  const getOrderCustomerDetails = React.useCallback(
+    (order: Order) => {
+      const uProfile = userMap.get(order.user_id);
+      const { courseraEmail, emails } = extractOrderLicenseInfo(order);
+      const keyEmails = emails && emails.length > 0 ? emails : (courseraEmail ? [courseraEmail] : []);
+
+      let name = order.user_name || uProfile?.full_name || "";
+      let accountEmail = uProfile?.email || order.user_email || "";
+
+      // Fallback if name is still empty
+      if (!name) {
+        if (accountEmail && !accountEmail.startsWith("guest")) {
+          name = accountEmail.split("@")[0];
+        } else if (keyEmails.length > 0) {
+          name = `Khách (${keyEmails[0].split("@")[0]})`;
+        } else {
+          name = "Khách Hàng";
+        }
+      }
+
+      return {
+        name,
+        accountEmail,
+        keyEmails,
+      };
+    },
+    [userMap]
+  );
+
+  // Filtered orders with customer name search
   const filteredOrders = orders.filter((order) => {
     if (selectedFilter !== "all" && order.status !== selectedFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
+      const customerInfo = getOrderCustomerDetails(order);
       const matchCode = order.order_code.toLowerCase().includes(q);
-      const matchEmail = order.user_email?.toLowerCase().includes(q);
-      const matchName = order.user_name?.toLowerCase().includes(q);
-      return matchCode || matchEmail || matchName;
+      const matchEmail = (customerInfo.accountEmail || order.user_email || "").toLowerCase().includes(q);
+      const matchName = customerInfo.name.toLowerCase().includes(q);
+      const matchKeyEmails = customerInfo.keyEmails.some((k) => k.toLowerCase().includes(q));
+      const matchNotes = (order.admin_notes || "").toLowerCase().includes(q);
+      return matchCode || matchEmail || matchName || matchKeyEmails || matchNotes;
     }
     return true;
   });
@@ -241,8 +283,33 @@ export default function AdminOrdersPage() {
                     </td>
 
                     <td className="py-4 px-4">
-                      <p className="font-bold text-slate-900">{order.user_name || "Khách Hàng"}</p>
-                      <p className="text-[11px] text-slate-400">{order.user_email}</p>
+                      {(() => {
+                        const cust = getOrderCustomerDetails(order);
+                        const initialChar = cust.name ? cust.name.trim().charAt(0).toUpperCase() : "K";
+                        return (
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm shadow-blue-500/20">
+                              {initialChar}
+                            </div>
+                            <div className="min-w-0 max-w-[200px]">
+                              <p className="font-extrabold text-slate-900 truncate" title={cust.name}>
+                                {cust.name}
+                              </p>
+                              <p className="text-[11px] text-slate-500 truncate" title={cust.accountEmail}>
+                                {cust.accountEmail || "Tài khoản vãng lai"}
+                              </p>
+                              {cust.keyEmails.length > 0 && cust.keyEmails[0] !== cust.accountEmail && (
+                                <div className="mt-0.5">
+                                  <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 text-indigo-700 font-semibold px-1.5 py-0.5 rounded border border-indigo-200 truncate max-w-full" title={cust.keyEmails.join(", ")}>
+                                    <Key className="w-2.5 h-2.5 shrink-0" />
+                                    <span className="truncate">Key: {cust.keyEmails[0]}{cust.keyEmails.length > 1 ? ` (+${cust.keyEmails.length - 1})` : ""}</span>
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-4 px-4 max-w-[220px]">
@@ -437,12 +504,27 @@ export default function AdminOrdersPage() {
             <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
               {/* Customer & Order Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                  <span className="text-slate-400 font-bold uppercase text-[10px] block">Khách hàng</span>
-                  <p className="font-extrabold text-slate-900 text-sm">{activeReviewOrder.user_name || "Khách hàng"}</p>
-                  <p className="text-slate-600">{activeReviewOrder.user_email}</p>
-                  <p className="text-slate-400 text-[11px]">User ID: {activeReviewOrder.user_id}</p>
-                </div>
+                {(() => {
+                  const cust = getOrderCustomerDetails(activeReviewOrder);
+                  return (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                      <span className="text-slate-400 font-bold uppercase text-[10px] block">Khách hàng</span>
+                      <p className="font-extrabold text-slate-900 text-sm">{cust.name}</p>
+                      <p className="text-slate-600 font-medium">{cust.accountEmail || "Tài khoản vãng lai"}</p>
+                      {cust.keyEmails.length > 0 && (
+                        <div className="pt-1.5 border-t border-slate-200/80">
+                          <span className="text-[10px] text-indigo-600 font-bold block">
+                            Email nhận Key Coursera ({cust.keyEmails.length}):
+                          </span>
+                          <span className="text-[11px] font-mono text-indigo-900 font-semibold">
+                            {cust.keyEmails.join(", ")}
+                          </span>
+                        </div>
+                      )}
+                      <p className="text-slate-400 text-[10px] font-mono pt-1">User ID: {activeReviewOrder.user_id}</p>
+                    </div>
+                  );
+                })()}
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
                   <span className="text-slate-400 font-bold uppercase text-[10px] block">Thông tin thanh toán</span>

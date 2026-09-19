@@ -289,6 +289,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
+        // 5. Query customer profiles from 'profiles' table for all user_ids (Spec 022)
+        const orderUserIds = Array.from(
+          new Set(
+            ordersData
+              .map((o: any) => o.user_id)
+              .filter((uid: any) => typeof uid === "string" && uid && !uid.startsWith("user-guest") && !uid.startsWith("guest-"))
+          )
+        );
+
+        const customerProfileMap = new Map<string, { full_name?: string; email?: string }>();
+        if (orderUserIds.length > 0) {
+          try {
+            const { data: profileRows } = await supabase
+              .from("profiles")
+              .select("id, full_name, email")
+              .in("id", orderUserIds);
+
+            if (profileRows) {
+              profileRows.forEach((p: any) => {
+                customerProfileMap.set(p.id, {
+                  full_name: p.full_name || undefined,
+                  email: p.email || undefined,
+                });
+              });
+            }
+          } catch (profErr) {
+            console.warn("[fetchOrdersFromDB] Could not query customer profiles:", profErr);
+          }
+        }
+
         const mappedOrders: Order[] = ordersData.map((o: any) => {
           const rawItems =
             o.order_items && o.order_items.length > 0
@@ -337,13 +367,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }
 
           const { licenseKey, courseraEmail } = extractOrderLicenseInfo(o);
+          const customerProfile = o.user_id ? customerProfileMap.get(o.user_id) : undefined;
+          const resolvedCustomerName =
+            customerProfile?.full_name ||
+            o.user_name ||
+            (customerProfile?.email ? customerProfile.email.split("@")[0] : "") ||
+            (courseraEmail ? courseraEmail.split("@")[0] : "");
+          const resolvedAccountEmail = customerProfile?.email || o.user_email || courseraEmail || "";
 
           return {
             id: o.id,
             order_code: o.order_code,
             user_id: o.user_id,
-            user_email: courseraEmail || o.user_email || "",
-            user_name: o.user_name || "",
+            user_email: resolvedAccountEmail,
+            user_name: resolvedCustomerName,
             items: resolvedItems,
             total_amount: Number(o.total_amount),
             status: (o.status === "blocked" || (o.admin_notes && o.admin_notes.includes("[BLOCKED]"))) ? "blocked" : o.status,
