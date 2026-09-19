@@ -554,8 +554,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       // orders to reappear, edits to be reverted, etc.) before the mutation API call completes.
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (!active) return;
-        // Skip re-fetching on token refresh to avoid clobbering optimistic updates
-        if (event === "TOKEN_REFRESHED") return;
+        // STRICT EVENT FILTER: Only re-fetch data on SIGNED_IN (user just logged in).
+        // - TOKEN_REFRESHED: triggered by getAuthHeaders() proactive refresh → would overwrite optimistic CRUD state
+        // - INITIAL_SESSION: already handled by the Promise.all above → skip to avoid duplicate fetch
+        // - USER_UPDATED / MFA_CHALLENGE_VERIFIED: no need to re-fetch orders
+        if (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION" || event === "USER_UPDATED" || event === "MFA_CHALLENGE_VERIFIED") return;
         if (session?.user) {
           supabase
             .from("profiles")
