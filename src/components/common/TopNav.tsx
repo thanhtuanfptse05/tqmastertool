@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/navigation";
+import Link from "next/link";
 import { useStore } from "@/lib/store";
 import {
   Code2,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 export default function TopNav() {
-  const { currentUser, logout, openAuthModal, orders } = useStore();
+  const { currentUser, isAuthLoading, logout, openAuthModal, orders } = useStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Count active/pending orders for current user
@@ -36,7 +36,7 @@ export default function TopNav() {
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/85 border-b border-slate-200/80 shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <a href="/" className="flex items-center gap-2.5 group">
+        <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
             <Code2 className="w-5 h-5" />
           </div>
@@ -48,23 +48,23 @@ export default function TopNav() {
               Tools • Projects • LAB211
             </span>
           </div>
-        </a>
+        </Link>
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-1.5">
-          <a
+          <Link
             href="/"
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors"
           >
             Trang Chủ
-          </a>
-          <a
+          </Link>
+          <Link
             href="/#catalog"
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors"
           >
             Kho Sản Phẩm
-          </a>
-          <a
+          </Link>
+          <Link
             href="/customer/orders"
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors relative"
           >
@@ -74,8 +74,8 @@ export default function TopNav() {
                 {userPendingCount} chờ duyệt
               </span>
             )}
-          </a>
-          <a
+          </Link>
+          <Link
             href="/customer/vault"
             className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-slate-700 hover:text-blue-600 hover:bg-slate-100 transition-colors relative"
           >
@@ -85,22 +85,25 @@ export default function TopNav() {
                 {userCompletedCount}
               </span>
             )}
-          </a>
+          </Link>
         </nav>
 
         {/* User / Actions */}
         <div className="flex items-center gap-2.5">
           {currentUser?.role === "admin" && (
-            <a
+            <Link
               href="/admin"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-md shadow-blue-500/20 hover:brightness-110 transition-all"
             >
               <ShieldAlert className="w-3.5 h-3.5" />
               Admin Portal
-            </a>
+            </Link>
           )}
 
-          {currentUser ? (
+          {/* Auth loading skeleton — prevents flicker between unauthenticated and authenticated states */}
+          {isAuthLoading ? (
+            <div className="w-28 h-8 rounded-full bg-slate-100 animate-pulse" />
+          ) : currentUser ? (
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -136,32 +139,32 @@ export default function TopNav() {
                     </span>
                   </div>
 
-                  <a
+                  <Link
                     href="/customer/orders"
                     className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600"
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <ShoppingBag className="w-3.5 h-3.5 text-slate-400" />
                     Đơn hàng đã đặt
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     href="/customer/vault"
                     className="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-blue-600"
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <Package className="w-3.5 h-3.5 text-slate-400" />
                     Tài nguyên của bạn
-                  </a>
+                  </Link>
 
                   {currentUser.role === "admin" && (
-                    <a
+                    <Link
                       href="/admin"
                       className="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-indigo-600 hover:bg-indigo-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <ShieldAlert className="w-3.5 h-3.5" />
                       Vào Admin Dashboard
-                    </a>
+                    </Link>
                   )}
 
                   <div className="border-t border-slate-100 my-1" />
