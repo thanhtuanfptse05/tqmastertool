@@ -125,7 +125,6 @@ export default function CheckoutModal() {
     // Khởi tạo ban đầu khi mở modal mới (chưa có đơn hoặc mới mở từ ngoài vào):
     const initQty = Math.max(1, Math.min(20, checkoutQuantity || 1));
     setQuantity(initQty);
-    setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
     setEmailError(null);
     setEmailCheckStatus({});
     setBillImage("");
@@ -135,8 +134,17 @@ export default function CheckoutModal() {
     setGeneratedLicenses([]);
 
     if (activeOrderForPayment) {
+      const { emails, courseraEmail } = extractOrderLicenseInfo(activeOrderForPayment);
+      const existingEmails = emails.length > 0 ? emails : (courseraEmail ? [courseraEmail] : (activeOrderForPayment.user_email ? [activeOrderForPayment.user_email] : []));
+      if (existingEmails.length > 0) {
+        setCustomerEmails(existingEmails);
+        setQuantity(existingEmails.length);
+      } else {
+        setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
+      }
       setStep("qr");
     } else {
+      setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
       setStep("confirm");
     }
   }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step]);
@@ -461,23 +469,6 @@ export default function CheckoutModal() {
   };
 
   const handleProceedToUpload = () => {
-    if (isLicenseRequired) {
-      if (!validateEmails()) return;
-
-      const cleanEmails = customerEmails.map((e) => e.trim().toLowerCase()).slice(0, quantity);
-      // Lưu ngay Coursera Emails vào order phía server để SePay Webhook nhận diện được nếu quét QR thanh toán tức thì
-      if (order?.id) {
-        fetch("/api/orders", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: order.id,
-            customer_emails: cleanEmails,
-            customer_email: cleanEmails[0],
-          }),
-        }).catch(() => {});
-      }
-    }
     setStep("upload");
   };
 
@@ -507,10 +498,10 @@ export default function CheckoutModal() {
                 {step === "confirm"
                   ? "Xác Nhận Đơn Hàng"
                   : step === "upload"
-                  ? "Nộp Bằng Chứng Chuyển Khoản (Admin Duyệt)"
+                  ? "Bước 2: Tải Bill Dự Phòng (Admin Duyệt)"
                   : step === "success"
-                  ? (isAutoApproved ? "Thanh Toán & Kích Hoạt Thành Công" : "Tiếp Nhận Biên Lai Thành Công")
-                  : "Thanh Toán VietQR (Napas 247)"}
+                  ? (isAutoApproved ? "Thanh Toán Thành Công" : "Đã Tiếp Nhận Biên Lai")
+                  : "Bước 1: Thanh Toán VietQR (Napas 247)"}
               </h3>
               <p className="text-[11px] text-slate-500">
                 {step === "confirm"
@@ -528,54 +519,21 @@ export default function CheckoutModal() {
           </button>
         </div>
 
-        {/* Progress Stepper (Spec 020 & Spec 023) */}
+        {/* Progress Stepper (Nghiệp vụ chuẩn: 1. Quét QR -> 2. Tải Bill Dự Phòng -> 3. Nhận Key) */}
         <div className="grid grid-cols-3 border-b border-slate-100 text-xs font-bold text-center py-2.5 bg-slate-50/40">
-          <div className={`flex items-center justify-center gap-1.5 ${step === "confirm" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "confirm" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>1</span>
-            <span>1. Xác Nhận Đơn</span>
+          <div className={`flex items-center justify-center gap-1.5 ${step === "qr" || step === "confirm" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "qr" || step === "confirm" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>1</span>
+            <span>1. Quét Mã VietQR</span>
           </div>
-          <div className={`flex items-center justify-center gap-1.5 ${step === "qr" || step === "upload" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "qr" || step === "upload" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>2</span>
-            <span>2. Thanh Toán (QR / Bill)</span>
+          <div className={`flex items-center justify-center gap-1.5 ${step === "upload" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "upload" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>2</span>
+            <span>2. Tải Bill Dự Phòng</span>
           </div>
           <div className={`flex items-center justify-center gap-1.5 ${step === "success" ? "text-emerald-600 font-extrabold" : "text-slate-400"}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "success" ? "bg-emerald-100 text-emerald-700 font-black" : "bg-slate-100 text-slate-500"}`}>3</span>
-            <span>3. Nhận Key / Chờ Duyệt</span>
+            <span>3. Nhận Key & Tải</span>
           </div>
         </div>
-
-        {/* Dual-Mode Payment Mode Switcher (Spec 023: Quét QR tự động vs Tải bill dự phòng) */}
-        {(step === "qr" || step === "upload") && order && (
-          <div className="px-6 pt-3 pb-1 bg-slate-50/60 border-b border-slate-100">
-            <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl gap-1">
-              <button
-                type="button"
-                onClick={() => setStep("qr")}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs transition-all ${
-                  step === "qr"
-                    ? "bg-white text-blue-600 shadow-sm font-black border border-slate-200/70"
-                    : "text-slate-600 hover:text-slate-900 font-bold hover:bg-white/40"
-                }`}
-              >
-                <QrCode className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">⚡ Quét Mã QR (Tự Động 24/7)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleProceedToUpload}
-                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs transition-all ${
-                  step === "upload"
-                    ? "bg-white text-indigo-600 shadow-sm font-black border border-slate-200/70"
-                    : "text-slate-600 hover:text-slate-900 font-bold hover:bg-white/40"
-                }`}
-              >
-                <UploadCloud className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">📄 Tải Bill Dự Phòng (Admin Duyệt)</span>
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* STEP 1: EXPLICIT ORDER CONFIRMATION (SPEC 020) */}
         {step === "confirm" && (
@@ -911,11 +869,11 @@ export default function CheckoutModal() {
                   <button
                     type="button"
                     onClick={handleProceedToUpload}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center"
-                    title="Nộp ảnh biên lai nếu không muốn quét mã hoặc SePay chậm trễ"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 border border-slate-300 text-slate-800 text-xs font-bold transition-all text-center"
+                    title="Chuyển sang Bước 2 để nộp ảnh biên lai nếu không quét mã hoặc muốn Admin duyệt thủ công"
                   >
-                    <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Nộp ảnh bill dự phòng</span>
+                    <UploadCloud className="w-4 h-4 text-indigo-600" />
+                    <span>Tôi Đã Chuyển Tiền — Tải Ảnh Bill Dự Phòng ➔</span>
                   </button>
 
                   <button

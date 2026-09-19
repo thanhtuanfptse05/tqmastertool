@@ -380,23 +380,22 @@
   - Chạy `graphify update .`.
   - Commit và push lên remote `origin/main`.
 
-### [x] Giai Đoạn 27: Phương Thức Thanh Toán Kép: Quét Mã VietQR Tự Động & Tải Ảnh Bill Dự Phòng (Spec 023) — ĐÃ HOÀN THÀNH
-- [x] **Spec-First Protocol**: Soạn thảo `specs/023-dual-payment-mode-qr-and-backup-bill-upload/spec.md` chuẩn 100% SpecKit template.
-- [x] **Giao Diện Thanh Toán Kép (Dual-Mode Checkout) Tại Bước 2**:
-  - Thêm thanh chuyển đổi 2 Tab cực kỳ trực quan ngay trên đầu Bước 2:
-    - Tab 1: `⚡ Quét Mã VietQR (Tự Động 24/7 - Khuyên Dùng)`
-    - Tab 2: `📄 Tải Ảnh Bill Dự Phòng (Admin Duyệt Thủ Công)`
-  - Chuyển đổi 1-click mượt mà, bảo toàn 100% dữ liệu đơn hàng và Coursera email.
-- [x] **Chuẩn Hóa Tiến Trình Thanh Toán (Stepper & Header)**:
-  - Stepper 3 bước linh hoạt: `1. Xác Nhận Đơn` ➔ `2. Thanh Toán (QR / Bill)` ➔ `3. Hoàn Tất / Chờ Duyệt`.
-  - Header và Icon tự động thay đổi theo chế độ thanh toán đang mở.
-- [x] **Trang Bị Thông Tin Chuyển Khoản Đầy Đủ Trong Chế Độ Tải Bill**:
-  - Bổ sung khối thông tin tài khoản BIDV (STK, Chủ TK, Số tiền, Nội dung chuyển khoản có nút 1-click copy) dành cho khách hàng chuyển khoản thủ công.
-  - Khu vực tải ảnh biên lai hỗ trợ file ảnh (JPG, PNG, WEBP), xem trước ảnh (preview), ô nhập mã giao dịch.
-  - Nút submit: `Xác Nhận & Gửi Bill Cho Admin Duyệt` ➔ cập nhật `pending_approval` và chuyển sang Bước 3 thông báo chờ duyệt.
-- [x] **Mở Rộng Auto-Polling SePay**:
-  - Chạy kiểm tra tự động cả khi khách đang ở chế độ Quét QR lẫn chế độ Tải Bill, chuyển thẳng sang Bước 3 thành công nếu tiền đã vào tài khoản.
+### [x] Giai Đoạn 27: Chuẩn Hóa Tiến Trình Thanh Toán 3 Bước & Tải Bill Dự Phòng (Spec 023) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Cập nhật `specs/023-dual-payment-mode-qr-and-backup-bill-upload/spec.md` chuẩn 100% SpecKit template.
+- [x] **Chuẩn Hóa Tiến Trình 3 Bước Rõ Ràng**:
+  - `1. Quét Mã VietQR` (màn hình chính hiển thị mã QR và thông tin chuyển khoản).
+  - `2. Tải Bill Dự Phòng` (dành cho khách không quét mã hoặc chuyển thủ công cần Admin duyệt).
+  - `3. Nhận Key & Tải` (nhận License Key ngay khi thanh toán xong).
+- [x] **Xóa Bỏ Hoàn Toàn Tab Trùng Lặp**:
+  - Loại bỏ thanh tab thừa thãi ở trên đầu modal để giao diện tinh gọn, tập trung vào mã QR.
+  - Chỉ giữ nút chuyển bước chuẩn: `Tôi Đã Chuyển Tiền — Tải Ảnh Bill Dự Phòng ➔`.
+- [x] **Khắc Phục Triệt Để Lỗi Liệt Nút Chuyển Bước**:
+  - Bỏ kiểm tra `validateEmails()` trong `handleProceedToUpload`, cho phép bấm chuyển sang Bước 2 tức thì 100% không bị chặn ngầm.
+  - Tự động nạp lại email khách hàng từ `order.admin_notes` khi mở lại đơn hàng từ lịch sử.
+- [x] **Bỏ Qua Bước 2 Khi Quét Mã Tự Động**:
+  - Nếu khách quét QR và SePay nhận diện tiền vào, hệ thống tự động nhảy thẳng từ Bước 1 sang Bước 3 mở key mà KHÔNG bắt nộp ảnh bill.
 - [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên remote `origin/main`.
+
 
