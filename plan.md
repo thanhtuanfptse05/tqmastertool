@@ -36,6 +36,8 @@
 | **Phase 13** | **Tool Coursera & Auto License Keygen (Spec 013)** | SDD Pure | ✅ DONE | Keygen engine, Checkout, Vault, Supabase Seed |
 | **Phase 15** | **Gia Cố Bảo Mật Admin & Chống Sửa Giá SePay (Spec 015)** | SDD Pure | ✅ DONE | Server Admin Auth, POST /api/orders, Dual Price Check, RLS Hardening |
 | **Phase 26** | **Hiển Thị Tên Thật Khách Hàng Trong Admin (Spec 022)** | SDD Pure | ✅ DONE | `/admin/orders`, `store.tsx`, `profiles` mapping |
+| **Phase 27** | **Thanh Toán Kép: Quét VietQR & Tải Bill Dự Phòng (Spec 023)** | SDD Pure | ✅ DONE | `CheckoutModal.tsx`, Dual-Mode UI, Supabase Storage |
+
 
 ---
 
@@ -377,3 +379,24 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Chạy `graphify update .`.
   - Commit và push lên remote `origin/main`.
+
+### [x] Giai Đoạn 27: Phương Thức Thanh Toán Kép: Quét Mã VietQR Tự Động & Tải Ảnh Bill Dự Phòng (Spec 023) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Soạn thảo `specs/023-dual-payment-mode-qr-and-backup-bill-upload/spec.md` chuẩn 100% SpecKit template.
+- [x] **Giao Diện Thanh Toán Kép (Dual-Mode Checkout) Tại Bước 2**:
+  - Thêm thanh chuyển đổi 2 Tab cực kỳ trực quan ngay trên đầu Bước 2:
+    - Tab 1: `⚡ Quét Mã VietQR (Tự Động 24/7 - Khuyên Dùng)`
+    - Tab 2: `📄 Tải Ảnh Bill Dự Phòng (Admin Duyệt Thủ Công)`
+  - Chuyển đổi 1-click mượt mà, bảo toàn 100% dữ liệu đơn hàng và Coursera email.
+- [x] **Chuẩn Hóa Tiến Trình Thanh Toán (Stepper & Header)**:
+  - Stepper 3 bước linh hoạt: `1. Xác Nhận Đơn` ➔ `2. Thanh Toán (QR / Bill)` ➔ `3. Hoàn Tất / Chờ Duyệt`.
+  - Header và Icon tự động thay đổi theo chế độ thanh toán đang mở.
+- [x] **Trang Bị Thông Tin Chuyển Khoản Đầy Đủ Trong Chế Độ Tải Bill**:
+  - Bổ sung khối thông tin tài khoản BIDV (STK, Chủ TK, Số tiền, Nội dung chuyển khoản có nút 1-click copy) dành cho khách hàng chuyển khoản thủ công.
+  - Khu vực tải ảnh biên lai hỗ trợ file ảnh (JPG, PNG, WEBP), xem trước ảnh (preview), ô nhập mã giao dịch.
+  - Nút submit: `Xác Nhận & Gửi Bill Cho Admin Duyệt` ➔ cập nhật `pending_approval` và chuyển sang Bước 3 thông báo chờ duyệt.
+- [x] **Mở Rộng Auto-Polling SePay**:
+  - Chạy kiểm tra tự động cả khi khách đang ở chế độ Quét QR lẫn chế độ Tải Bill, chuyển thẳng sang Bước 3 thành công nếu tiền đã vào tài khoản.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên remote `origin/main`.
+

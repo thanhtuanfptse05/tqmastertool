@@ -171,9 +171,9 @@ export default function CheckoutModal() {
     }
   };
 
-  // AUTO-POLLING (SPEC 017): Tự động lắng nghe trạng thái đơn hàng khi khách đang ở màn hình QR
+  // AUTO-POLLING (SPEC 017 & SPEC 023): Tự động lắng nghe trạng thái đơn hàng khi khách đang ở màn hình QR hoặc Upload
   React.useEffect(() => {
-    if (step !== "qr" || !activeOrderForPayment?.id) return;
+    if ((step !== "qr" && step !== "upload") || !activeOrderForPayment?.id) return;
 
     let isSubscribed = true;
 
@@ -490,17 +490,27 @@ export default function CheckoutModal() {
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
               step === "confirm"
                 ? "bg-blue-50 text-blue-600"
+                : step === "upload"
+                ? "bg-indigo-50 text-indigo-600"
                 : "bg-emerald-50 text-emerald-600"
             }`}>
               {step === "confirm" ? (
                 <ShoppingCart className="w-4 h-4" />
+              ) : step === "upload" ? (
+                <UploadCloud className="w-4 h-4" />
               ) : (
                 <QrCode className="w-4 h-4" />
               )}
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900">
-                {step === "confirm" ? "Xác Nhận Đơn Hàng" : "Thanh Toán VietQR (Napas 247)"}
+                {step === "confirm"
+                  ? "Xác Nhận Đơn Hàng"
+                  : step === "upload"
+                  ? "Nộp Bằng Chứng Chuyển Khoản (Admin Duyệt)"
+                  : step === "success"
+                  ? (isAutoApproved ? "Thanh Toán & Kích Hoạt Thành Công" : "Tiếp Nhận Biên Lai Thành Công")
+                  : "Thanh Toán VietQR (Napas 247)"}
               </h3>
               <p className="text-[11px] text-slate-500">
                 {step === "confirm"
@@ -518,7 +528,7 @@ export default function CheckoutModal() {
           </button>
         </div>
 
-        {/* Progress Stepper (Spec 020) */}
+        {/* Progress Stepper (Spec 020 & Spec 023) */}
         <div className="grid grid-cols-3 border-b border-slate-100 text-xs font-bold text-center py-2.5 bg-slate-50/40">
           <div className={`flex items-center justify-center gap-1.5 ${step === "confirm" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "confirm" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>1</span>
@@ -526,13 +536,46 @@ export default function CheckoutModal() {
           </div>
           <div className={`flex items-center justify-center gap-1.5 ${step === "qr" || step === "upload" ? "text-blue-600 font-extrabold" : "text-slate-400"}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "qr" || step === "upload" ? "bg-blue-100 text-blue-700 font-black" : "bg-slate-100 text-slate-500"}`}>2</span>
-            <span>2. Quét Mã QR</span>
+            <span>2. Thanh Toán (QR / Bill)</span>
           </div>
           <div className={`flex items-center justify-center gap-1.5 ${step === "success" ? "text-emerald-600 font-extrabold" : "text-slate-400"}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === "success" ? "bg-emerald-100 text-emerald-700 font-black" : "bg-slate-100 text-slate-500"}`}>3</span>
-            <span>3. Nhận Key & Tải</span>
+            <span>3. Nhận Key / Chờ Duyệt</span>
           </div>
         </div>
+
+        {/* Dual-Mode Payment Mode Switcher (Spec 023: Quét QR tự động vs Tải bill dự phòng) */}
+        {(step === "qr" || step === "upload") && order && (
+          <div className="px-6 pt-3 pb-1 bg-slate-50/60 border-b border-slate-100">
+            <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl gap-1">
+              <button
+                type="button"
+                onClick={() => setStep("qr")}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs transition-all ${
+                  step === "qr"
+                    ? "bg-white text-blue-600 shadow-sm font-black border border-slate-200/70"
+                    : "text-slate-600 hover:text-slate-900 font-bold hover:bg-white/40"
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">⚡ Quét Mã QR (Tự Động 24/7)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleProceedToUpload}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs transition-all ${
+                  step === "upload"
+                    ? "bg-white text-indigo-600 shadow-sm font-black border border-slate-200/70"
+                    : "text-slate-600 hover:text-slate-900 font-bold hover:bg-white/40"
+                }`}
+              >
+                <UploadCloud className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">📄 Tải Bill Dự Phòng (Admin Duyệt)</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* STEP 1: EXPLICIT ORDER CONFIRMATION (SPEC 020) */}
         {step === "confirm" && (
@@ -864,21 +907,22 @@ export default function CheckoutModal() {
                   Hủy / Đóng
                 </button>
 
-                <div className="flex items-center gap-2 order-1 sm:order-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 order-1 sm:order-2">
                   <button
                     type="button"
                     onClick={handleProceedToUpload}
-                    className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-colors flex-1 sm:flex-initial text-center"
-                    title="Nộp ảnh biên lai nếu ngân hàng bị chậm trễ biến động số dư"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 border border-slate-200 text-slate-700 text-xs font-bold transition-all text-center"
+                    title="Nộp ảnh biên lai nếu không muốn quét mã hoặc SePay chậm trễ"
                   >
-                    Tải ảnh bill dự phòng
+                    <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Nộp ảnh bill dự phòng</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleManualCheckPayment}
                     disabled={isCheckingPayment}
-                    className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-60 flex-1 sm:flex-initial"
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-60 text-center"
                   >
                     {isCheckingPayment ? (
                       <>
@@ -898,16 +942,76 @@ export default function CheckoutModal() {
           </div>
         )}
 
-        {/* Step 2: BILL UPLOAD & TRANSACTION PROOF (Spec 005) */}
-        {step === "upload" && (
+        {/* Step 2: BILL UPLOAD & TRANSACTION PROOF (Spec 005 & Spec 023) */}
+        {step === "upload" && order && (
           <form onSubmit={handleBillSubmit} className="p-6 space-y-5">
             <div>
-              <h4 className="text-sm font-extrabold text-slate-900">
-                Gửi Bằng Chứng Chuyển Khoản
-              </h4>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <UploadCloud className="w-4 h-4 text-indigo-600" />
+                  Gửi Biên Lai Chuyển Khoản Dự Phòng (Admin Duyệt)
+                </h4>
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full w-fit">
+                  Dành cho chuyển khoản thủ công
+                </span>
+              </div>
               <p className="text-xs text-slate-500 mt-1">
-                Tải lên ảnh chụp màn hình ứng dụng ngân hàng hoặc cung cấp mã giao dịch để Admin đối chiếu số dư.
+                Nếu bạn không quét mã QR, vui lòng chuyển khoản theo thông tin bên dưới rồi tải ảnh chụp màn hình biên lai thành công để Admin kiểm tra và kích hoạt đơn hàng.
               </p>
+            </div>
+
+            {/* Transfer Summary for Manual Transfer in Upload Mode */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 text-[11px]">Ngân hàng:</span>
+                <span className="font-bold text-slate-800">{DEFAULT_VIETQR_CONFIG.bankId} (Ngân hàng Đầu tư &amp; PT Việt Nam)</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 text-[11px]">Số tài khoản (VA SePay):</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-slate-900 text-xs">{DEFAULT_VIETQR_CONFIG.accountNo}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(DEFAULT_VIETQR_CONFIG.accountNo, "acc_upload")}
+                    className="p-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
+                    title="Sao chép STK"
+                  >
+                    {copiedField === "acc_upload" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 text-[11px]">Chủ tài khoản:</span>
+                <span className="font-bold text-slate-800 uppercase">{DEFAULT_VIETQR_CONFIG.accountName}</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 text-[11px]">Số tiền cần chuyển:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-blue-600 text-xs">{formatVND(order.total_amount)}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(String(order.total_amount), "amt_upload")}
+                    className="p-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
+                    title="Sao chép số tiền"
+                  >
+                    {copiedField === "amt_upload" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                <span className="text-slate-500 text-[11px]">Nội dung chuyển khoản (bắt buộc):</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-black text-rose-600 text-xs">{order.vietqr_content}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(order.vietqr_content, "memo_upload")}
+                    className="p-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
+                    title="Sao chép nội dung"
+                  >
+                    {copiedField === "memo_upload" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
             </div>
 
             {isLicenseRequired && customerEmails.some((e) => e.trim()) && (
@@ -1044,8 +1148,8 @@ export default function CheckoutModal() {
                   <><Loader2 className="w-4 h-4 animate-spin" /><span>Đang gửi xác nhận...</span></>
                 ) : (
                   <>
-                    <UploadCloud className="w-4 h-4" />
-                    <span>Xác Nhận Đã Chuyển Khoản</span>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Xác Nhận &amp; Gửi Bill Cho Admin Duyệt</span>
                   </>
                 )}
               </button>
