@@ -69,7 +69,7 @@ interface StoreContextType {
   ) => void;
 
   // Admin Order Review & CRUD
-  adminReviewOrder: (orderId: string, action: "approve" | "reject", adminNotes?: string) => void;
+  adminReviewOrder: (orderId: string, action: "approve" | "reject", adminNotes?: string) => Promise<boolean>;
   adminUpdateOrderStatus: (orderId: string, status: OrderStatus, notes?: string) => Promise<boolean>;
   adminBlockOrder: (orderId: string, reason?: string) => Promise<boolean>;
   adminUpdateOrder: (orderId: string, data: Partial<Order>) => Promise<boolean>;
@@ -409,15 +409,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const fetchUsersFromDB = useCallback(async () => {
     if (!isSupabaseConfigured) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) return;
+      const headers = await getAuthHeaders();
+      if (!headers["Authorization"]) return;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const res = await fetch("/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
         cache: "no-store",
         signal: controller.signal,
       });
@@ -777,14 +776,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const adminResetPassword = async (userId: string, newPassword?: string): Promise<boolean> => {
     if (!newPassword || newPassword.length < 6) return false;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const headers = await getAuthHeaders();
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({ action: "reset_password", userId, newPassword }),
       });
       if (!res.ok) {
@@ -799,27 +794,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const adminUpdateRole = async (userId: string, role: UserRole): Promise<boolean> => {
-    // 1. Optimistic UI update
-    const updated = users.map((u) => (u.id === userId ? { ...u, role } : u));
-    setUsers(updated);
-    persist(STORAGE_KEYS.USERS, updated);
+    // 1. Optimistic UI update functionally
+    setUsers((prev) => {
+      const next = prev.map((u) => (u.id === userId ? { ...u, role } : u));
+      persist(STORAGE_KEYS.USERS, next);
+      return next;
+    });
     if (currentUser?.id === userId) {
       const updatedCurrent = { ...currentUser, role };
       setCurrentUser(updatedCurrent);
       persist(STORAGE_KEYS.USER, updatedCurrent);
     }
 
-    // 2. Call Server API
+    // 2. Call Server API with fresh auth headers
     if (isSupabaseConfigured) {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token;
+        const headers = await getAuthHeaders();
         const res = await fetch("/api/admin/users", {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers,
           body: JSON.stringify({ action: "update_role", userId, role }),
         });
         if (!res.ok) {
@@ -839,19 +832,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const adminDeleteUser = async (userId: string): Promise<boolean> => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const headers = await getAuthHeaders();
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers,
         body: JSON.stringify({ action: "delete_user", userId }),
       });
       if (res.ok) {
-        setUsers((prev) => prev.filter((u) => u.id !== userId));
-        persist(STORAGE_KEYS.USERS, users.filter((u) => u.id !== userId));
+        setUsers((prev) => {
+          const next = prev.filter((u) => u.id !== userId);
+          persist(STORAGE_KEYS.USERS, next);
+          return next;
+        });
         return true;
       }
       return false;
@@ -1026,9 +1018,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const adminDeleteProduct = async (id: string): Promise<boolean> => {
     // 1. Cập nhật state bộ nhớ và LocalStorage ngay lập tức để UI mượt mà
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
-    persist(STORAGE_KEYS.PRODUCTS, updated);
+    setProducts((prev) => {
+      const next = prev.filter((p) => p.id !== id);
+      persist(STORAGE_KEYS.PRODUCTS, next);
+      return next;
+    });
 
     // 2. Gỡ khỏi giỏ hàng nếu đang có
     setCart((prevCart) => {
@@ -1037,32 +1031,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return filtered;
     });
 
-    // 3. Xóa vĩnh viễn trong Supabase trực tiếp (siêu nhanh ~50ms, có timeout bảo vệ không bao giờ bị treo)
+    // 3. Xóa vĩnh viễn trên Server bằng API /api/admin/products (Service Role bypass RLS & clean FK)
     if (isSupabaseConfigured) {
       try {
-        const deleteOps = (async () => {
-          // Gỡ liên kết order_items nếu có
-          try {
-            await supabase.from("order_items").update({ product_id: null }).eq("product_id", id);
-          } catch {}
-
-          // Xóa demos liên quan
-          try {
-            await supabase.from("product_demos").delete().eq("product_id", id);
-          } catch {}
-
-          // Xóa sản phẩm khỏi bảng products
-          const { error } = await supabase.from("products").delete().eq("id", id);
-          if (error) {
-            console.warn("[adminDeleteProduct] Supabase delete warning:", error);
-          }
-        })();
-
-        // Đặt timeout 2 giây để đảm bảo UI không bao giờ bị quay vô tận
-        const timeout = new Promise((resolve) => setTimeout(resolve, 2000));
-        await Promise.race([deleteOps, timeout]);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/admin/products?productId=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[adminDeleteProduct] Server API error:", err);
+          return false;
+        }
       } catch (err) {
-        console.error("[adminDeleteProduct] Lỗi xóa sản phẩm từ Supabase:", err);
+        console.error("[adminDeleteProduct] Lỗi gọi API xóa sản phẩm:", err);
+        return false;
       }
     }
     return true;
@@ -1252,18 +1236,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (isSupabaseConfigured) {
       try {
+        let token: string | undefined = undefined;
         const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          headers["Authorization"] = `Bearer ${session.access_token}`;
+
+        const nowSec = Math.floor(Date.now() / 1000);
+        // If session exists but is expired or about to expire within 60s, proactively refresh
+        if (session && session.expires_at && session.expires_at - nowSec < 60) {
+          try {
+            const { data: refreshed } = await supabase.auth.refreshSession();
+            if (refreshed?.session?.access_token) {
+              token = refreshed.session.access_token;
+            }
+          } catch (e) {
+            console.warn("[getAuthHeaders] Proactive session refresh warning:", e);
+          }
+        }
+
+        if (!token && session?.access_token) {
+          token = session.access_token;
+        }
+
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
         }
       } catch (e) {
-        console.warn("Could not retrieve session token:", e);
+        console.warn("[getAuthHeaders] Could not retrieve session token:", e);
       }
     }
     return headers;
   };
 
-  const adminReviewOrder = (orderId: string, action: "approve" | "reject", adminNotes?: string) => {
+  const adminReviewOrder = async (orderId: string, action: "approve" | "reject", adminNotes?: string): Promise<boolean> => {
     const status = action === "approve" ? ("completed" as const) : ("rejected" as const);
     const targetOrder = orders.find((o) => o.id === orderId);
     let finalNotes = adminNotes || (action === "approve" ? "Đã đối chiếu khớp số dư và nội dung chuyển khoản." : "Thông tin chuyển khoản không hợp lệ.");
@@ -1290,24 +1293,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const updated = orders.map((o) => {
-      if (o.id !== orderId) return o;
-      return {
-        ...o,
-        status,
-        reviewed_by_admin_id: currentUser?.id || "admin-lead",
-        reviewed_at: new Date().toISOString(),
-        admin_notes: finalNotes,
-        license_key: generatedKey || o.license_key,
-        updated_at: new Date().toISOString(),
-      };
+    setOrders((prev) => {
+      const next = prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          status,
+          reviewed_by_admin_id: currentUser?.id || "admin-lead",
+          reviewed_at: new Date().toISOString(),
+          admin_notes: finalNotes,
+          license_key: generatedKey || o.license_key,
+          updated_at: new Date().toISOString(),
+        };
+      });
+      persist(STORAGE_KEYS.ORDERS, next);
+      return next;
     });
-    setOrders(updated);
-    persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
-      getAuthHeaders().then((headers) => {
-        fetch("/api/orders", {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch("/api/orders", {
           method: "PATCH",
           headers,
           body: JSON.stringify({
@@ -1317,9 +1323,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             reviewed_at: new Date().toISOString(),
             admin_notes: finalNotes,
           }),
-        }).catch((e) => console.warn("Failed to call /api/orders in adminReviewOrder:", e));
-      });
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[adminReviewOrder] PATCH failed:", err);
+          return false;
+        }
+      } catch (e) {
+        console.warn("[adminReviewOrder] Exception in PATCH:", e);
+        return false;
+      }
     }
+    return true;
   };
 
   const adminUpdateOrderStatus = async (orderId: string, status: OrderStatus, notes?: string): Promise<boolean> => {
@@ -1363,25 +1378,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const updated = orders.map((o) => {
-      if (o.id !== orderId) return o;
-      return {
-        ...o,
-        status,
-        reviewed_by_admin_id: currentUser?.id || "admin-lead",
-        reviewed_at: new Date().toISOString(),
-        admin_notes: finalNotes,
-        license_key: generatedKey || o.license_key,
-        updated_at: new Date().toISOString(),
-      };
+    setOrders((prev) => {
+      const next = prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          status,
+          reviewed_by_admin_id: currentUser?.id || "admin-lead",
+          reviewed_at: new Date().toISOString(),
+          admin_notes: finalNotes,
+          license_key: generatedKey || o.license_key,
+          updated_at: new Date().toISOString(),
+        };
+      });
+      persist(STORAGE_KEYS.ORDERS, next);
+      return next;
     });
-    setOrders(updated);
-    persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
       try {
         const headers = await getAuthHeaders();
-        await fetch("/api/orders", {
+        const res = await fetch("/api/orders", {
           method: "PATCH",
           headers,
           body: JSON.stringify({
@@ -1392,8 +1409,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             reviewed_at: new Date().toISOString(),
           }),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[adminUpdateOrderStatus] PATCH failed:", err);
+          return false;
+        }
       } catch (e) {
-        console.warn("Failed to call /api/orders PATCH:", e);
+        console.warn("Failed to call /api/orders in adminUpdateOrderStatus:", e);
+        return false;
       }
     }
     return true;
@@ -1405,21 +1428,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const adminUpdateOrder = async (orderId: string, data: Partial<Order>): Promise<boolean> => {
-    const updated = orders.map((o) => {
-      if (o.id !== orderId) return o;
-      return {
-        ...o,
-        ...data,
-        updated_at: new Date().toISOString(),
-      };
+    setOrders((prev) => {
+      const next = prev.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          ...data,
+          updated_at: new Date().toISOString(),
+        };
+      });
+      persist(STORAGE_KEYS.ORDERS, next);
+      return next;
     });
-    setOrders(updated);
-    persist(STORAGE_KEYS.ORDERS, updated);
 
     if (isSupabaseConfigured) {
       try {
         const headers = await getAuthHeaders();
-        await fetch("/api/orders", {
+        const res = await fetch("/api/orders", {
           method: "PATCH",
           headers,
           body: JSON.stringify({
@@ -1427,8 +1452,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ...data,
           }),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[adminUpdateOrder] PATCH failed:", err);
+          return false;
+        }
       } catch (e) {
         console.warn("Failed to call /api/orders PATCH in adminUpdateOrder:", e);
+        return false;
       }
     }
     return true;
@@ -1438,16 +1469,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const target = orders.find((o) => o.id === orderId);
     if (!target) return false;
 
-    const updated = orders.map((o) =>
-      o.id === orderId ? { ...o, status: "cancelled" as const, updated_at: new Date().toISOString() } : o
-    );
-    setOrders(updated);
-    persist(STORAGE_KEYS.ORDERS, updated);
+    setOrders((prev) => {
+      const next = prev.map((o) =>
+        o.id === orderId ? { ...o, status: "cancelled" as const, updated_at: new Date().toISOString() } : o
+      );
+      persist(STORAGE_KEYS.ORDERS, next);
+      return next;
+    });
 
     if (isSupabaseConfigured) {
       try {
         const headers = await getAuthHeaders();
-        await fetch("/api/orders", {
+        const res = await fetch("/api/orders", {
           method: "PATCH",
           headers,
           body: JSON.stringify({
@@ -1455,17 +1488,27 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             status: "cancelled",
           }),
         });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error("[cancelOrder] PATCH failed:", err);
+          return false;
+        }
       } catch (e) {
         console.warn("Failed to call /api/orders cancel:", e);
+        return false;
       }
     }
     return true;
   };
 
   const deleteOrder = async (orderId: string): Promise<boolean> => {
-    const updated = orders.filter((o) => o.id !== orderId);
-    setOrders(updated);
-    persist(STORAGE_KEYS.ORDERS, updated);
+    let prevOrdersSnapshot: Order[] = [];
+    setOrders((prev) => {
+      prevOrdersSnapshot = prev;
+      const next = prev.filter((o) => o.id !== orderId);
+      persist(STORAGE_KEYS.ORDERS, next);
+      return next;
+    });
 
     if (isSupabaseConfigured) {
       try {
@@ -1476,11 +1519,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          console.error("Failed to delete order from database:", errData);
+          console.error("[deleteOrder] Failed to delete order from database:", errData);
+          // Restore previous state snapshot if server rejected delete
+          setOrders((current) => {
+            const restored = prevOrdersSnapshot.length > 0 ? prevOrdersSnapshot : current;
+            persist(STORAGE_KEYS.ORDERS, restored);
+            return restored;
+          });
           return false;
         }
       } catch (e) {
-        console.error("Exception calling /api/orders DELETE:", e);
+        console.error("[deleteOrder] Exception calling /api/orders DELETE:", e);
+        setOrders((current) => {
+          const restored = prevOrdersSnapshot.length > 0 ? prevOrdersSnapshot : current;
+          persist(STORAGE_KEYS.ORDERS, restored);
+          return restored;
+        });
         return false;
       }
     }

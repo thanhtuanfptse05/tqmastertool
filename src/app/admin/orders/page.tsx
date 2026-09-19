@@ -27,6 +27,7 @@ import {
   Ban,
   Filter,
   Key,
+  Loader2,
 } from "lucide-react";
 import AdminOrderEditModal from "@/components/store/AdminOrderEditModal";
 import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
@@ -50,6 +51,7 @@ export default function AdminOrdersPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   // Map user ID to user profile for real-time customer name lookup (Spec 022)
   const userMap = React.useMemo(() => {
@@ -105,16 +107,26 @@ export default function AdminOrdersPage() {
     return true;
   });
 
-  const handleApprove = (orderId: string) => {
-    adminReviewOrder(orderId, "approve", "Đã nhận đúng số tiền chuyển khoản qua tài khoản ngân hàng.");
-    setActiveReviewOrder(null);
+  const handleApprove = async (orderId: string) => {
+    setActionLoadingId(orderId);
+    try {
+      await adminReviewOrder(orderId, "approve", "Đã nhận đúng số tiền chuyển khoản qua tài khoản ngân hàng.");
+      setActiveReviewOrder(null);
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
-  const handleReject = (orderId: string) => {
-    adminReviewOrder(orderId, "reject", rejectReason || "Số tiền hoặc nội dung chuyển khoản không khớp.");
-    setIsRejectModalOpen(false);
-    setActiveReviewOrder(null);
-    setRejectReason("");
+  const handleReject = async (orderId: string) => {
+    setActionLoadingId(orderId);
+    try {
+      await adminReviewOrder(orderId, "reject", rejectReason || "Số tiền hoặc nội dung chuyển khoản không khớp.");
+      setIsRejectModalOpen(false);
+      setActiveReviewOrder(null);
+      setRejectReason("");
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const pendingCount = orders.filter((o) => o.status === "pending_approval").length;
@@ -408,52 +420,87 @@ export default function AdminOrdersPage() {
                         {order.status !== "completed" && order.status !== "blocked" && (
                           <button
                             onClick={() => handleApprove(order.id)}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors inline-flex items-center gap-1"
+                            disabled={actionLoadingId === order.id}
+                            className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs border border-emerald-200 transition-colors inline-flex items-center gap-1 disabled:opacity-50"
                             title="Duyệt đơn & mở quyền tải"
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            {actionLoadingId === order.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
                             <span>Duyệt</span>
                           </button>
                         )}
 
                         {order.status !== "blocked" ? (
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (confirm(`CHẶN QUYỀN TRUY CẬP: Bạn có chắc muốn chặn đơn ${order.order_code}? Khách sẽ ngay lập tức bị khóa tải file và xem nội dung!`)) {
-                                adminBlockOrder(order.id, "Admin chủ động chặn quyền để chống hack / gian lận biên lai");
+                                setActionLoadingId(order.id);
+                                try {
+                                  await adminBlockOrder(order.id, "Admin chủ động chặn quyền để chống hack / gian lận biên lai");
+                                } finally {
+                                  setActionLoadingId(null);
+                                }
                               }
                             }}
-                            className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors inline-flex items-center gap-1"
+                            disabled={actionLoadingId === order.id}
+                            className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors inline-flex items-center gap-1 disabled:opacity-50"
                             title="Chặn quyền xem và tải tài nguyên của đơn này"
                           >
-                            <ShieldAlert className="w-3.5 h-3.5" />
+                            {actionLoadingId === order.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                            ) : (
+                              <ShieldAlert className="w-3.5 h-3.5" />
+                            )}
                             <span>Chặn</span>
                           </button>
                         ) : (
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (confirm(`Mở khóa cho đơn ${order.order_code}?`)) {
-                                adminUpdateOrderStatus(order.id, "pending_approval", "Admin mở lại khóa chặn");
+                                setActionLoadingId(order.id);
+                                try {
+                                  await adminUpdateOrderStatus(order.id, "pending_approval", "Admin mở lại khóa chặn");
+                                } finally {
+                                  setActionLoadingId(null);
+                                }
                               }
                             }}
-                            className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs border border-amber-200 transition-colors inline-flex items-center gap-1"
+                            disabled={actionLoadingId === order.id}
+                            className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs border border-amber-200 transition-colors inline-flex items-center gap-1 disabled:opacity-50"
                             title="Gỡ chặn đơn hàng"
                           >
-                            <ShieldCheck className="w-3.5 h-3.5" />
+                            {actionLoadingId === order.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                            ) : (
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            )}
                             <span>Gỡ chặn</span>
                           </button>
                         )}
 
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm(`XÓA ĐƠN: Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${order.order_code}? Thao tác này không thể hoàn tác!`)) {
-                              deleteOrder(order.id);
+                              setActionLoadingId(order.id);
+                              try {
+                                await deleteOrder(order.id);
+                              } finally {
+                                setActionLoadingId(null);
+                              }
                             }
                           }}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          disabled={actionLoadingId === order.id}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
                           title="Xóa vĩnh viễn đơn hàng"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          {actionLoadingId === order.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       </div>
                     </td>
@@ -679,42 +726,72 @@ export default function AdminOrdersPage() {
                 </button>
                 {activeReviewOrder.status !== "blocked" ? (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm(`CHẶN QUYỀN: Bạn có chắc muốn chặn đơn ${activeReviewOrder.order_code}? Khách sẽ bị khóa tải mã nguồn ngay lập tức!`)) {
-                        adminBlockOrder(activeReviewOrder.id, "Admin chặn quyền để chống hack và đối soát biên lai");
-                        setActiveReviewOrder(null);
+                        setActionLoadingId(activeReviewOrder.id);
+                        try {
+                          await adminBlockOrder(activeReviewOrder.id, "Admin chặn quyền để chống hack và đối soát biên lai");
+                          setActiveReviewOrder(null);
+                        } finally {
+                          setActionLoadingId(null);
+                        }
                       }
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors flex items-center gap-1.5"
+                    disabled={actionLoadingId === activeReviewOrder.id}
+                    className="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    <ShieldAlert className="w-3.5 h-3.5" />
+                    {actionLoadingId === activeReviewOrder.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                    ) : (
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                    )}
                     <span>Chặn Quyền</span>
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (confirm(`Mở khóa cho đơn ${activeReviewOrder.order_code}?`)) {
-                        adminUpdateOrderStatus(activeReviewOrder.id, "pending_approval", "Admin mở lại khóa chặn");
-                        setActiveReviewOrder(null);
+                        setActionLoadingId(activeReviewOrder.id);
+                        try {
+                          await adminUpdateOrderStatus(activeReviewOrder.id, "pending_approval", "Admin mở lại khóa chặn");
+                          setActiveReviewOrder(null);
+                        } finally {
+                          setActionLoadingId(null);
+                        }
                       }
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5"
+                    disabled={actionLoadingId === activeReviewOrder.id}
+                    className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200 transition-colors flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5" />
+                    {actionLoadingId === activeReviewOrder.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                    ) : (
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    )}
                     <span>Gỡ Chặn</span>
                   </button>
                 )}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (confirm(`XÓA ĐƠN: Bạn có chắc muốn xóa vĩnh viễn đơn hàng ${activeReviewOrder.order_code}?`)) {
-                      deleteOrder(activeReviewOrder.id);
-                      setActiveReviewOrder(null);
+                      setActionLoadingId(activeReviewOrder.id);
+                      try {
+                        await deleteOrder(activeReviewOrder.id);
+                        setActiveReviewOrder(null);
+                      } finally {
+                        setActionLoadingId(null);
+                      }
                     }
                   }}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  disabled={actionLoadingId === activeReviewOrder.id}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
                   title="Xóa đơn hàng vĩnh viễn"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {actionLoadingId === activeReviewOrder.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 
@@ -723,16 +800,22 @@ export default function AdminOrdersPage() {
                   <>
                     <button
                       onClick={() => setIsRejectModalOpen(true)}
-                      className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1.5"
+                      disabled={actionLoadingId === activeReviewOrder.id}
+                      className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors flex items-center gap-1.5 disabled:opacity-50"
                     >
                       <XCircle className="w-4 h-4" />
                       Từ Chối Đơn
                     </button>
                     <button
                       onClick={() => handleApprove(activeReviewOrder.id)}
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all flex items-center gap-1.5 active:scale-95"
+                      disabled={actionLoadingId === activeReviewOrder.id}
+                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      {actionLoadingId === activeReviewOrder.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
                       Duyệt Đơn &amp; Mở Kho
                     </button>
                   </>

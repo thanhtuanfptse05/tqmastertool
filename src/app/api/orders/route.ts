@@ -31,7 +31,10 @@ export async function DELETE(req: NextRequest) {
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(orderId)) {
-      return NextResponse.json({ error: "Mã đơn hàng không hợp lệ (yêu cầu định dạng UUID)" }, { status: 400 });
+      return NextResponse.json({
+        success: true,
+        message: "Đơn hàng cục bộ đã được xóa thành công.",
+      });
     }
 
     // 1. Authenticate user
