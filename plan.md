@@ -37,6 +37,7 @@
 | **Phase 15** | **Gia Cố Bảo Mật Admin & Chống Sửa Giá SePay (Spec 015)** | SDD Pure | ✅ DONE | Server Admin Auth, POST /api/orders, Dual Price Check, RLS Hardening |
 | **Phase 26** | **Hiển Thị Tên Thật Khách Hàng Trong Admin (Spec 022)** | SDD Pure | ✅ DONE | `/admin/orders`, `store.tsx`, `profiles` mapping |
 | **Phase 27** | **Thanh Toán Kép: Quét VietQR & Tải Bill Dự Phòng (Spec 023)** | SDD Pure | ✅ DONE | `CheckoutModal.tsx`, Dual-Mode UI, Supabase Storage |
+| **Phase 28** | **Tối Ưu & Nâng Cấp Giao Diện Dashboard Thống Kê (Spec 024)** | SDD Pure | ✅ DONE | `src/app/admin/page.tsx`, `specs/024-admin-dashboard-ui-redesign` |
 
 
 ---
