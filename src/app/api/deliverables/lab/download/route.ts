@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getLabAssetPhysicalPath, getLabExerciseById, getSafeContentDisposition, isPathSafe } from "@/lib/lab-parser";
 import { getAuthenticatedUser, supabaseAdmin } from "@/lib/supabase-server";
 import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Secure LAB211 Deliverable Download Endpoint
  * Query Params:
- * - orderId: UUID or string (Required)
+ * - orderId: UUID or order_code string (Required)
  * - labId: string (Required, e.g., "J1.L.P0023" or "all")
  * - type: "docx" | "zip" | "java" (Required)
  * - filePath: string (Optional, required if type === "java")
@@ -55,11 +56,18 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { data: order, error } = await supabaseAdmin
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+    let orderQuery = supabaseAdmin
       .from("orders")
-      .select("id, status, user_id, order_code, admin_notes, total_amount")
-      .eq("id", orderId)
-      .maybeSingle();
+      .select("id, status, user_id, order_code, admin_notes, total_amount");
+
+    if (isUuid) {
+      orderQuery = orderQuery.or(`id.eq.${orderId},order_code.eq.${orderId}`);
+    } else {
+      orderQuery = orderQuery.eq("order_code", orderId);
+    }
+
+    const { data: order, error } = await orderQuery.maybeSingle();
 
     if (error) {
       console.error("Supabase order check error:", error);
@@ -73,13 +81,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Anti-IDOR: verify ownership if not Admin
+    const GUEST_PROFILE_ID = "68169ca4-2f3e-41a1-bed7-ef3da207b738";
     if (!isAdmin) {
-      if (order.user_id && (!user || order.user_id !== user.id)) {
-        console.warn(`[SECURITY ALERT - IDOR DOWNLOAD] Requester (${user?.id || "unauthenticated"}) tried to download deliverables of order ${order.id} owned by ${order.user_id}`);
-        return NextResponse.json(
-          { error: "Quyền tải bị từ chối: Bạn không sở hữu đơn hàng này." },
-          { status: 403 }
-        );
+      const isGuestOrder = !order.user_id || order.user_id === GUEST_PROFILE_ID;
+      if (!isGuestOrder) {
+        if (!user || order.user_id !== user.id) {
+          console.warn(`[SECURITY ALERT - IDOR DOWNLOAD] Requester (${user?.id || "unauthenticated"}) tried to download deliverables of order ${order.id} owned by ${order.user_id}`);
+          return NextResponse.json(
+            { error: "Quyền tải bị từ chối: Bạn không sở hữu đơn hàng này." },
+            { status: 403 }
+          );
+        }
       }
     }
 
@@ -94,7 +106,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (order.status !== "completed") {
+    if (!isAdmin && order.status !== "completed") {
       let errorMsg = "Đơn hàng chưa thanh toán hoặc chưa được duyệt. Quyền truy cập bị từ chối.";
       if (order.status === "pending_approval") {
         errorMsg = "Đơn hàng đang chờ Admin đối chiếu thanh toán. Quyền tải sẽ tự động mở sau khi duyệt.";
@@ -120,7 +132,7 @@ export async function GET(req: NextRequest) {
     const hasLab = orderItems?.some((item: any) =>
       item.product_category === "lab211" ||
       item.product_title?.toLowerCase().includes("lab211")
-    ) || (order.total_amount === 80000 && !orderItems?.some((i: any) => i.product_category === "tool"));
+    ) || (Number(order.total_amount) >= 80000 && !orderItems?.some((i: any) => i.product_category === "tool"));
 
     if (!hasLab && !isAdmin) {
       console.warn(`[SECURITY ALERT - WRONG CATEGORY DOWNLOAD] Requester tried to download LAB211 files for non-LAB order ${order.order_code}`);
@@ -132,9 +144,9 @@ export async function GET(req: NextRequest) {
 
     // 3. Special case: Download all labs full zip
     if (labId === "all" || labId.toLowerCase() === "full") {
-      let fullZipPath = `${process.cwd()}/private_deliverables/lab211/zips/LAB211_Full.zip`;
-      if (!fs.existsSync(fullZipPath) && fs.existsSync(`${process.cwd()}/LAB211.zip`)) {
-        fullZipPath = `${process.cwd()}/LAB211.zip`;
+      let fullZipPath = path.join(process.cwd(), "private_deliverables", "lab211", "zips", "LAB211_Full.zip");
+      if (!fs.existsSync(fullZipPath) && fs.existsSync(path.join(process.cwd(), "LAB211.zip"))) {
+        fullZipPath = path.join(process.cwd(), "LAB211.zip");
       }
       if (fs.existsSync(fullZipPath)) {
         const fileBuffer = fs.readFileSync(fullZipPath);
@@ -149,6 +161,10 @@ export async function GET(req: NextRequest) {
           },
         });
       }
+      return NextResponse.json(
+        { error: "Không tìm thấy file lưu trữ trọn gói LAB211.zip trên hệ thống." },
+        { status: 404 }
+      );
     }
 
     // 4. Resolve lab exercise

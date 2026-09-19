@@ -336,9 +336,9 @@ export default function CustomerOrdersPage() {
                     <div className="space-y-2">
                       {order.items && order.items.length > 0 ? (
                         order.items.map((item) => {
-                          const matchedProd = products.find((p) => p.id === item.product_id || p.price === item.unit_price || p.price === order.total_amount);
-                          const title = matchedProd?.title || item.product_title;
-                          const category = matchedProd?.category || item.product_category;
+                          const matchedProd = products.find((p) => p.id === item.product_id || p.slug === item.product_id);
+                          const title = item.product_title || matchedProd?.title || "Sản phẩm CodeVault";
+                          const category = item.product_category || matchedProd?.category || "lab211";
                           const thumb = item.product_thumbnail || matchedProd?.thumbnail_url;
                           return (
                             <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
@@ -363,7 +363,6 @@ export default function CustomerOrdersPage() {
                         })
                       ) : (
                         (() => {
-                          const matchedProduct = products.find((p) => p.price === order.total_amount);
                           return (
                             <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
                               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-[9px] flex items-center justify-center shrink-0 shadow-sm">
@@ -371,10 +370,10 @@ export default function CustomerOrdersPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h4 className="text-sm font-extrabold text-slate-900">
-                                  {matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211 Chuẩn Giảng Viên FPT"}
+                                  Trọn Bộ Mã Nguồn &amp; Đề Bài LAB211 Chuẩn Giảng Viên FPT
                                 </h4>
                                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">
-                                  {matchedProduct ? (matchedProduct.category === "lab211" ? "Gói bản quyền môn học Java Core & OOP" : matchedProduct.category.toUpperCase()) : "Gói bản quyền môn học Java Core & OOP"}
+                                  Gói bản quyền môn học Java Core &amp; OOP
                                 </span>
                               </div>
                               <span className="text-sm font-extrabold text-slate-800 shrink-0">{formatVND(order.total_amount)}</span>
@@ -505,9 +504,10 @@ export default function CustomerOrdersPage() {
 
                       {order.status === "completed" && (() => {
                         const isLab = order.items?.some((i) => i.product_category === "lab211" || i.product_title?.toLowerCase().includes("lab211")) ||
-                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "lab211";
+                          products.find((p) => p.id === order.items?.[0]?.product_id)?.category === "lab211" ||
+                          (!order.items?.some((i) => i.product_category === "tool") && order.total_amount === 90000);
                         const isTool = order.items?.some((i) => i.product_category === "tool" || i.product_title?.toLowerCase().includes("coursera") || i.product_title?.toLowerCase().includes("tool")) ||
-                          products.find((p) => p.id === order.items?.[0]?.product_id || p.price === order.total_amount)?.category === "tool";
+                          products.find((p) => p.id === order.items?.[0]?.product_id)?.category === "tool";
 
                         return (
                           <>

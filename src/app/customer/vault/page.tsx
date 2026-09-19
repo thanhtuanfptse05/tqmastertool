@@ -136,10 +136,7 @@ export default function DeliverableVaultPage() {
       if (hasItems) {
         order.items!.forEach((item) => {
           const product = products.find(
-            (p) =>
-              p.id === item.product_id ||
-              p.price === item.unit_price ||
-              p.price === order.total_amount
+            (p) => p.id === item.product_id || p.slug === item.product_id
           );
           const isCourseraItem = Boolean(
             item.product_title?.toLowerCase().includes("coursera") ||
@@ -150,8 +147,8 @@ export default function DeliverableVaultPage() {
             order_id: order.id,
             order_code: order.order_code,
             product_id: item.product_id || product?.id || `order-${order.id}`,
-            product_title: product?.title || item.product_title || "Sản phẩm CodeVault",
-            product_category: product?.category || item.product_category || "lab211",
+            product_title: item.product_title || product?.title || "Sản phẩm CodeVault",
+            product_category: item.product_category || product?.category || "lab211",
             product: product,
             git_repo_url: (item as any).git_repo_url || product?.git_repo_url,
             access_instructions: (item as any).access_instructions || product?.access_instructions,
@@ -161,24 +158,19 @@ export default function DeliverableVaultPage() {
           });
         });
       } else {
-        // Dynamic fallback when order_items join fails (Supabase RLS or legacy order)
-        const matchedProduct = products.find((p) => p.price === order.total_amount);
-        const isCourseraItem = Boolean(
-          matchedProduct?.title.toLowerCase().includes("coursera") ||
-          matchedProduct?.slug?.includes("coursera")
-        );
+        // Dynamic fallback when order_items join fails
         result.push({
           order_id: order.id,
           order_code: order.order_code,
-          product_id: matchedProduct?.id || `order-${order.id}`,
-          product_title: matchedProduct?.title || "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
-          product_category: matchedProduct?.category || "lab211",
-          product: matchedProduct,
-          git_repo_url: matchedProduct?.git_repo_url,
-          access_instructions: matchedProduct?.access_instructions,
-          license_key: isCourseraItem ? (licenseKey || order.license_key) : undefined,
-          coursera_email: isCourseraItem ? (courseraEmail || order.user_email) : undefined,
-          licenses: isCourseraItem ? effectiveLicenses : [],
+          product_id: `order-${order.id}`,
+          product_title: "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
+          product_category: "lab211",
+          product: undefined,
+          git_repo_url: undefined,
+          access_instructions: undefined,
+          license_key: undefined,
+          coursera_email: undefined,
+          licenses: [],
         });
       }
     });

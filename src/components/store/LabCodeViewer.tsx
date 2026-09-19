@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { LabExerciseItem, LabSourceFile } from "@/types";
 import {
   Code2,
@@ -36,40 +37,76 @@ export default function LabCodeViewer({ lab, orderId }: LabCodeViewerProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadJavaFile = () => {
+  const handleDownloadJavaFile = async () => {
     if (!activeFile) return;
     setIsDownloadingJava(true);
 
     try {
-      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=java&filePath=${encodeURIComponent(activeFile.path)}`;
+      let token = "";
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || "";
+      } catch {}
+
+      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=java&filePath=${encodeURIComponent(activeFile.path)}${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+      const res = await fetch(downloadUrl, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Lỗi tải mã nguồn Java" }));
+        alert(err.error || `Không thể tải file (Mã lỗi ${res.status}).`);
+        return;
+      }
+
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = downloadUrl;
+      link.href = blobUrl;
       link.download = activeFile.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (err: any) {
       console.error("Java download error:", err);
+      alert(err?.message || "Không thể tải file Java. Vui lòng thử lại.");
     } finally {
-      setTimeout(() => setIsDownloadingJava(false), 1200);
+      setIsDownloadingJava(false);
     }
   };
 
-  const handleDownloadFullZip = () => {
+  const handleDownloadFullZip = async () => {
     setIsDownloadingZip(true);
 
     try {
-      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=zip`;
+      let token = "";
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || "";
+      } catch {}
+
+      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=zip${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+      const res = await fetch(downloadUrl, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Lỗi tải file nén bài lab" }));
+        alert(err.error || `Không thể tải file nén (Mã lỗi ${res.status}).`);
+        return;
+      }
+
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = downloadUrl;
+      link.href = blobUrl;
       link.download = lab.zipFileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (err: any) {
       console.error("Lab zip download error:", err);
+      alert(err?.message || "Không thể tải file nén bài lab. Vui lòng thử lại.");
     } finally {
-      setTimeout(() => setIsDownloadingZip(false), 1200);
+      setIsDownloadingZip(false);
     }
   };
 

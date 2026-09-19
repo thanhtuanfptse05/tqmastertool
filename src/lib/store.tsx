@@ -341,29 +341,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             };
           });
 
-          // Robust Fallback: If DB join returned no items, match product by total_amount
+          // Robust Fallback: If DB join returned no items, provide safe default without false product collision
           if (resolvedItems.length === 0) {
-            try {
-              const savedProds = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEYS.PRODUCTS) : null;
-              const prodList: any[] = savedProds ? JSON.parse(savedProds) : [];
-              const matched = prodList.find((p: any) => Number(p.price) === Number(o.total_amount));
-              if (matched) {
-                resolvedItems = [
-                  {
-                    id: `item-${matched.id}`,
-                    order_id: o.id,
-                    product_id: matched.id,
-                    product_title: matched.title,
-                    product_category: matched.category,
-                    product_thumbnail: matched.thumbnail_url || "",
-                    unit_price: Number(matched.price),
-                    created_at: o.created_at,
-                  },
-                ];
-              }
-            } catch (err) {
-              console.warn("[fetchOrdersFromDB] Dynamic fallback match failed:", err);
-            }
+            const isTool = Number(o.total_amount) < 80000;
+            resolvedItems = [
+              {
+                id: `item-${o.id}`,
+                order_id: o.id,
+                product_id: isTool ? "tool-coursera" : "lab211-full",
+                product_title: isTool ? "Tool Auto Coursera VIP" : "Trọn Bộ Mã Nguồn & Đề Bài LAB211",
+                product_category: isTool ? "tool" : "lab211",
+                product_thumbnail: "",
+                unit_price: Number(o.total_amount),
+                created_at: o.created_at,
+              },
+            ];
           }
 
           const { licenseKey, courseraEmail } = extractOrderLicenseInfo(o);

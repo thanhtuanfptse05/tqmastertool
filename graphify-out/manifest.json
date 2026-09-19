@@ -150,15 +150,15 @@
     "semantic_hash": "d0965a655bc8601e9b5937a32f0b8fc9"
   },
   "src/app/customer/orders/page.tsx": {
-    "mtime": 1789725165.5269663,
-    "seen": 1789801721.3605056,
-    "ast_hash": "83acb8d9e5b86717a9453db5531353f9",
+    "mtime": 1789833658.8773646,
+    "seen": 1789833920.5159404,
+    "ast_hash": "38611f721ec3f89a54e2a7768c4f25a2",
     "semantic_hash": ""
   },
   "src/app/customer/vault/page.tsx": {
-    "mtime": 1789831065.935879,
-    "seen": 1789831135.6540585,
-    "ast_hash": "a9834fcb9208f124de17e55ab77367da",
+    "mtime": 1789833715.6149654,
+    "seen": 1789833920.5159426,
+    "ast_hash": "05cd81cf30427f14eedba27938925c39",
     "semantic_hash": ""
   },
   "src/app/layout.tsx": {
@@ -228,9 +228,9 @@
     "semantic_hash": "29d87fdd3bfa449a7277c4363073f2d8"
   },
   "src/lib/store.tsx": {
-    "mtime": 1789832304.1242862,
-    "seen": 1789832480.6086884,
-    "ast_hash": "ed6e2564cb52b79dcdf017858de9696d",
+    "mtime": 1789833730.435723,
+    "seen": 1789833920.5183508,
+    "ast_hash": "a82910c4fadfd8321bf8bc1349f9a772",
     "semantic_hash": ""
   },
   "src/lib/supabase-server.ts": {
@@ -1134,9 +1134,9 @@
     "semantic_hash": ""
   },
   "src/app/api/deliverables/lab/download/route.ts": {
-    "mtime": 1789725423.7792993,
-    "seen": 1789801721.3604789,
-    "ast_hash": "6fc0762360a3818f2fe4cef4d6bf4e48",
+    "mtime": 1789833763.9328156,
+    "seen": 1789833920.5150676,
+    "ast_hash": "1356ed38865747c0a32e8b41135b785a",
     "semantic_hash": ""
   },
   "src/app/api/deliverables/lab/view/route.ts": {
@@ -1146,9 +1146,9 @@
     "semantic_hash": ""
   },
   "src/app/api/orders/route.ts": {
-    "mtime": 1789832313.2217324,
-    "seen": 1789832480.6037421,
-    "ast_hash": "5386debe701c2bd716b7864f5f9c7a33",
+    "mtime": 1789833742.0534735,
+    "seen": 1789833920.515425,
+    "ast_hash": "1bc128481d619e4d14f17c2ddacff379",
     "semantic_hash": ""
   },
   "src/app/api/webhooks/sepay/route.ts": {
@@ -1170,15 +1170,15 @@
     "semantic_hash": ""
   },
   "src/components/store/LabCodeViewer.tsx": {
-    "mtime": 1789566798.1574833,
-    "seen": 1789801721.3605497,
-    "ast_hash": "8e8daee6f0a68914ad5b489f452a5a66",
+    "mtime": 1789833820.91531,
+    "seen": 1789833920.5171866,
+    "ast_hash": "196b9eea32075cb683d7d77a74835a81",
     "semantic_hash": ""
   },
   "src/components/store/LabDeliverableModal.tsx": {
-    "mtime": 1789611082.5621226,
-    "seen": 1789801721.3605545,
-    "ast_hash": "f2cb356aa53b427384a7d828d35e57e6",
+    "mtime": 1789833801.4955714,
+    "seen": 1789833920.5171897,
+    "ast_hash": "4f06bf0fe2a59a48561f9315aabacda7",
     "semantic_hash": ""
   },
   "src/components/store/LabDocViewer.tsx": {
@@ -1194,9 +1194,9 @@
     "semantic_hash": ""
   },
   "src/components/store/OrderDetailModal.tsx": {
-    "mtime": 1789831015.04451,
-    "seen": 1789831135.6560187,
-    "ast_hash": "6ef2a3b4454690e7326eb1869906dcba",
+    "mtime": 1789833684.7815366,
+    "seen": 1789833920.5174313,
+    "ast_hash": "9697cc6cdcdfdaed675627de7ba39c78",
     "semantic_hash": ""
   },
   "src/components/store/ProductDescriptionRenderer.tsx": {
@@ -1388,6 +1388,12 @@
     "mtime": 1789832207.0093307,
     "seen": 1789832480.6228504,
     "ast_hash": "ac0529e8728fd6ffb099a384443d6a48",
+    "semantic_hash": ""
+  },
+  "specs/027-fix-product-matching-and-lab-zip-download/spec.md": {
+    "mtime": 1789833616.3314674,
+    "seen": 1789833920.5291781,
+    "ast_hash": "1698d2ff30f1b70a8fb0d85aff4a05a3",
     "semantic_hash": ""
   }
 }

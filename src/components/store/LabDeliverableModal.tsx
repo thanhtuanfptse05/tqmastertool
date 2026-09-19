@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { LabExerciseItem } from "@/types";
 import { getAllLabExercises, LAB211_RULE_MD } from "@/lib/lab-data";
 import { getLabAnalysis, LabFaqItem } from "@/lib/lab-analysis";
@@ -157,20 +158,39 @@ export default function LabDeliverableModal({
 
   const analysis = getLabAnalysis(currentLab.code);
 
-  const handleDownloadFullArchive = () => {
+  const handleDownloadFullArchive = async () => {
     setIsDownloadingFull(true);
     try {
-      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=all&type=zip`;
+      let token = "";
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || "";
+      } catch {}
+
+      const effectiveOrderParam = orderId || orderCode || "all";
+      const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(effectiveOrderParam)}&labId=all&type=zip${token ? `&token=${encodeURIComponent(token)}` : ""}`;
+      
+      const res = await fetch(downloadUrl, token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Lỗi tải file deliverable" }));
+        alert(err.error || `Không thể tải file (Mã lỗi ${res.status}). Vui lòng kiểm tra lại trạng thái đơn hàng.`);
+        return;
+      }
+
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = downloadUrl;
+      link.href = blobUrl;
       link.download = "LAB211.zip";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch (err: any) {
       console.error("Full archive download error:", err);
+      alert(err?.message || "Không thể tải file nén. Vui lòng thử lại.");
     } finally {
-      setTimeout(() => setIsDownloadingFull(false), 1500);
+      setIsDownloadingFull(false);
     }
   };
 

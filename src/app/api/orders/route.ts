@@ -575,9 +575,8 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    if (userId) {
-      orderPayload.user_id = userId;
-    }
+    const GUEST_PROFILE_ID = "68169ca4-2f3e-41a1-bed7-ef3da207b738";
+    orderPayload.user_id = userId || GUEST_PROFILE_ID;
 
     const { data: newOrder, error: orderErr } = await supabaseAdmin
       .from("orders")

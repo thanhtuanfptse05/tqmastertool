@@ -47,11 +47,11 @@ export default function OrderDetailModal({
   if (!isOpen || !order) return null;
 
   const isTool =
-    order.items?.some((i) => i.product_category === "tool") ||
+    order.items?.some((i) => i.product_category === "tool" || i.product_title?.toLowerCase().includes("coursera") || i.product_title?.toLowerCase().includes("tool")) ||
     products.find(
       (p) =>
         p.id === order.items?.[0]?.product_id ||
-        p.price === order.total_amount
+        p.slug === order.items?.[0]?.product_id
     )?.category === "tool";
 
   const copyToClipboard = (text: string, field: string) => {
@@ -274,9 +274,9 @@ export default function OrderDetailModal({
             {order.items && order.items.length > 0 ? (
               <div className="space-y-2 border border-slate-200 rounded-2xl p-3 bg-slate-50/60">
                 {order.items.map((item, idx) => {
-                  const matchedProd = products.find((p) => p.id === item.product_id || p.price === item.unit_price || p.price === order.total_amount);
-                  const title = matchedProd?.title || item.product_title;
-                  const category = matchedProd?.category || item.product_category;
+                  const matchedProd = products.find((p) => p.id === item.product_id || p.slug === item.product_id);
+                  const title = item.product_title || matchedProd?.title || "Sản phẩm CodeVault";
+                  const category = item.product_category || matchedProd?.category || "lab211";
                   const thumb = item.product_thumbnail || matchedProd?.thumbnail_url;
                   return (
                     <div
@@ -313,15 +313,14 @@ export default function OrderDetailModal({
               </div>
             ) : (
               (() => {
-                const matchedProd = products.find((p) => p.price === order.total_amount);
                 return (
                   <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
                     <div>
                       <span className="font-bold text-slate-900 block text-xs">
-                        {matchedProd?.title || "Gói Mã Nguồn & Tài Nguyên Số LAB211"}
+                        Trọn Bộ Mã Nguồn &amp; Đề Bài LAB211 Chuẩn Giảng Viên FPT
                       </span>
                       <span className="text-[11px] text-slate-500">
-                        {matchedProd ? (matchedProd.category === "lab211" ? "Bản quyền 12 bài Lab Java MVC + Word docx" : matchedProd.category.toUpperCase()) : "Bản quyền 12 bài Lab Java MVC + Word docx"}
+                        Bản quyền 12 bài Lab Java MVC + Word docx
                       </span>
                     </div>
                     <span className="font-black text-slate-900">{formatVND(order.total_amount)}</span>
@@ -341,7 +340,7 @@ export default function OrderDetailModal({
             const matchedItem = order.items?.find((i) => i.git_repo_url);
             const matchedProduct = products.find(
               (p) =>
-                p.id === order.items?.[0]?.product_id || p.price === order.total_amount
+                p.id === order.items?.[0]?.product_id || p.slug === order.items?.[0]?.product_id
             );
 
             const isCoursera = Boolean(
