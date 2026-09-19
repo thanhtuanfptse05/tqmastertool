@@ -315,10 +315,9 @@ export async function POST(req: NextRequest) {
       .select("product_title, product_category")
       .eq("order_id", order.id);
 
-    const hasCourseraTool =
-      (items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
-      (order.total_amount && order.total_amount % 40000 === 0 && order.total_amount >= 40000) ||
-      order.total_amount === 149000;
+    const hasCourseraTool = Boolean(
+      items && items.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))
+    );
 
     let baseNotes = `✅ Tự động duyệt thành công qua SePay Webhook (${body.gateway} - GD: ${refCode}). Nhận đủ: ${transferAmount.toLocaleString()}đ.`;
 

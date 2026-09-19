@@ -559,14 +559,11 @@ export default function AdminOrdersPage() {
               {/* Coursera License Info if present */}
               {(() => {
                 const { licenseKey, courseraEmail, licenses, emails } = extractOrderLicenseInfo(activeReviewOrder);
-                const isCoursera =
-                  activeReviewOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-                  Boolean(courseraEmail) ||
-                  Boolean(licenseKey) ||
-                  emails.length > 0 ||
-                  licenses.length > 0;
+                const isCoursera = Boolean(
+                  activeReviewOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera"))
+                );
 
-                if (!isCoursera && !licenseKey) return null;
+                if (!isCoursera) return null;
 
                 const effectiveLicenses = licenses.length > 0
                   ? licenses

@@ -67,10 +67,9 @@ export default function AdminOrderEditModal({
       if (status === "completed") {
         const { courseraEmail, emails } = extractOrderLicenseInfo({ ...order, admin_notes: adminNotes });
         const targetEmails: string[] = emails.length > 0 ? emails : [courseraEmail || order.user_email || "customer@codevault.local"];
-        const isCoursera =
-          order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-          Boolean(courseraEmail) ||
-          emails.length > 0;
+        const isCoursera = Boolean(
+          order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera"))
+        );
 
         if (isCoursera && !finalAdminNotes.includes("[KEY:") && !finalAdminNotes.includes("[LICENSES:")) {
           const licenses = generateMultipleCourseraKeys(targetEmails, 30);

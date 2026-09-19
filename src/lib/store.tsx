@@ -1089,7 +1089,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createOrder = (product: Product, quantity: number = 1, customerEmails: string[] = []): Order => {
-    const qty = Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1)));
+    const isCoursera = Boolean(
+      product.title.toLowerCase().includes("coursera") ||
+      (product.slug && product.slug.toLowerCase().includes("coursera"))
+    );
+    const qty = isCoursera ? Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))) : 1;
     const totalAmount = product.price * qty;
     const orderNum = Math.floor(1000 + Math.random() * 9000);
     const orderCode = `TQ-2026-${orderNum}`;
@@ -1099,10 +1103,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const cleanEmails = (customerEmails || [])
       .map((e) => (e || "").trim().toLowerCase())
       .filter((e) => e.includes("@") && !e.startsWith("guest@") && e !== "guest@codevault.io");
-
-    const isCoursera =
-      product.title.toLowerCase().includes("coursera") ||
-      (product.slug && product.slug.toLowerCase().includes("coursera"));
 
     let initialNotes: string | undefined = undefined;
     if (isCoursera && cleanEmails.length > 0) {
@@ -1271,10 +1271,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (action === "approve" && targetOrder) {
       const licenseInfo = extractOrderLicenseInfo(targetOrder);
-      const isCoursera =
-        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-        (targetOrder.total_amount && targetOrder.total_amount % 40000 === 0 && targetOrder.total_amount >= 40000) ||
-        targetOrder.total_amount === 149000;
+      const isCoursera = Boolean(
+        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera"))
+      );
 
       if (isCoursera && licenseInfo.emails.length > 0) {
         try {
@@ -1330,10 +1329,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     if (status === "completed" && targetOrder) {
       const licenseInfo = extractOrderLicenseInfo(targetOrder);
-      const isCoursera =
-        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-        (targetOrder.total_amount && targetOrder.total_amount % 40000 === 0 && targetOrder.total_amount >= 40000) ||
-        targetOrder.total_amount === 149000;
+      const isCoursera = Boolean(
+        targetOrder.items?.some((i) => i.product_title?.toLowerCase().includes("coursera"))
+      );
 
       if (isCoursera && licenseInfo.emails.length > 0) {
         try {
@@ -1556,7 +1554,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const openCheckout = (product: Product, quantity: number = 1) => {
     setActiveOrderForPayment(null);
-    setCheckoutQuantity(Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))));
+    const isCoursera = Boolean(
+      product.title.toLowerCase().includes("coursera") ||
+      (product.slug && product.slug.toLowerCase().includes("coursera"))
+    );
+    setCheckoutQuantity(isCoursera ? Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))) : 1);
     setCheckoutProduct(product);
   };
 

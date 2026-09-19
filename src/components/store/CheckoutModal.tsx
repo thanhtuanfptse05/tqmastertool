@@ -55,10 +55,12 @@ export default function CheckoutModal() {
   const [billUploadError, setBillUploadError] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
-  const isLicenseRequired =
-    checkoutProduct?.deliverable_type === "license_key" ||
-    checkoutProduct?.slug.toLowerCase().includes("coursera") ||
-    checkoutProduct?.title.toLowerCase().includes("coursera");
+  const isCoursera = Boolean(
+    (checkoutProduct && (checkoutProduct.slug?.toLowerCase().includes("coursera") || checkoutProduct.title?.toLowerCase().includes("coursera"))) ||
+    (activeOrderForPayment && activeOrderForPayment.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")))
+  );
+
+  const isLicenseRequired = isCoursera;
 
   const [quantity, setQuantity] = useState<number>(1);
   const [customerEmails, setCustomerEmails] = useState<string[]>([""]);
@@ -123,7 +125,7 @@ export default function CheckoutModal() {
     }
 
     // Khởi tạo ban đầu khi mở modal mới (chưa có đơn hoặc mới mở từ ngoài vào):
-    const initQty = Math.max(1, Math.min(20, checkoutQuantity || 1));
+    const initQty = isCoursera ? Math.max(1, Math.min(20, checkoutQuantity || 1)) : 1;
     setQuantity(initQty);
     setEmailError(null);
     setEmailCheckStatus({});
@@ -134,20 +136,25 @@ export default function CheckoutModal() {
     setGeneratedLicenses([]);
 
     if (activeOrderForPayment) {
-      const { emails, courseraEmail } = extractOrderLicenseInfo(activeOrderForPayment);
-      const existingEmails = emails.length > 0 ? emails : (courseraEmail ? [courseraEmail] : (activeOrderForPayment.user_email ? [activeOrderForPayment.user_email] : []));
-      if (existingEmails.length > 0) {
-        setCustomerEmails(existingEmails);
-        setQuantity(existingEmails.length);
+      if (isCoursera) {
+        const { emails, courseraEmail } = extractOrderLicenseInfo(activeOrderForPayment);
+        const existingEmails = emails.length > 0 ? emails : (courseraEmail ? [courseraEmail] : (activeOrderForPayment.user_email ? [activeOrderForPayment.user_email] : []));
+        if (existingEmails.length > 0) {
+          setCustomerEmails(existingEmails);
+          setQuantity(existingEmails.length);
+        } else {
+          setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
+        }
       } else {
-        setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
+        setCustomerEmails([]);
+        setQuantity(1);
       }
       setStep("qr");
     } else {
-      setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
+      setCustomerEmails(isCoursera ? Array.from({ length: initQty }).map(() => "") : []);
       setStep("confirm");
     }
-  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step]);
+  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step, isCoursera]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -297,6 +304,11 @@ export default function CheckoutModal() {
   };
 
   const handleQuantityChange = (newQty: number) => {
+    if (!isCoursera) {
+      setQuantity(1);
+      setCustomerEmails([]);
+      return;
+    }
     const clampedQty = Math.max(1, Math.min(20, newQty));
     setQuantity(clampedQty);
     setCustomerEmails((prev) => {
@@ -315,11 +327,13 @@ export default function CheckoutModal() {
 
     setIsCreatingOrder(true);
     try {
-      const cleanEmails = customerEmails
-        .map((e) => e.trim().toLowerCase())
-        .filter((e) => e.includes("@"));
+      const cleanEmails = isCoursera
+        ? customerEmails
+            .map((e) => e.trim().toLowerCase())
+            .filter((e) => e.includes("@"))
+        : [];
 
-      await createOrder(checkoutProduct, quantity, cleanEmails);
+      await createOrder(checkoutProduct, isCoursera ? quantity : 1, cleanEmails);
       setStep("qr");
     } catch (err: any) {
       console.error("Order creation failed:", err);
@@ -558,32 +572,38 @@ export default function CheckoutModal() {
                 </div>
               </div>
 
-              {/* Quantity Selector */}
+              {/* Quantity Selector: CHỈ HIỂN THỊ NÚT TĂNG GIẢM CHO RIÊNG TOOL COURSERA */}
               <div className="flex flex-col items-end gap-1 shrink-0 self-end sm:self-center">
                 <span className="text-[11px] font-semibold text-slate-500">Số lượng:</span>
-                <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1}
-                    className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
-                    title="Giảm số lượng"
-                  >
-                    <Minus className="w-3.5 h-3.5" />
-                  </button>
-                  <span className="px-3.5 py-1.5 font-mono font-black text-sm text-blue-600 min-w-[2.5rem] text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= 20}
-                    className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
-                    title="Tăng số lượng"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {isCoursera ? (
+                  <div className="flex items-center border border-slate-300 rounded-xl bg-white overflow-hidden shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(quantity - 1)}
+                      disabled={quantity <= 1}
+                      className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                      title="Giảm số lượng"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="px-3.5 py-1.5 font-mono font-black text-sm text-blue-600 min-w-[2.5rem] text-center">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange(quantity + 1)}
+                      disabled={quantity >= 20}
+                      className="p-2 px-3 text-slate-600 hover:bg-slate-100 disabled:opacity-30 font-black transition-colors"
+                      title="Tăng số lượng"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+                    1 gói (Mặc định)
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1154,7 +1174,7 @@ export default function CheckoutModal() {
             </div>
 
             {/* If Coursera License Keys exist, display prominent key box(es) */}
-            {generatedLicenses.length > 1 ? (
+            {isCoursera && generatedLicenses.length > 1 ? (
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 max-w-md mx-auto text-left shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-indigo-900 font-extrabold text-xs">
@@ -1236,7 +1256,7 @@ export default function CheckoutModal() {
                   * Toàn bộ {generatedLicenses.length} Key cũng đã được lưu vĩnh viễn vào tài khoản của bạn tại mục Kho Quà Tặng (My Vault).
                 </p>
               </div>
-            ) : (generatedLicenseKey || generatedLicenses[0]?.key) ? (
+            ) : isCoursera && (generatedLicenseKey || generatedLicenses[0]?.key) ? (
               <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 max-w-md mx-auto text-left shadow-sm">
                 <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold text-xs">
                   <Key className="w-4 h-4 text-indigo-600" />

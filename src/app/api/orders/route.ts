@@ -296,10 +296,9 @@ export async function PATCH(req: NextRequest) {
       .select("product_title, product_category")
       .eq("order_id", orderId);
 
-    const isCoursera =
-      (orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))) ||
-      (existingOrder.total_amount && existingOrder.total_amount % 40000 === 0 && existingOrder.total_amount >= 40000) ||
-      existingOrder.total_amount === 149000;
+    const isCoursera = Boolean(
+      orderItems && orderItems.some((i: any) => i.product_title?.toLowerCase().includes("coursera"))
+    );
 
     if (isCoursera && rawCustomerEmails.length > 0) {
       payload.admin_notes = formatOrderNotesWithEmails(payload.admin_notes || existingOrder.admin_notes, rawCustomerEmails);
@@ -527,9 +526,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const totalAmount = officialPrice * parsedQty;
-
     // 3. Generate unique order numbers
+    const isCourseraProduct =
+      product.title?.toLowerCase().includes("coursera") ||
+      Boolean(product.slug && String(product.slug).toLowerCase().includes("coursera"));
+
+    const effectiveQty = isCourseraProduct ? parsedQty : 1;
+    const totalAmount = officialPrice * effectiveQty;
     const orderNum = Math.floor(1000 + Math.random() * 9000);
     const orderCode = `TQ-2026-${orderNum}`;
     const cleanMemo = `TQ2026${orderNum}`;
@@ -540,9 +543,6 @@ export async function POST(req: NextRequest) {
     const cleanEmail = (customerEmail || user?.email || "").trim().toLowerCase();
     const cleanName = (customerName || user?.user_metadata?.full_name || "Khách Hàng").trim();
 
-    const isCourseraProduct =
-      product.title?.toLowerCase().includes("coursera") ||
-      Boolean(product.slug && String(product.slug).toLowerCase().includes("coursera"));
 
     let adminNotes = "";
     // Collect customer emails for Coursera
@@ -591,7 +591,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Insert order items (one row per unit quantity to maintain SePay reconciliation accuracy)
-    const itemRows = Array.from({ length: parsedQty }).map((_, index) => ({
+    const itemRows = Array.from({ length: effectiveQty }).map((_, index) => ({
       id: typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : `item-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`,

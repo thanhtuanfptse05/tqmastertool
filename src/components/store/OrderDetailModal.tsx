@@ -344,10 +344,11 @@ export default function OrderDetailModal({
                 p.id === order.items?.[0]?.product_id || p.price === order.total_amount
             );
 
-            const isCoursera =
+            const isCoursera = Boolean(
               order.items?.some((i) => i.product_title?.toLowerCase().includes("coursera")) ||
-              Boolean(order.admin_notes && order.admin_notes.includes("CSR-PERM")) ||
-              Boolean(matchedProduct?.title.toLowerCase().includes("coursera"));
+              matchedProduct?.title.toLowerCase().includes("coursera") ||
+              matchedProduct?.slug?.includes("coursera")
+            );
 
             // Ưu tiên đọc trực tiếp từ Database (Spec 015 - Anti-Hardcode)
             const driveUrl =
@@ -386,8 +387,8 @@ export default function OrderDetailModal({
                   Đơn hàng đã hoàn tất thành công! Bạn có thể truy cập ngay thư mục Google Drive tải tool, lấy mã License Key và xem video hướng dẫn của kênh Tuấn và Quân FPT.
                 </p>
 
-                {/* Multi-license Keys Rendering */}
-                {effectiveLicenses.length > 1 ? (
+                {/* Multi-license Keys Rendering (CHỈ DÀNH CHO COURSERA) */}
+                {isCoursera && effectiveLicenses.length > 1 ? (
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-900">
@@ -467,7 +468,7 @@ export default function OrderDetailModal({
                       })}
                     </div>
                   </div>
-                ) : effectiveLicenses.length === 1 ? (() => {
+                ) : isCoursera && effectiveLicenses.length === 1 ? (() => {
                   const singleLic = effectiveLicenses[0];
                   const durationInfo = parseLicenseKeyDuration(singleLic.key);
                   return (

@@ -141,6 +141,11 @@ export default function DeliverableVaultPage() {
               p.price === item.unit_price ||
               p.price === order.total_amount
           );
+          const isCourseraItem = Boolean(
+            item.product_title?.toLowerCase().includes("coursera") ||
+            product?.title.toLowerCase().includes("coursera") ||
+            product?.slug?.includes("coursera")
+          );
           result.push({
             order_id: order.id,
             order_code: order.order_code,
@@ -150,14 +155,18 @@ export default function DeliverableVaultPage() {
             product: product,
             git_repo_url: (item as any).git_repo_url || product?.git_repo_url,
             access_instructions: (item as any).access_instructions || product?.access_instructions,
-            license_key: licenseKey || order.license_key,
-            coursera_email: courseraEmail || order.user_email,
-            licenses: effectiveLicenses,
+            license_key: isCourseraItem ? (licenseKey || order.license_key) : undefined,
+            coursera_email: isCourseraItem ? (courseraEmail || order.user_email) : undefined,
+            licenses: isCourseraItem ? effectiveLicenses : [],
           });
         });
       } else {
         // Dynamic fallback when order_items join fails (Supabase RLS or legacy order)
         const matchedProduct = products.find((p) => p.price === order.total_amount);
+        const isCourseraItem = Boolean(
+          matchedProduct?.title.toLowerCase().includes("coursera") ||
+          matchedProduct?.slug?.includes("coursera")
+        );
         result.push({
           order_id: order.id,
           order_code: order.order_code,
@@ -167,9 +176,9 @@ export default function DeliverableVaultPage() {
           product: matchedProduct,
           git_repo_url: matchedProduct?.git_repo_url,
           access_instructions: matchedProduct?.access_instructions,
-          license_key: licenseKey || order.license_key,
-          coursera_email: courseraEmail || order.user_email,
-          licenses: effectiveLicenses,
+          license_key: isCourseraItem ? (licenseKey || order.license_key) : undefined,
+          coursera_email: isCourseraItem ? (courseraEmail || order.user_email) : undefined,
+          licenses: isCourseraItem ? effectiveLicenses : [],
         });
       }
     });
@@ -366,8 +375,8 @@ export default function DeliverableVaultPage() {
                   </div>
                 </div>
 
-                {/* License Key Box if applicable */}
-                {item.licenses && item.licenses.length > 1 ? (
+                {/* License Key Box if applicable (CHỈ HIỂN THỊ CHO COURSERA) */}
+                {isCoursera && item.licenses && item.licenses.length > 1 ? (
                   <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
                       <div className="flex items-center gap-2">
@@ -442,7 +451,7 @@ export default function DeliverableVaultPage() {
                       })}
                     </div>
                   </div>
-                ) : item.license_key ? (() => {
+                ) : isCoursera && item.license_key ? (() => {
                   const durationInfo = parseLicenseKeyDuration(item.license_key);
                   return (
                     <div className="mx-5 mb-5 p-4 rounded-xl bg-slate-900 border border-slate-800 text-white shadow-inner">
@@ -578,8 +587,8 @@ export default function DeliverableVaultPage() {
                 </p>
               </div>
 
-              {/* License Key in Modal if available */}
-              {activeToolModal.licenses && activeToolModal.licenses.length > 1 ? (
+              {/* License Key in Modal if available (CHỈ HIỂN THỊ CHO COURSERA) */}
+              {activeToolModal.productTitle?.toLowerCase().includes("coursera") && activeToolModal.licenses && activeToolModal.licenses.length > 1 ? (
                 <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 uppercase tracking-wider">
@@ -648,7 +657,7 @@ export default function DeliverableVaultPage() {
                     })}
                   </div>
                 </div>
-              ) : activeToolModal.licenseKey ? (() => {
+              ) : activeToolModal.productTitle?.toLowerCase().includes("coursera") && activeToolModal.licenseKey ? (() => {
                 const modalDurationInfo = parseLicenseKeyDuration(activeToolModal.licenseKey);
                 return (
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-cyan-500/30 text-white shadow-lg">
