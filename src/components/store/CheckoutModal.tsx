@@ -98,26 +98,48 @@ export default function CheckoutModal() {
     }
   };
 
-  // CẤM TUYỆT ĐỐI TỰ ĐỘNG TẠO ĐƠN HÀNG KHI MỚI BẤM MUA NGAY (SPEC 020):
-  // Khi mở modal: Nếu có activeOrderForPayment sẵn (từ Lịch sử đơn hàng bấm Tiếp tục thanh toán) => mở "qr".
-  // Nếu là đơn mới bấm Mua ngay => Luôn bắt đầu ở "confirm" để khách xác nhận, KHÔNG TẠO ĐƠN RÁC!
+  // SPEC 020 & SPEC 021: Khởi tạo modal & Chuyển thẳng sang bước 3 (success) khi thanh toán hoàn tất
   React.useEffect(() => {
+    // Nếu đơn hàng đã hoàn tất (từ SePay Webhook hoặc bấm kiểm tra):
+    if (activeOrderForPayment?.status === "completed") {
+      const licenseInfo = extractOrderLicenseInfo(activeOrderForPayment);
+      if (licenseInfo.licenses.length > 0) {
+        setGeneratedLicenses(licenseInfo.licenses);
+        setGeneratedLicenseKey(licenseInfo.licenseKey || licenseInfo.licenses[0]?.key || null);
+      }
+      setIsAutoApproved(true);
+      setStep("success");
+      return;
+    }
+
+    // Nếu đang ở màn hình thành công, giữ nguyên, tuyệt đối không cho phép reset về "qr" hay "confirm"
+    if (step === "success") {
+      return;
+    }
+
+    // Nếu đang ở màn hình thanh toán "qr" hoặc "upload", giữ nguyên bước thanh toán, không reset
+    if (step === "qr" || step === "upload") {
+      return;
+    }
+
+    // Khởi tạo ban đầu khi mở modal mới (chưa có đơn hoặc mới mở từ ngoài vào):
     const initQty = Math.max(1, Math.min(20, checkoutQuantity || 1));
     setQuantity(initQty);
     setCustomerEmails(Array.from({ length: initQty }).map(() => ""));
     setEmailError(null);
     setEmailCheckStatus({});
-    if (activeOrderForPayment) {
-      setStep("qr");
-    } else {
-      setStep("confirm");
-    }
     setBillImage("");
     setTransactionRef("");
     setBillUploadError(null);
     setGeneratedLicenseKey(null);
     setGeneratedLicenses([]);
-  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment]);
+
+    if (activeOrderForPayment) {
+      setStep("qr");
+    } else {
+      setStep("confirm");
+    }
+  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

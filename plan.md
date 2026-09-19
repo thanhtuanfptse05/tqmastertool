@@ -353,3 +353,15 @@
   - `npx tsc --noEmit` đạt 0 lỗi.
   - Commit và push lên remote `origin/main`.
 
+### [x] Giai Đoạn 25: Chuyển Thẳng Sang Bước 3 Thành Công & Cấp Key Khi Thanh Toán Xong (Spec 021) — ĐÃ HOÀN THÀNH
+- [x] **Spec-First Protocol**: Tạo `specs/021-instant-transition-to-success-step-on-payment/spec.md`.
+- [x] **Khắc Phục Xung Đột State Reset Trong CheckoutModal**:
+  - Sửa `useEffect` khởi tạo: Dùng `ref` hoặc phân biệt rõ `activeOrderForPayment?.id` để tránh re-init form và đè `setStep("qr")` khi đơn hàng chuyển sang `completed`.
+  - Nếu `activeOrderForPayment?.status === "completed"`, tự động duy trì và chuyển sang `step = "success"`, trích xuất đầy đủ License Keys.
+- [x] **Đảm Bảo Chuyển Bước Tức Thì Ở Cả 2 Cơ Chế**:
+  - Auto-polling (2.5s) và nút thủ công *"Tôi đã chuyển tiền — Kiểm tra ngay"* đều lập tức đưa khách sang Bước 3 thành công.
+- [x] **Kiểm Thử & Đẩy Code Lên GitHub**:
+  - `npx tsc --noEmit` đạt 0 lỗi.
+  - Commit và push lên remote `origin/main`.
+
+
