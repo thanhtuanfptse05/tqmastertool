@@ -548,8 +548,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       });
 
       // Listen for auth changes (sign in, sign out)
+      // IMPORTANT: Only fetch data on SIGNED_IN or INITIAL_SESSION — NOT on TOKEN_REFRESHED.
+      // TOKEN_REFRESHED is triggered by getAuthHeaders() proactive refresh during CRUD actions,
+      // and calling fetchOrdersFromDB() here would overwrite optimistic UI state (causing deleted
+      // orders to reappear, edits to be reverted, etc.) before the mutation API call completes.
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (!active) return;
+        // Skip re-fetching on token refresh to avoid clobbering optimistic updates
+        if (event === "TOKEN_REFRESHED") return;
         if (session?.user) {
           supabase
             .from("profiles")
