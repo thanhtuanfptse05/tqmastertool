@@ -37,6 +37,7 @@ interface LabDeliverableModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultLabCode?: string;
+  productTitle?: string;
 }
 
 /** Render danh sách mindset steps với bold support */
@@ -134,10 +135,18 @@ export default function LabDeliverableModal({
   isOpen,
   onClose,
   defaultLabCode,
+  productTitle,
 }: LabDeliverableModalProps) {
-  const allLabs = getAllLabExercises();
+  const isCampusHcm = Boolean(
+    productTitle?.toLowerCase().includes("campus hcm") ||
+    defaultLabCode?.startsWith("J1.L.P0028") ||
+    defaultLabCode?.startsWith("J1.L.P0038") ||
+    defaultLabCode?.startsWith("J1.L.P0039")
+  );
+
+  const allLabs = getAllLabExercises(isCampusHcm ? "hcm" : "standard");
   const [selectedLabId, setSelectedLabId] = useState<string>(
-    defaultLabCode || allLabs[0]?.id || "J1.L.P0023"
+    defaultLabCode || allLabs[0]?.id || (isCampusHcm ? "J1.L.P0028" : "J1.L.P0023")
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [showRuleModal, setShowRuleModal] = useState(false);
@@ -181,7 +190,7 @@ export default function LabDeliverableModal({
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = "LAB211.zip";
+      link.download = isCampusHcm ? "LAB211_campus_HCM.zip" : "LAB211.zip";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -213,7 +222,7 @@ export default function LabDeliverableModal({
                 </span>
               </div>
               <h2 className="text-lg font-black text-white tracking-tight flex items-center gap-2 mt-0.5">
-                <span>Kho Bàn Giao Mã Nguồn &amp; Đề Bài LAB211</span>
+                <span>{isCampusHcm ? "Kho Bàn Giao Mã Nguồn & Đề Bài LAB211 Campus HCM" : "Kho Bàn Giao Mã Nguồn & Đề Bài LAB211"}</span>
                 <Sparkles className="w-4 h-4 text-amber-400" />
               </h2>
             </div>
@@ -224,10 +233,10 @@ export default function LabDeliverableModal({
               onClick={handleDownloadFullArchive}
               disabled={isDownloadingFull}
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 transition-all active:scale-95 disabled:opacity-50"
-              title="Tải toàn bộ 12 bài lab nén trong 1 file ZIP"
+              title={isCampusHcm ? "Tải toàn bộ mã nguồn bài lab Campus HCM nén trong 1 file ZIP" : "Tải toàn bộ 12 bài lab nén trong 1 file ZIP"}
             >
               <Download className="w-4 h-4" />
-              <span>Tải Trọn Gói 12 Bài (.zip)</span>
+              <span>{isCampusHcm ? "Tải Trọn Gói Campus HCM (.zip)" : "Tải Trọn Gói 12 Bài (.zip)"}</span>
             </button>
 
             <button

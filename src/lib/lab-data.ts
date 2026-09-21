@@ -11,7 +11,7 @@ export const LAB211_MANIFEST: LabPackageManifest = {
   "packageId": "LAB211_COMPLETE",
   "title": "LAB211 - Trọn Bộ 12 Bài Lab Java OOP Chuẩn FPT",
   "ruleMarkdown": "# TẬP QUY TẮC VIẾT CODE – MÔN LAB211\n\n## 0. Quy định bắt buộc (Mandatory)\n\n- **Ngôn ngữ lập trình:** Toàn bộ các bài tập OOP đều **bắt buộc phải code bằng Java**.\n- **Môi trường & Công cụ chuẩn:**\n  - **Loại dự án:** Bắt buộc tạo theo kiểu **Java with Ant** (Java Application sử dụng Apache Ant, không dùng Maven/Gradle).\n  - **IDE:** Tương thích chuẩn với **Apache NetBeans 17**.\n  - **Phiên bản Java:** Chuẩn chỉnh **JDK 8 (Java SE 8 / 1.8)**. Code phải tương thích và chạy ổn định trên JDK 8 của môi trường chấm/máy thi.\n- **Mô hình kiến trúc:**\n  - Đối với các bài toán quản lý, bài toán nghiệp vụ tương tác phức tạp (Shape, BMI, Worker, User Management, EBank, Task Management, Matrix, Fruit...): **Bắt buộc phải thiết kế và viết theo chuẩn mô hình MVC (Model - View - Controller)**.\n    - **Model:** Định nghĩa các đối tượng/thực thể dữ liệu (Entity/POJO như `Student`, `Product`...). Chỉ quản lý dữ liệu, trạng thái, constructor, getter/setter; **tuyệt đối không chứa** code giao tiếp người dùng (`Scanner`, `System.out.println`).\n    - **View:** Đảm nhiệm hiển thị giao diện (Console), in menu, hiển thị kết quả, thông báo lỗi. Khi cần nhận và kiểm tra dữ liệu nhập, View sẽ gọi thông qua Controller.\n    - **Controller:** Đóng vai trò cầu nối điều phối giữa View và Model; tiếp nhận sự kiện/yêu cầu từ View, thực hiện xử lý logic nghiệp vụ (thêm, sửa, xóa, tìm kiếm, sắp xếp, tính toán...) và cập nhật hoặc trả dữ liệu cho View hiển thị. **ĐẶC BIỆT BẮT BUỘC:** Toàn bộ logic kiểm tra, xác thực tính hợp lệ của dữ liệu đầu vào (Validation / `InputValidator` / `Validation`) **phải nằm ở tầng Controller (trong package `controller`)**.\n  - Đối với các bài thuật toán nền tảng đơn giản (như `P0006 - BinarySearch`, `P0009 - Fibonacci`, `P0010 - Linear Search`): **Không cần áp dụng cấu trúc MVC**, chỉ cần tuân thủ **chuẩn OOP** (Object-Oriented Programming), phân tách rành mạch các class chức năng (thuật toán / dữ liệu, validation, main điều khiển) thành các file class riêng biệt, **tuyệt đối không viết chung vào 1 class hay dồn hết vào `main()`**.\n\n## 1. Quy tắc đặt tên (Naming Convention)\n\n- **Class name:** Viết theo kiểu `PascalCase` (mỗi từ viết hoa chữ cái đầu).\n  - Ví dụ: `StudentManager`, `Product`, `LibrarySystem`\n- **Method name:** Viết theo kiểu `camelCase`.\n  - Ví dụ: `calculateGPA()`, `findById()`\n- **Variable name:** Viết theo kiểu `camelCase`.\n  - Ví dụ: `studentList`, `totalPrice`\n- **Hằng số (constant):** Viết in hoa, các từ phân tách bằng dấu gạch dưới `_`.\n  - Ví dụ: `MAX_SCORE`\n\n## 2. Cấu trúc chương trình theo mô hình MVC\n\n- Phân chia package và class rõ ràng tương ứng với các thành phần của MVC:\n  - `model`: chứa các class thực thể (ví dụ: `Student.java`).\n  - `view`: chứa các class hiển thị màn hình, menu, tương tác console với người dùng (ví dụ: `StudentView.java`, `Menu.java`).\n  - `controller`: chứa các class điều khiển, xử lý nghiệp vụ quản lý dữ liệu (ví dụ: `StudentController.java`) **VÀ các class/phương thức validation dữ liệu đầu vào (ví dụ: `InputValidator.java`, `Validation.java`)**.\n- Mỗi class đảm nhiệm một vai trò duy nhất (**Single Responsibility**):\n  - `Student.java`: chỉ định nghĩa đối tượng Sinh viên (Model).\n  - `StudentController.java`: xử lý các thao tác quản lý danh sách và nghiệp vụ (Controller).\n  - `InputValidator.java`: xử lý kiểm tra và nhập dữ liệu hợp lệ (nằm trong Controller).\n  - `StudentView.java` / `Main.java`: chứa menu điều khiển, gọi validator/controller và hiển thị kết quả (View/Main).\n- Không để logic xử lý lẫn lộn giữa các tầng/lớp:\n  - Ví dụ: không để code `Scanner` nhập dữ liệu hoặc in giao diện trực tiếp trong `Student` (Model).\n\n## 3. Quy tắc về Method\n\n- Mỗi phương thức chỉ nên xử lý một nhiệm vụ cụ thể (**Single Responsibility**).\n- Tên phương thức phải thể hiện rõ chức năng.\n  - Ví dụ: `calculateAge()` tốt hơn `process1()`.\n- Đối với các hành động, đặt tên rõ ràng và nhất quán:\n  - `get`: lấy thông tin.\n  - `set`: gán giá trị.\n  - `add`: thêm.\n  - `remove`: xóa.\n  - `find`: tìm kiếm.\n  - `sort`: sắp xếp.\n  - `print`: in thông tin.\n  - `input`: nhập dữ liệu.\n  - `update`: cập nhật.\n\n## 4. Validation dữ liệu đầu vào\n\n- **Vị trí bắt buộc:** Toàn bộ các class hoặc phương thức kiểm tra/xác thực dữ liệu đầu vào (như `InputValidator.java`, `Validation.java`) **BẮT BUỘC PHẢI NẰM TRONG PACKAGE `controller`** (tuyệt đối không để trong package `view` hay `model`).\n- Tầng `view` khi cần nhận và kiểm tra dữ liệu từ người dùng sẽ gọi thông qua các hàm validate thuộc package `controller`.\n- Bắt buộc kiểm tra và xử lý ngoại lệ (**exception**) cho tất cả các đầu vào từ người dùng:\n  - Dữ liệu rỗng.\n  - Sai kiểu dữ liệu.\n  - Vượt giới hạn.\n  - Sai định dạng.\n  - Các trường hợp nhập dữ liệu không hợp lệ khác.\n- Có thể sử dụng các phương thức hỗ trợ như:\n\n```java\npublic static int inputInteger(String msg, int min, int max);\n\npublic static String inputString(String msg, String regex);\n```\n\n## 5. Encapsulation\n\n- Tất cả thuộc tính (**attribute**) trong class phải là `private`.\n- Cung cấp `getter` và `setter` nếu cần thiết.\n- Không để biến `public` nếu không có lý do rõ ràng.\n\n## 6. Tuân thủ nguyên tắc OOP\n\n- Áp dụng đúng các đặc tính của lập trình hướng đối tượng:\n  - **Encapsulation** – Đóng gói.\n  - **Abstraction** – Trừu tượng.\n  - **Inheritance** – Kế thừa.\n  - **Polymorphism** – Đa hình.\n- Không viết toàn bộ chương trình trong `main()` hoặc trong một class duy nhất.\n- Có thể có một số ngoại lệ rõ ràng tùy theo yêu cầu bài tập.\n\n## 7. Định dạng và bố cục\n\n- Dùng **indent = 4 spaces**, không dùng `Tab`.\n- Mỗi file Java nên có comment tên lớp và mô tả ngắn gọn chức năng.\n- Có khoảng trắng hợp lý giữa các phương thức và các khối lệnh.\n- Tránh viết quá dài trong một phương thức.\n  - Phương thức dài hơn **30 dòng** là dấu hiệu nên xem xét tách nhỏ thành các phương thức khác.\n\n## 8. Comment & Documentation\n\n- Comment đúng mức, không lạm dụng.\n- Ưu tiên viết code rõ ràng, dễ đọc thay vì giải thích quá nhiều bằng comment.\n- Các method nên có mô tả đầu dòng theo chuẩn **Javadoc**.\n\nVí dụ:\n\n```java\n/**\n * Tính tổng tiền cho một sản phẩm.\n *\n * @return tổng tiền\n */\n```\n\n## 9. Những điều không được phép (DON'T)\n\n- Không dùng `break` và `continue` bừa bãi trong vòng lặp.\n- Không để code lặp lại logic giống nhau ở nhiều nơi.\n  - Tuân thủ nguyên tắc **DRY (Don't Repeat Yourself)**.\n- Không viết class chứa toàn biến `static` nếu không cần thiết.\n- Không chép code từ nguồn ngoài nếu không hiểu rõ cách hoạt động của code.\n- Không sử dụng các cú pháp và tính năng từ Java 9 trở lên (ví dụ: từ khóa `var`, `List.of()`, `Map.of()`, `record`, switch expression `->`, `Stream.toList()`...) gây lỗi khi biên dịch với **JDK 8**.\n\n## 10. Kiểm tra chương trình\n\n- Kiểm tra tất cả các chức năng được yêu cầu hoạt động đúng.\n- Kiểm tra các trường hợp biên:\n  - Dữ liệu trống.\n  - Sai định dạng.\n  - Nhập lại dữ liệu.\n  - Dữ liệu vượt giới hạn.\n  - Các trường hợp bất thường khác.\n- Đảm bảo chương trình không bị crash khi người dùng nhập sai.\n- Đảm bảo các thông báo lỗi thân thiện và dễ hiểu với người dùng.\n- Đảm bảo hiểu hết **control flow** và **data flow** trong chương trình.\n- Đảm bảo hiểu và có thể giải thích được cách thức hoạt động của từng dòng lệnh trong chương trình.\n",
-  "totalLabs": 15,
+  "totalLabs": 12,
   "labs": [
     {
       "id": "J1.L.P0023",
@@ -701,8 +701,19 @@ export const LAB211_MANIFEST: LabPackageManifest = {
       "zipSize": 92721,
       "docxSize": 69348
     }
-,
-    {
+
+  ],
+  "updatedAt": "2026-03-16T12:00:00.000Z"
+};
+
+
+export const LAB211_HCM_MANIFEST: LabPackageManifest = {
+  "packageId": "LAB211_CAMPUS_HCM",
+  "title": "SOURCE CODE LAB211 CAMPUS HCM",
+  "ruleMarkdown": LAB211_RULE_MD,
+  "totalLabs": 3,
+  "labs": [
+{
         "id": "J1.L.P0028",
         "code": "J1.L.P0028",
         "title": "Traditional Feast Order Management",
@@ -1047,19 +1058,68 @@ export const LAB211_MANIFEST: LabPackageManifest = {
         "docxSize": 180192
     }
   ],
-  "updatedAt": "2026-03-16T12:00:00.000Z"
+  "updatedAt": "2026-03-22T00:00:00.000Z"
 };
 
-export function getLabExerciseById(labIdOrCode: string): LabExerciseItem | undefined {
-  const clean = labIdOrCode.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-  return LAB211_MANIFEST.labs.find(
-    (l) =>
-      l.id.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
-      l.code.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
-      l.folderName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(clean)
-  );
+
+export function getAllLabExercises(packageFilter?: string): LabExerciseItem[] {
+  if (
+    packageFilter &&
+    (packageFilter.toLowerCase().includes("hcm") ||
+      packageFilter.toLowerCase().includes("campus") ||
+      packageFilter === "LAB211_CAMPUS_HCM")
+  ) {
+    return LAB211_HCM_MANIFEST.labs;
+  }
+  return LAB211_MANIFEST.labs;
 }
 
-export function getAllLabExercises(): LabExerciseItem[] {
-  return LAB211_MANIFEST.labs;
+export function getLabPackageManifest(packageFilter?: string): LabPackageManifest {
+  if (
+    packageFilter &&
+    (packageFilter.toLowerCase().includes("hcm") ||
+      packageFilter.toLowerCase().includes("campus") ||
+      packageFilter === "LAB211_CAMPUS_HCM")
+  ) {
+    return LAB211_HCM_MANIFEST;
+  }
+  return LAB211_MANIFEST;
+}
+
+export function getLabExerciseById(labIdOrCode: string, packageFilter?: string): LabExerciseItem | undefined {
+  const clean = labIdOrCode.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const isHcm = packageFilter && (packageFilter.toLowerCase().includes("hcm") || packageFilter.toLowerCase().includes("campus") || packageFilter === "LAB211_CAMPUS_HCM");
+
+  if (isHcm) {
+    return LAB211_HCM_MANIFEST.labs.find(
+      (l) =>
+        l.id.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.code.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.folderName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(clean)
+    );
+  }
+
+  if (packageFilter && (packageFilter === "standard" || packageFilter.toLowerCase().includes("standard"))) {
+    return LAB211_MANIFEST.labs.find(
+      (l) =>
+        l.id.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.code.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.folderName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(clean)
+    );
+  }
+
+  return (
+    LAB211_HCM_MANIFEST.labs.find(
+      (l) =>
+        l.id.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.code.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.folderName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(clean)
+    ) ||
+    LAB211_MANIFEST.labs.find(
+      (l) =>
+        l.id.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.code.toLowerCase().replace(/[^a-z0-9]/g, "") === clean ||
+        l.folderName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(clean)
+    )
+  );
 }

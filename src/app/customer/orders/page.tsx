@@ -39,6 +39,8 @@ export default function CustomerOrdersPage() {
     isOpen: boolean;
     orderId: string;
     orderCode: string;
+    labCode?: string;
+    productTitle?: string;
   } | null>(null);
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -513,13 +515,18 @@ export default function CustomerOrdersPage() {
                           <>
                             {isLab && (
                               <button
-                                onClick={() =>
+                                onClick={() => {
+                                  const isHcm = order.items?.some((i) =>
+                                    i.product_title?.toLowerCase().includes("campus hcm")
+                                  ) || products.find((p) => p.id === order.items?.[0]?.product_id)?.slug?.includes("campus-hcm");
                                   setActiveLabModal({
                                     isOpen: true,
                                     orderId: order.id,
                                     orderCode: order.order_code,
-                                  })
-                                }
+                                    labCode: isHcm ? "J1.L.P0028" : "J1.L.P0023",
+                                    productTitle: isHcm ? "SOURCE CODE LAB211 CAMPUS HCM" : undefined,
+                                  });
+                                }}
                                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all"
                               >
                                 <BookOpen className="w-3.5 h-3.5" />
@@ -601,9 +608,18 @@ export default function CustomerOrdersPage() {
           order={selectedDetailOrder}
           isOpen={Boolean(selectedDetailOrder)}
           onClose={() => setSelectedDetailOrder(null)}
-          onOpenDeliverable={(orderId, orderCode) =>
-            setActiveLabModal({ isOpen: true, orderId, orderCode })
-          }
+          onOpenDeliverable={(orderId, orderCode) => {
+            const isHcm = selectedDetailOrder.items?.some((i) =>
+              i.product_title?.toLowerCase().includes("campus hcm")
+            ) || products.find((p) => p.id === selectedDetailOrder.items?.[0]?.product_id)?.slug?.includes("campus-hcm");
+            setActiveLabModal({
+              isOpen: true,
+              orderId,
+              orderCode,
+              labCode: isHcm ? "J1.L.P0028" : "J1.L.P0023",
+              productTitle: isHcm ? "SOURCE CODE LAB211 CAMPUS HCM" : undefined,
+            });
+          }}
         />
       )}
 
@@ -614,6 +630,8 @@ export default function CustomerOrdersPage() {
           orderCode={activeLabModal.orderCode}
           isOpen={activeLabModal.isOpen}
           onClose={() => setActiveLabModal(null)}
+          defaultLabCode={activeLabModal.labCode}
+          productTitle={activeLabModal.productTitle}
         />
       )}
     </div>

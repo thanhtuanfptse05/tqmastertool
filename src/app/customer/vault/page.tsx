@@ -37,6 +37,7 @@ export default function DeliverableVaultPage() {
     orderId: string;
     orderCode?: string;
     labCode?: string;
+    productTitle?: string;
   } | null>(null);
 
   const [activeToolModal, setActiveToolModal] = useState<{
@@ -331,14 +332,17 @@ export default function DeliverableVaultPage() {
                       <>
                         {lab && (
                           <button
-                            onClick={() =>
+                            onClick={() => {
+                              const isHcm = item.product_title?.toLowerCase().includes("campus hcm") ||
+                                            item.product?.slug?.includes("campus-hcm");
                               setActiveLabModal({
                                 isOpen: true,
                                 orderId: item.order_id,
                                 orderCode: item.order_code,
-                                labCode: "J1.L.P0023",
-                              })
-                            }
+                                labCode: isHcm ? "J1.L.P0028" : "J1.L.P0023",
+                                productTitle: item.product_title,
+                              });
+                            }}
                             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm shadow-lg shadow-blue-500/30 transition-all active:scale-95 whitespace-nowrap"
                           >
                             <BookOpen className="w-4 h-4" />
@@ -346,14 +350,16 @@ export default function DeliverableVaultPage() {
                           </button>
                         )}
                         <button
-                          onClick={() =>
+                          onClick={() => {
+                            const isHcm = item.product_title?.toLowerCase().includes("campus hcm") ||
+                                          item.product?.slug?.includes("campus-hcm");
                             handleAuthDownload(
                               item.order_id,
                               lab ? "all" : item.product_id,
                               "zip",
-                              lab ? "LAB211.zip" : `${item.product_title.replace(/[^a-zA-Z0-9]/g, "_")}.zip`
-                            )
-                          }
+                              lab ? (isHcm ? "LAB211_campus_HCM.zip" : "LAB211.zip") : `${item.product_title.replace(/[^a-zA-Z0-9]/g, "_")}.zip`
+                            );
+                          }}
                           disabled={downloading === `${item.order_id}-${lab ? "all" : item.product_id}-zip`}
                           className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-sm shadow-md shadow-emerald-500/25 transition-all active:scale-95 whitespace-nowrap"
                         >
@@ -539,6 +545,7 @@ export default function DeliverableVaultPage() {
           orderId={activeLabModal.orderId}
           orderCode={activeLabModal.orderCode}
           defaultLabCode={activeLabModal.labCode}
+          productTitle={activeLabModal.productTitle}
         />
       )}
 

@@ -65,11 +65,13 @@ export function getLabAssetPhysicalPath(
       };
     }
     // Fallback to Full zip if specific zip not found
-    const fullZipPath = path.join(baseDir, "zips", "LAB211_Full.zip");
+    const isHcmLab = ["J1.L.P0028", "J1.L.P0038", "J1.L.P0039"].includes(lab.code);
+    const fallbackZip = isHcmLab ? "LAB211_campus_HCM.zip" : "LAB211_Full.zip";
+    const fullZipPath = path.join(baseDir, "zips", fallbackZip);
     if (fs.existsSync(fullZipPath)) {
       return {
         filePath: fullZipPath,
-        fileName: "LAB211_Full.zip",
+        fileName: fallbackZip,
         contentType: "application/zip",
       };
     }

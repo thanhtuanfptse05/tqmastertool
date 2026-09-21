@@ -109,8 +109,13 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Return all labs or a single lab
+    const isHcmOrder = orderItems?.some((item: any) =>
+      item.product_title?.toLowerCase().includes("campus hcm") ||
+      item.product_id === "687bc7ee-8de2-49ee-9fcf-971050553e40"
+    );
+
     if (!labId || labId === "all") {
-      const allLabs = getAllLabExercises();
+      const allLabs = getAllLabExercises(isHcmOrder ? "hcm" : "standard");
       return NextResponse.json({
         success: true,
         totalLabs: allLabs.length,
@@ -119,10 +124,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const lab = getLabExerciseById(labId);
+    const lab = getLabExerciseById(labId, isHcmOrder ? "hcm" : "standard");
     if (!lab) {
       return NextResponse.json(
-        { error: `Không tìm thấy bài lab với mã: ${labId}` },
+        {
+          error: isHcmOrder
+            ? `Bài lab "${labId}" không nằm trong gói SOURCE CODE LAB211 CAMPUS HCM (gói này chỉ gồm J1.L.P0028, J1.L.P0038, J1.L.P0039).`
+            : `Không tìm thấy bài lab với mã: ${labId}`,
+        },
         { status: 404 }
       );
     }
