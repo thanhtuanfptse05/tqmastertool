@@ -100,6 +100,14 @@ export default function CheckoutModal() {
     }
   };
 
+  // BẮT BUỘC ĐĂNG NHẬP: Bảo vệ nhiều lớp, đóng checkout ngay nếu chưa đăng nhập
+  React.useEffect(() => {
+    if ((checkoutProduct || activeOrderForPayment) && !currentUser) {
+      closeCheckout();
+      openAuthModal("login", "Vui lòng đăng nhập tài khoản để tiến hành đặt mua sản phẩm.");
+    }
+  }, [checkoutProduct, activeOrderForPayment, currentUser, closeCheckout, openAuthModal]);
+
   // SPEC 020 & SPEC 021: Khởi tạo modal & Chuyển thẳng sang bước 3 (success) khi thanh toán hoàn tất
   React.useEffect(() => {
     // Nếu đơn hàng đã hoàn tất (từ SePay Webhook hoặc bấm kiểm tra):
@@ -151,10 +159,11 @@ export default function CheckoutModal() {
       }
       setStep("qr");
     } else {
-      setCustomerEmails(isCoursera ? Array.from({ length: initQty }).map(() => "") : []);
+      const defaultEmail = currentUser?.email && !currentUser.email.startsWith("guest@") ? currentUser.email : "";
+      setCustomerEmails(isCoursera ? Array.from({ length: initQty }).map((_, i) => (i === 0 ? defaultEmail : "")) : []);
       setStep("confirm");
     }
-  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step, isCoursera]);
+  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step, isCoursera, currentUser?.email]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -286,7 +295,7 @@ export default function CheckoutModal() {
     }
   };
 
-  if (!checkoutProduct && !activeOrderForPayment) return null;
+  if ((!checkoutProduct && !activeOrderForPayment) || !currentUser) return null;
 
   const order = activeOrderForPayment;
 
@@ -320,6 +329,11 @@ export default function CheckoutModal() {
   };
 
   const handleConfirmOrder = async () => {
+    if (!currentUser) {
+      closeCheckout();
+      openAuthModal("login", "Vui lòng đăng nhập tài khoản để tiến hành đặt mua sản phẩm.");
+      return;
+    }
     if (!checkoutProduct) return;
     if (isLicenseRequired) {
       if (!validateEmails()) return;
@@ -552,6 +566,28 @@ export default function CheckoutModal() {
         {/* STEP 1: EXPLICIT ORDER CONFIRMATION (SPEC 020) */}
         {step === "confirm" && (
           <div className="p-6 space-y-6">
+            {/* Account Info */}
+            {currentUser && (
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-50/80 to-indigo-50/60 border border-blue-200/80 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-sm shadow-blue-500/20">
+                    {currentUser.full_name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-blue-600 font-bold block uppercase tracking-wider">
+                      Tài khoản thanh toán
+                    </span>
+                    <span className="font-extrabold text-slate-900">
+                      {currentUser.full_name || "Khách Hàng"}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold text-blue-700 bg-white px-2.5 py-1 rounded-lg border border-blue-100 shadow-sm">
+                  {currentUser.email}
+                </span>
+              </div>
+            )}
+
             {/* Product Card */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="space-y-1">

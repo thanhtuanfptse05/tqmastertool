@@ -84,7 +84,8 @@ interface StoreContextType {
   // Modals & UI Controls
   isAuthModalOpen: boolean;
   authModalMode: "login" | "register";
-  openAuthModal: (mode?: "login" | "register") => void;
+  authNotice: string | null;
+  openAuthModal: (mode?: "login" | "register", notice?: string) => void;
   closeAuthModal: () => void;
   checkoutProduct: Product | null;
   checkoutQuantity: number;
@@ -118,6 +119,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // Modals
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"login" | "register">("login");
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [pendingCheckout, setPendingCheckout] = useState<{ product: Product; quantity: number } | null>(null);
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState<number>(1);
   const [activeOrderForPayment, setActiveOrderForPayment] = useState<Order | null>(null);
@@ -1074,6 +1077,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const createOrder = (product: Product, quantity: number = 1, customerEmails: string[] = []): Order => {
+    if (!currentUser) {
+      openAuthModal("login", "Vui lòng đăng nhập tài khoản để tiến hành đặt mua sản phẩm.");
+      throw new Error("Vui lòng đăng nhập để tiến hành mua hàng.");
+    }
+
     const isCoursera = Boolean(
       product.title.toLowerCase().includes("coursera") ||
       (product.slug && product.slug.toLowerCase().includes("coursera"))
@@ -1097,11 +1105,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const newOrder: Order = {
       id: orderId,
       order_code: orderCode,
-      user_id: currentUser?.id || "user-guest",
-      user_email: (currentUser?.email && currentUser.email !== "guest@codevault.io")
-        ? currentUser.email
-        : (cleanEmails[0] || ""),
-      user_name: currentUser?.full_name || "Khách Hàng",
+      user_id: currentUser.id,
+      user_email: currentUser.email,
+      user_name: currentUser.full_name || "Khách Hàng",
       total_amount: totalAmount,
       status: "pending_payment",
       payment_method: "vietqr",
@@ -1598,22 +1604,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return deliverables;
   };
 
-  const openAuthModal = (mode: "login" | "register" = "login") => {
+  // Tự động mở tiếp checkout cho sản phẩm đang chờ ngay khi khách đăng nhập thành công
+  useEffect(() => {
+    if (currentUser && pendingCheckout) {
+      const { product, quantity } = pendingCheckout;
+      setPendingCheckout(null);
+      setAuthNotice(null);
+      setIsAuthModalOpen(false);
+      setActiveOrderForPayment(null);
+      setCheckoutQuantity(quantity);
+      setCheckoutProduct(product);
+    }
+  }, [currentUser, pendingCheckout]);
+
+  const openAuthModal = (mode: "login" | "register" = "login", notice?: string) => {
     setAuthModalMode(mode);
+    setAuthNotice(notice || null);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+    setAuthNotice(null);
+    setPendingCheckout(null);
   };
 
   const openCheckout = (product: Product, quantity: number = 1) => {
-    setActiveOrderForPayment(null);
     const isCoursera = Boolean(
       product.title.toLowerCase().includes("coursera") ||
       (product.slug && product.slug.toLowerCase().includes("coursera"))
     );
-    setCheckoutQuantity(isCoursera ? Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))) : 1);
+    const qty = isCoursera ? Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1))) : 1;
+
+    // BẮT BUỘC ĐĂNG NHẬP: Nếu chưa đăng nhập, chặn mở thanh toán và kích hoạt AuthModal
+    if (!currentUser) {
+      setPendingCheckout({ product, quantity: qty });
+      openAuthModal("login", "Vui lòng đăng nhập tài khoản để tiến hành đặt mua sản phẩm.");
+      return;
+    }
+
+    setActiveOrderForPayment(null);
+    setCheckoutQuantity(qty);
     setCheckoutProduct(product);
   };
 
@@ -1662,6 +1693,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         getUnlockedDeliverables,
         isAuthModalOpen,
         authModalMode,
+        authNotice,
         openAuthModal,
         closeAuthModal,
         checkoutProduct,

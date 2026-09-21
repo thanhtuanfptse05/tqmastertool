@@ -8,6 +8,7 @@ export default function AuthModal() {
   const {
     isAuthModalOpen,
     authModalMode,
+    authNotice,
     openAuthModal,
     closeAuthModal,
     login,
@@ -81,6 +82,14 @@ export default function AuthModal() {
               : "Kích hoạt ngay lập tức — Không cần xác nhận email phức tạp"}
           </p>
         </div>
+
+        {/* Purchase Flow Notice */}
+        {authNotice && (
+          <div className="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs flex items-center gap-2 animate-in fade-in">
+            <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="font-semibold">{authNotice}</span>
+          </div>
+        )}
 
         {/* Error Alert */}
         {error && (

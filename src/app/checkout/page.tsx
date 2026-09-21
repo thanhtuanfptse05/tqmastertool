@@ -6,13 +6,18 @@ import { useStore } from "@/lib/store";
 
 export default function CheckoutPageRoute() {
   const router = useRouter();
-  const { checkoutProduct } = useStore();
+  const { checkoutProduct, currentUser, openAuthModal } = useStore();
 
   useEffect(() => {
+    if (!currentUser) {
+      openAuthModal("login", "Vui lòng đăng nhập tài khoản để tiến hành đặt mua sản phẩm.");
+      router.push("/#catalog");
+      return;
+    }
     if (!checkoutProduct) {
       router.push("/#catalog");
     }
-  }, [checkoutProduct, router]);
+  }, [checkoutProduct, currentUser, openAuthModal, router]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-20 text-center">

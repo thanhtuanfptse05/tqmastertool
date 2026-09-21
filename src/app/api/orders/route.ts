@@ -487,9 +487,15 @@ export async function POST(req: NextRequest) {
 
     const parsedQty = Math.max(1, Math.min(20, Math.floor(Number(quantity) || 1)));
 
-    // 1. Authenticate user if session exists
+    // 1. Authenticate user — BẮT BUỘC ĐĂNG NHẬP MỚI ĐƯỢC MUA HÀNG
     const { user } = await getAuthenticatedUser(req);
-    const userId = user?.id || null;
+    if (!user) {
+      return NextResponse.json(
+        { error: "Vui lòng đăng nhập để tiến hành mua hàng." },
+        { status: 401 }
+      );
+    }
+    const userId = user.id;
 
     // 2. Fetch product from database to get official immutable price
     // Support lookup by UUID or slug
@@ -543,9 +549,8 @@ export async function POST(req: NextRequest) {
       ? crypto.randomUUID()
       : `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
-    const cleanEmail = (customerEmail || user?.email || "").trim().toLowerCase();
-    const cleanName = (customerName || user?.user_metadata?.full_name || "Khách Hàng").trim();
-
+    const cleanEmail = (user.email || customerEmail || "").trim().toLowerCase();
+    const cleanName = (user.user_metadata?.full_name || customerName || "Khách Hàng").trim();
 
     let adminNotes = "";
     // Collect customer emails for Coursera
@@ -571,12 +576,10 @@ export async function POST(req: NextRequest) {
       payment_method: "vietqr",
       vietqr_content: cleanMemo,
       admin_notes: adminNotes || null,
+      user_id: userId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-
-    const GUEST_PROFILE_ID = "68169ca4-2f3e-41a1-bed7-ef3da207b738";
-    orderPayload.user_id = userId || GUEST_PROFILE_ID;
 
     const { data: newOrder, error: orderErr } = await supabaseAdmin
       .from("orders")
