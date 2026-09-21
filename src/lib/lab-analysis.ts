@@ -499,6 +499,104 @@ export const LAB_ANALYSIS_MAP: Record<string, LabAnalysis> = {
       },
     ],
   },
+
+  // =====================================================================
+  // J1.L.P0028 – TRADITIONAL FEAST ORDER MANAGEMENT (Campus HCM)
+  // =====================================================================
+  "J1.L.P0028": {
+    labCode: "J1.L.P0028",
+    summary:
+      "Bài toán quản lý dịch vụ đặt tiệc truyền thống (đám cưới, kỷ niệm, lễ hội). Hệ thống gồm 8 chức năng cốt lõi: Đăng ký khách hàng (mã C/G/K + 4 số, tên 2-25 ký tự, SĐT VN 10 số, email), Cập nhật thông tin khách hàng, Tìm kiếm khách theo tên, Đọc và hiển thị thực đơn từ file CSV (feastMenu.csv), Đặt tiệc với ngày tổ chức trong tương lai, Cập nhật đơn đặt tiệc, Lưu trữ dữ liệu an toàn ra file nhị phân (feast_order_service.dat) và Hiển thị danh sách khách hàng/đơn tiệc.",
+    mindset: [
+      "**Bước 1 – Phân tích Model:** Cần các thực thể `Customer` (customerCode, name, phone, email), `FeastMenu` (code, name, price, ingredients), `Order` (orderId, customerCode, menuCode, tables, eventDate, totalCost). Viết đầy đủ encapsulation.",
+      "**Bước 2 – Thiết kế Controller:** `FeastOrderController` quản lý `ArrayList<Customer>`, `ArrayList<FeastMenu>`, `ArrayList<Order>`. Đọc menu từ CSV khi khởi động và đọc/ghi file nhị phân với `ObjectInputStream`/`ObjectOutputStream`.",
+      "**Bước 3 – Xử lý Validation:** `InputValidator` đặt tại tầng `controller`. Kiểm tra chặt chẽ: mã khách hàng (Regex `^[CGK]\\d{4}$`), ngày tổ chức phải sau ngày hiện tại, số lượng bàn nguyên dương.",
+      "**Bước 4 – Thiết kế View:** `FeastOrderView` xử lý in menu console, giao tiếp người dùng và phân luồng gọi Controller.",
+      "**Bước 5 – File I/O an toàn:** Xử lý ngoại lệ file không tồn tại, kiểm tra ghi đè và lưu trạng thái đồng bộ.",
+    ],
+    oopConcepts: [
+      "**MVC Architecture** – Phân tách rõ ràng Model (POJO), View (Console UI) và Controller (Nghiệp vụ & Validation).",
+      "**File I/O (CSV & Binary)** – Đọc CSV danh mục thực đơn và tuần tự hóa đối tượng (Serialization) ra file .dat.",
+      "**Encapsulation & Data Hiding** – Mọi thuộc tính private, cung cấp getter/setter chuẩn JDK 8.",
+      "**Input Validation** – Toàn bộ logic validate đặt tại package controller, bảo đảm ứng dụng không bao giờ crash.",
+    ],
+    faq: [
+      {
+        type: "theory",
+        question: "Tại sao cần lưu file dưới dạng nhị phân (.dat) thay vì file text (.txt)?",
+        answer: "File nhị phân thông qua Java Object Serialization (implements Serializable) giúp lưu trữ trực tiếp cấu trúc đối tượng hoàn chỉnh vào bộ nhớ ngoài mà không cần chuyển đổi thủ công sang chuỗi ký tự, tăng tốc độ đọc ghi và bảo vệ tính toàn vẹn dữ liệu.",
+      },
+      {
+        type: "applied",
+        question: "Làm thế nào để kiểm tra tính hợp lệ của ngày đặt tiệc phải là một ngày trong tương lai?",
+        answer: "Sử dụng `SimpleDateFormat` với `setLenient(false)` để parse chuỗi dd/MM/yyyy. So sánh đối tượng `Date` nhập vào với `new Date()` bằng phương thức `eventDate.after(new Date())`.",
+      },
+    ],
+  },
+
+  // =====================================================================
+  // J1.L.P0038 – CAR INSURANCE MANAGEMENT (Campus HCM)
+  // =====================================================================
+  "J1.L.P0038": {
+    labCode: "J1.L.P0038",
+    summary:
+      "Chương trình quản lý bảo hiểm xe hơi ứng dụng mô hình OOP và cấu trúc dữ liệu `Map<Key, Value>`. Bao gồm 9 chức năng: Thêm xe (biển số duy nhất, chủ xe 2-35 ký tự, giá trị > 999, ngày đăng ký, loại 5/7/9 chỗ), Tìm kiếm xe, Cập nhật thông tin xe, Xóa xe (ràng buộc không được xóa nếu xe đã tham gia bảo hiểm), Thêm hợp đồng bảo hiểm (Insurance Statement), Liệt kê danh sách hợp đồng, Báo cáo xe chưa có bảo hiểm, Lưu và Tải dữ liệu từ file.",
+    mindset: [
+      "**Bước 1 – Khai thác Map<Key, Value>:** Dùng `HashMap<String, Car>` với key là biển số xe (licensePlate). Giúp thao tác tìm kiếm, kiểm tra tồn tại đạt độ phức tạp O(1).",
+      "**Bước 2 – Thiết kế Model:** `Car` (licensePlate, owner, brand, value, regDate, regPlace, vehicleType) và `InsuranceStatement` (statementId, licensePlate, period, fee, establishedDate).",
+      "**Bước 3 – Ràng buộc nghiệp vụ xóa:** Trong Controller, trước khi xóa xe phải duyệt danh sách hợp đồng bảo hiểm. Nếu xe đang có hợp đồng thì chặn xóa và trả thông báo lỗi.",
+      "**Bước 4 – Báo cáo xe chưa bảo hiểm:** Lọc tập các xe trong `Map<String, Car>` mà biển số không xuất hiện trong bất kỳ hợp đồng bảo hiểm nào.",
+    ],
+    oopConcepts: [
+      "**Map Collection** – Sử dụng `Map<Key, Value>` để định danh duy nhất xe hơi theo biển số xe.",
+      "**Business Logic Validation** – Kiểm tra ràng buộc toàn vẹn quan hệ giữa Xe và Hợp đồng bảo hiểm trước khi xóa.",
+      "**Date Validation** – Xử lý định dạng ngày tháng chuẩn và tính toán thời hạn bảo hiểm hợp lệ.",
+    ],
+    faq: [
+      {
+        type: "theory",
+        question: "Lợi ích của việc sử dụng cấu trúc `Map<Key, Value>` so với `List` trong bài toán quản lý xe?",
+        answer: "Khi số lượng xe lớn, việc tìm kiếm theo biển số trong `List` mất thời gian O(n), trong khi `Map` (cụ thể là `HashMap`) tra cứu O(1) dựa trên bảng băm và mã hash của biển số xe.",
+      },
+      {
+        type: "applied",
+        question: "Làm thế nào để ngăn chặn xóa xe khi xe đã tham gia bảo hiểm?",
+        answer: "Trong phương thức `deleteCar(String licensePlate)` của Controller, kiểm tra trước: `for (InsuranceStatement st : statements) if (st.getLicensePlate().equalsIgnoreCase(licensePlate)) return false;`. Chỉ thực hiện `carsMap.remove(licensePlate)` khi không có liên kết nào tồn tại.",
+      },
+    ],
+  },
+
+  // =====================================================================
+  // J1.L.P0039 – STUDENT & SHORT COURSE MANAGEMENT (Campus HCM)
+  // =====================================================================
+  "J1.L.P0039": {
+    labCode: "J1.L.P0039",
+    summary:
+      "Hệ thống quản lý sinh viên và các khóa học ngắn hạn tại trường đại học (quy mô 500 LOC). Dữ liệu được đồng bộ và lưu trữ trong hai file văn bản: `Students.txt` (ID format STU0000, Họ tên >= 2 từ, Chuyên ngành, GPA 0.0 - 4.0) và `Courses.txt` (Mã khóa học, Mã sinh viên ngoại khóa, Tên khóa, Thời lượng >= 1 tuần, Ngày bắt đầu trong tương lai). Chương trình cung cấp các chức năng CRUD sinh viên, đăng ký khóa học, tìm kiếm theo sinh viên và lưu trữ file.",
+    mindset: [
+      "**Bước 1 – Thiết kế thực thể:** `Student` (studentId, fullName, major, gpa) và `Course` (courseId, studentId, courseName, durationWeeks, startDate).",
+      "**Bước 2 – Khóa ngoại logic:** Khi thêm khóa học mới cho sinh viên, mã `studentId` bắt buộc phải tồn tại trong danh sách sinh viên hiện có.",
+      "**Bước 3 – Xử lý File Text:** Viết hàm đọc ghi `BufferedReader`/`BufferedWriter` phân tách dữ liệu theo dấu phẩy (comma-separated format) chuẩn xác.",
+      "**Bước 4 – Validation đa điều kiện:** Kiểm tra Regex mã sinh viên `^STU\\d{4}$`, họ tên phải chứa ít nhất 1 khoảng trắng (>= 2 từ), GPA trong khoảng [0.0, 4.0].",
+    ],
+    oopConcepts: [
+      "**Relational Integrity in OOP** – Quản lý mối liên kết giữa 2 thực thể Sinh viên và Khóa học thông qua ID.",
+      "**Text File Persistence** – Đọc và phân tích cú pháp dòng dữ liệu văn bản thành đối tượng Java và ngược lại.",
+      "**Strict Input Constraints** – Kiểm tra định dạng ID, GPA biên và ngày bắt đầu trong tương lai.",
+    ],
+    faq: [
+      {
+        type: "theory",
+        question: "Làm thế nào để kiểm tra tên sinh viên phải chứa ít nhất hai từ?",
+        answer: "Sử dụng phương thức `name.trim().split(\"\\\\s+\").length >= 2`. Regex `\\s+` giúp xử lý mọi khoảng trắng dư thừa giữa các từ.",
+      },
+      {
+        type: "applied",
+        question: "Khi sinh viên bị xóa, các khóa học của sinh viên đó có nên bị ảnh hưởng?",
+        answer: "Tùy theo nghiệp vụ: Có thể chặn xóa sinh viên nếu sinh viên đang theo học các khóa học hoạt động, hoặc thực hiện xóa dây chuyền (cascade delete) các bản ghi khóa học liên quan trong danh sách trước khi lưu file.",
+      },
+    ],
+  },
 };
 
 /**
