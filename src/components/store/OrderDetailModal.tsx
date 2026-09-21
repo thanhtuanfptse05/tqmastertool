@@ -678,18 +678,21 @@ export default function OrderDetailModal({
                   <Sparkles className="w-3.5 h-3.5" />
                   Mở Kho Tool &amp; Hướng Dẫn
                 </a>
-              ) : onOpenDeliverable ? (
-                <button
-                  onClick={() => {
-                    onClose();
-                    onOpenDeliverable(order.id, order.order_code);
-                  }}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
-                >
-                  <Package className="w-3.5 h-3.5" />
-                  Xem Đề Bài Word &amp; Code
-                </button>
-              ) : (
+              ) : onOpenDeliverable ? (() => {
+                const isHcm = order.items?.some((i) => i.product_title?.toLowerCase().includes("campus hcm"));
+                return (
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenDeliverable(order.id, order.order_code);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-500/25 transition-all"
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    {isHcm ? "Xem Đề Bài PDF & Code" : "Xem Đề Bài Word & Code"}
+                  </button>
+                );
+              })() : (
                 <a
                   href="/customer/vault"
                   onClick={onClose}

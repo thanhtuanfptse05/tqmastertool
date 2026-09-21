@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const orderId = searchParams.get("orderId");
     const labId = searchParams.get("labId");
-    const type = searchParams.get("type") as "docx" | "zip" | "java" | null;
+    const type = searchParams.get("type") as "docx" | "pdf" | "zip" | "java" | null;
     const filePath = searchParams.get("filePath") || undefined;
 
     // 1. Validate required params
@@ -30,9 +30,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!["docx", "zip", "java"].includes(type)) {
+    if (!["docx", "pdf", "zip", "java"].includes(type)) {
       return NextResponse.json(
-        { error: "Loại file không hợp lệ. Chỉ chấp nhận 'docx', 'zip', hoặc 'java'" },
+        { error: "Loại file không hợp lệ. Chỉ chấp nhận 'docx', 'pdf', 'zip', hoặc 'java'" },
         { status: 400 }
       );
     }

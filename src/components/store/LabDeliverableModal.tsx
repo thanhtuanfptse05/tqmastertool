@@ -324,9 +324,9 @@ export default function LabDeliverableModal({
           {/* SECTION 1: ĐỀ BÀI – WORD DOCUMENT PREVIEW */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-xs font-extrabold text-blue-400 uppercase tracking-wider">
+              <div className={`flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider ${isCampusHcm || currentLab.docxFileName?.toLowerCase().endsWith(".pdf") ? "text-rose-400" : "text-blue-400"}`}>
                 <FileText className="w-4 h-4" />
-                <span>1. Đề Bài &amp; Đặc Tả Yêu Cầu (File Word Gốc)</span>
+                <span>{isCampusHcm || currentLab.docxFileName?.toLowerCase().endsWith(".pdf") ? "1. Đề Bài & Đặc Tả Yêu Cầu (File PDF Gốc)" : "1. Đề Bài & Đặc Tả Yêu Cầu (File Word Gốc)"}</span>
               </div>
               <span className="text-[11px] text-slate-400">
                 File tải về: <b className="text-slate-200">{currentLab.docxFileName}</b>

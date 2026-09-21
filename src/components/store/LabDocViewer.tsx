@@ -40,6 +40,7 @@ interface LabDocViewerProps {
  * heading styles, numbered lists, bold/italic, indentation, etc.
  */
 export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocViewerProps) {
+  const isPdf = Boolean(lab.docxFileName?.toLowerCase().endsWith(".pdf"));
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMaxHeight, setIsMaxHeight] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -47,15 +48,18 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
   const [docxHtml, setDocxHtml] = useState<string | null>(null);
   const [docxError, setDocxError] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState<"normal" | "large">("normal");
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [activePdfViewMode, setActivePdfViewMode] = useState<"pdf" | "summary">("pdf");
 
   // Cache: labId → html, to avoid re-fetching on tab switch
   const cacheRef = useRef<Record<string, string>>({});
+  const pdfBlobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isExpanded) return;
 
     const labKey = lab.id;
-    if (cacheRef.current[labKey]) {
+    if (!isPdf && cacheRef.current[labKey]) {
       setDocxHtml(cacheRef.current[labKey]);
       setDocxError(null);
       return;
@@ -81,8 +85,9 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
           }
         }
 
-        // 2. Fetch DOCX binary from our secure API
-        const url = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=docx`;
+        // 2. Fetch binary from our secure API
+        const fetchType = isPdf ? "pdf" : "docx";
+        const url = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=${fetchType}`;
         const resp = await fetch(url, { credentials: "include", headers: fetchHeaders });
 
         if (!resp.ok) {
@@ -94,10 +99,25 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
           throw new Error(msg);
         }
 
+        // Handle PDF directly without passing to mammoth (avoids jszip error)
+        if (isPdf) {
+          const blob = await resp.blob();
+          if (cancelled) return;
+          const pdfBlob = new Blob([blob], { type: "application/pdf" });
+          const objectUrl = URL.createObjectURL(pdfBlob);
+          if (pdfBlobUrlRef.current) {
+            URL.revokeObjectURL(pdfBlobUrlRef.current);
+          }
+          pdfBlobUrlRef.current = objectUrl;
+          setPdfBlobUrl(objectUrl);
+          setLoadingDocx(false);
+          return;
+        }
+
         const arrayBuffer = await resp.arrayBuffer();
         if (cancelled) return;
 
-        // 2. Dynamically import mammoth (browser build) to keep bundle lean
+        // Dynamically import mammoth (browser build) for Word files only
         const mammoth = await import("mammoth/mammoth.browser");
         const result = await mammoth.convertToHtml({ arrayBuffer });
 
@@ -120,10 +140,19 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
     };
 
     fetchAndConvert();
-    return () => { cancelled = true; };
-  // Re-run when lab changes or panel is first expanded
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lab.id, orderId, isExpanded]);
+    return () => {
+      cancelled = true;
+    };
+  }, [lab.id, orderId, isExpanded, isPdf]);
+
+  // Clean up object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrlRef.current) {
+        URL.revokeObjectURL(pdfBlobUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleDownload = async () => {
     setIsDownloading(true);
@@ -131,7 +160,8 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
       if (onDownloadDocx) {
         onDownloadDocx();
       } else {
-        const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=docx`;
+        const downloadType = isPdf ? "pdf" : "docx";
+        const downloadUrl = `/api/deliverables/lab/download?orderId=${encodeURIComponent(orderId)}&labId=${encodeURIComponent(lab.id)}&type=${downloadType}`;
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = lab.docxFileName;
@@ -140,16 +170,22 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
         document.body.removeChild(link);
       }
     } catch (err) {
-      console.error("Docx download error:", err);
+      console.error("Document download error:", err);
     } finally {
       setTimeout(() => setIsDownloading(false), 1200);
     }
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-blue-200/90 shadow-xl overflow-hidden transition-all">
-      {/* Word Header */}
-      <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 px-5 py-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-3">
+    <div className={`bg-white rounded-3xl shadow-xl overflow-hidden transition-all ${
+      isPdf ? "border border-rose-200/90" : "border border-blue-200/90"
+    }`}>
+      {/* Document Header */}
+      <div className={`px-5 py-4 text-white flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+        isPdf
+          ? "bg-gradient-to-r from-rose-700 via-rose-600 to-indigo-700"
+          : "bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700"
+      }`}>
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center font-bold text-white shadow-inner border border-white/25 shrink-0">
             <FileText className="w-6 h-6 text-white" />
@@ -157,9 +193,9 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30">
-                Word Assignment Document
+                {isPdf ? "PDF Assignment Document" : "Word Assignment Document"}
               </span>
-              <span className="text-xs text-blue-100 font-mono">
+              <span className={`text-xs font-mono ${isPdf ? "text-rose-100" : "text-blue-100"}`}>
                 {lab.docxFileName}
               </span>
             </div>
@@ -171,27 +207,53 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
-          {/* Font Size Toggle */}
-          <div className="flex items-center bg-white/15 rounded-xl p-0.5 border border-white/20 text-white text-xs font-bold">
-            <button
-              onClick={() => setFontSize("normal")}
-              className={`px-2 py-1 rounded-lg transition-colors ${
-                fontSize === "normal" ? "bg-white text-blue-700 shadow-xs" : "hover:bg-white/15"
-              }`}
-              title="Cỡ chữ tiêu chuẩn"
-            >
-              A
-            </button>
-            <button
-              onClick={() => setFontSize("large")}
-              className={`px-2 py-1 rounded-lg transition-colors text-sm font-black ${
-                fontSize === "large" ? "bg-white text-blue-700 shadow-xs" : "hover:bg-white/15"
-              }`}
-              title="Cỡ chữ lớn"
-            >
-              A+
-            </button>
-          </div>
+          {/* PDF View Mode Switch if isPdf */}
+          {isPdf && (
+            <div className="flex items-center bg-white/15 rounded-xl p-0.5 border border-white/20 text-white text-xs font-bold">
+              <button
+                onClick={() => setActivePdfViewMode("pdf")}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  activePdfViewMode === "pdf" ? "bg-white text-rose-700 shadow-xs" : "hover:bg-white/15"
+                }`}
+                title="Xem trực tiếp file PDF gốc"
+              >
+                File PDF Gốc
+              </button>
+              <button
+                onClick={() => setActivePdfViewMode("summary")}
+                className={`px-2.5 py-1 rounded-lg transition-colors ${
+                  activePdfViewMode === "summary" ? "bg-white text-rose-700 shadow-xs" : "hover:bg-white/15"
+                }`}
+                title="Xem bảng tóm tắt đặc tả yêu cầu"
+              >
+                Tóm Tắt Yêu Cầu
+              </button>
+            </div>
+          )}
+
+          {/* Font Size Toggle (chỉ cho docx hoặc summary) */}
+          {(!isPdf || activePdfViewMode === "summary") && (
+            <div className="flex items-center bg-white/15 rounded-xl p-0.5 border border-white/20 text-white text-xs font-bold">
+              <button
+                onClick={() => setFontSize("normal")}
+                className={`px-2 py-1 rounded-lg transition-colors ${
+                  fontSize === "normal" ? `bg-white ${isPdf ? "text-rose-700" : "text-blue-700"} shadow-xs` : "hover:bg-white/15"
+                }`}
+                title="Cỡ chữ tiêu chuẩn"
+              >
+                A
+              </button>
+              <button
+                onClick={() => setFontSize("large")}
+                className={`px-2 py-1 rounded-lg transition-colors text-sm font-black ${
+                  fontSize === "large" ? `bg-white ${isPdf ? "text-rose-700" : "text-blue-700"} shadow-xs` : "hover:bg-white/15"
+                }`}
+                title="Cỡ chữ lớn"
+              >
+                A+
+              </button>
+            </div>
+          )}
 
           {/* Expand Height Toggle */}
           <button
@@ -203,11 +265,13 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             <span className="hidden sm:inline">{isMaxHeight ? "Chiều cao chuẩn" : "Xem thoáng"}</span>
           </button>
 
-          {/* Download docx Button */}
+          {/* Download Button */}
           <button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-black text-xs shadow-md shadow-black/10 transition-all active:scale-95 disabled:opacity-50"
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl bg-white font-black text-xs shadow-md shadow-black/10 transition-all active:scale-95 disabled:opacity-50 ${
+              isPdf ? "text-rose-700 hover:bg-rose-50" : "text-blue-700 hover:bg-blue-50"
+            }`}
             title={`Tải file ${lab.docxFileName}`}
           >
             {isDownloading ? (
@@ -215,7 +279,7 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             ) : (
               <Download className="w-4 h-4" />
             )}
-            <span>Tải File Đề (.docx)</span>
+            <span>{isPdf ? "Tải File Đề (.pdf)" : "Tải File Đề (.docx)"}</span>
           </button>
 
           {/* Collapse Toggle */}
@@ -230,11 +294,17 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
       </div>
 
       {/* Metadata Chips */}
-      <div className="px-6 py-3 bg-blue-50/70 border-b border-blue-100 flex flex-wrap items-center gap-3.5 text-xs text-slate-700">
-        <div className="flex items-center gap-1.5 font-bold text-blue-950">
-          <Code className="w-4 h-4 text-blue-600" />
+      <div className={`px-6 py-3 border-b flex flex-wrap items-center gap-3.5 text-xs text-slate-700 ${
+        isPdf ? "bg-rose-50/70 border-rose-100" : "bg-blue-50/70 border-blue-100"
+      }`}>
+        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+          <Code className={`w-4 h-4 ${isPdf ? "text-rose-600" : "text-blue-600"}`} />
           <span>Mã Bài:</span>
-          <span className="px-2.5 py-0.5 rounded-lg bg-blue-100 font-mono font-black text-blue-800 border border-blue-200">
+          <span className={`px-2.5 py-0.5 rounded-lg font-mono font-black border ${
+            isPdf
+              ? "bg-rose-100 text-rose-800 border-rose-200"
+              : "bg-blue-100 text-blue-800 border-blue-200"
+          }`}>
             {lab.code}
           </span>
         </div>
@@ -290,8 +360,10 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
           {/* Loading state */}
           {loadingDocx && (
             <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-              <p className="text-sm font-medium">Đang tải &amp; render đề bài từ file Word...</p>
+              <Loader2 className={`w-8 h-8 animate-spin ${isPdf ? "text-rose-500" : "text-blue-500"}`} />
+              <p className="text-sm font-medium">
+                {isPdf ? "Đang tải tài liệu đề bài PDF..." : "Đang tải & render đề bài từ file Word..."}
+              </p>
             </div>
           )}
 
@@ -302,10 +374,12 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-bold text-orange-800 mb-1">Không thể render file Word</p>
+                    <p className="text-sm font-bold text-orange-800 mb-1">
+                      {isPdf ? "Không thể tải tài liệu đề bài PDF" : "Không thể render file Word"}
+                    </p>
                     <p className="text-xs text-orange-700 mb-3">{docxError}</p>
                     <p className="text-xs text-slate-500">
-                      Hãy dùng nút <strong>"Tải File Đề (.docx)"</strong> ở trên để mở bằng Microsoft Word hoặc Google Docs.
+                      Hãy dùng nút <strong>{isPdf ? '"Tải File Đề (.pdf)"' : '"Tải File Đề (.docx)"'}</strong> ở trên để mở trực tiếp trên máy tính.
                     </p>
                   </div>
                 </div>
@@ -313,12 +387,65 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
             </div>
           )}
 
-          {/* Rendered DOCX content */}
-          {!loadingDocx && docxHtml && (
+          {/* PDF Native Viewer */}
+          {!loadingDocx && !docxError && isPdf && activePdfViewMode === "pdf" && pdfBlobUrl && (
+            <div className="p-3 sm:p-5 bg-slate-950">
+              <div className="w-full bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900/90 text-xs border-b border-slate-800 text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold text-white">Đề bài PDF gốc: {lab.docxFileName}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href={pdfBlobUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white font-bold text-xs transition-colors border border-slate-700"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Mở toàn màn hình / Tab mới</span>
+                    </a>
+                  </div>
+                </div>
+
+                <object
+                  data={`${pdfBlobUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                  type="application/pdf"
+                  className={`w-full ${isMaxHeight ? "h-[900px]" : "h-[680px]"} transition-all`}
+                >
+                  <iframe
+                    src={`${pdfBlobUrl}#toolbar=1`}
+                    title={lab.docxFileName}
+                    className={`w-full ${isMaxHeight ? "h-[900px]" : "h-[680px]"} border-0 bg-slate-900`}
+                  >
+                    <div className="p-8 text-center text-slate-300 bg-slate-900">
+                      <FileText className="w-12 h-12 text-rose-400 mx-auto mb-3" />
+                      <p className="font-bold">Trình duyệt không hỗ trợ xem trực tiếp file PDF nhúng.</p>
+                      <a
+                        href={pdfBlobUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Bấm vào đây để mở đề bài PDF
+                      </a>
+                    </div>
+                  </iframe>
+                </object>
+              </div>
+            </div>
+          )}
+
+          {/* Rendered HTML content (for Word docx OR PDF Summary mode) */}
+          {!loadingDocx && !docxError && ((!isPdf && docxHtml) || (isPdf && activePdfViewMode === "summary")) && (
             <div className={`px-8 sm:px-12 md:px-16 py-8 sm:py-10 ${fontSize === "large" ? "text-base" : "text-sm"}`}>
               {/* Paper header */}
               <div className="mb-6 pb-5 border-b border-slate-200/90">
-                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-blue-600 mb-1">
+                <div className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-wider mb-1 ${
+                  isPdf ? "text-rose-600" : "text-blue-600"
+                }`}>
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>TRƯỜNG ĐẠI HỌC FPT • MÔN HỌC LAB211 (JAVA OOP)</span>
                 </div>
@@ -327,11 +454,11 @@ export default function LabDocViewer({ lab, orderId, onDownloadDocx }: LabDocVie
                 </h1>
               </div>
 
-              {/* mammoth-rendered DOCX HTML with Word-accurate CSS */}
+              {/* HTML output with Word/Document-accurate CSS */}
               <div
                 className="mammoth-docx-output"
                 style={{ fontSize: fontSize === "large" ? "1rem" : "0.875rem" }}
-                dangerouslySetInnerHTML={{ __html: docxHtml }}
+                dangerouslySetInnerHTML={{ __html: isPdf ? (lab.docxContentHtml || "<p>Chưa có bản tóm tắt HTML cho bài này.</p>") : (docxHtml || "") }}
               />
             </div>
           )}

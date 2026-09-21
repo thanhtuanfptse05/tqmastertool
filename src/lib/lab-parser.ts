@@ -36,7 +36,7 @@ export function getSafeContentDisposition(fileName: string): string {
  */
 export function getLabAssetPhysicalPath(
   labId: string,
-  type: "docx" | "zip" | "java",
+  type: "docx" | "pdf" | "zip" | "java",
   subPath?: string
 ): { filePath: string; fileName: string; contentType: string } | null {
   const lab = getLabExerciseById(labId);
@@ -44,13 +44,25 @@ export function getLabAssetPhysicalPath(
 
   const baseDir = path.resolve(process.cwd(), "private_deliverables", "lab211");
 
-  if (type === "docx") {
+  if (type === "docx" || type === "pdf") {
+    const isPdf = lab.docxFileName?.toLowerCase().endsWith(".pdf");
+    const pdfPath = path.join(baseDir, "pdf", lab.docxFileName);
     const docxPath = path.join(baseDir, "docx", lab.docxFileName);
-    if (fs.existsSync(docxPath)) {
+
+    let targetPath = "";
+    if (fs.existsSync(pdfPath)) {
+      targetPath = pdfPath;
+    } else if (fs.existsSync(docxPath)) {
+      targetPath = docxPath;
+    }
+
+    if (targetPath) {
       return {
-        filePath: docxPath,
+        filePath: targetPath,
         fileName: lab.docxFileName,
-        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        contentType: isPdf
+          ? "application/pdf"
+          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       };
     }
   }
