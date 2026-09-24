@@ -1212,9 +1212,9 @@
     "semantic_hash": ""
   },
   "src/lib/lab-analysis.ts": {
-    "mtime": 1790012408.621897,
-    "seen": 1790225769.2458634,
-    "ast_hash": "9b7da786e364f951b22963bf8e1dff7d",
+    "mtime": 1790226052.377625,
+    "seen": 1790226560.7492197,
+    "ast_hash": "2770ca719a3ff97a2081819e354f26df",
     "semantic_hash": ""
   },
   "src/lib/lab-data.ts": {
@@ -1658,6 +1658,12 @@
     "mtime": 1790012296.5343165,
     "seen": 1790225769.2460802,
     "ast_hash": "595f49e37075cc309987145dd5abe469",
+    "semantic_hash": ""
+  },
+  "specs/030-lab211-14bai-analysis-and-faq/spec.md": {
+    "mtime": 1790226009.3482664,
+    "seen": 1790226560.7708368,
+    "ast_hash": "5de55604f1ba9c43b7c50543029e1789",
     "semantic_hash": ""
   }
 }
