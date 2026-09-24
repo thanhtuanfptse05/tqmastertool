@@ -233,10 +233,10 @@ export default function LabDeliverableModal({
               onClick={handleDownloadFullArchive}
               disabled={isDownloadingFull}
               className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 transition-all active:scale-95 disabled:opacity-50"
-              title={isCampusHcm ? "Tải toàn bộ mã nguồn bài lab Campus HCM nén trong 1 file ZIP" : "Tải toàn bộ 12 bài lab nén trong 1 file ZIP"}
+              title={isCampusHcm ? "Tải toàn bộ mã nguồn bài lab Campus HCM nén trong 1 file ZIP" : `Tải toàn bộ ${allLabs.length} bài lab nén trong 1 file ZIP`}
             >
               <Download className="w-4 h-4" />
-              <span>{isCampusHcm ? "Tải Trọn Gói Campus HCM (.zip)" : "Tải Trọn Gói 12 Bài (.zip)"}</span>
+              <span>{isCampusHcm ? "Tải Trọn Gói Campus HCM (.zip)" : `Tải Trọn Gói ${allLabs.length} Bài (.zip)`}</span>
             </button>
 
             <button

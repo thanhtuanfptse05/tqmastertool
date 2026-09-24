@@ -179,6 +179,26 @@ export async function GET(req: NextRequest) {
           },
         });
       }
+
+      // Fallback: Download directly from Supabase Storage private bucket
+      const storagePath = isHcmOrder ? "packages/LAB211_campus_HCM.zip" : "lab211/LAB211.zip";
+      const { data: storageFile, error: storageErr } = await supabaseAdmin.storage
+        .from("digital-deliverables")
+        .download(storagePath);
+
+      if (storageFile && !storageErr) {
+        const arrayBuffer = await storageFile.arrayBuffer();
+        return new NextResponse(Buffer.from(arrayBuffer), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/zip",
+            "Content-Disposition": getSafeContentDisposition(fileName),
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "private, no-cache, no-store, must-revalidate",
+          },
+        });
+      }
+
       return NextResponse.json(
         { error: `Không tìm thấy file lưu trữ trọn gói ${fileName} trên hệ thống.` },
         { status: 404 }

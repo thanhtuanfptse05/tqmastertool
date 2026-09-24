@@ -320,7 +320,7 @@ export default function OrderDetailModal({
                         Trọn Bộ Mã Nguồn &amp; Đề Bài LAB211 Chuẩn Giảng Viên FPT
                       </span>
                       <span className="text-[11px] text-slate-500">
-                        Bản quyền 12 bài Lab Java MVC + Word docx
+                        Bản quyền 14 bài Lab Java MVC + Word docx
                       </span>
                     </div>
                     <span className="font-black text-slate-900">{formatVND(order.total_amount)}</span>

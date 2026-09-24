@@ -321,8 +321,12 @@ export default function ProductDescriptionRenderer({
 
         const firstLine = lines[0];
 
-        // Section A: List of 12 Labs
-        if (firstLine.includes("DANH SÁCH 12 BÀI LAB") || firstLine.startsWith("### 📚")) {
+        // Section A: List of Labs (12 or 14 or N labs)
+        if (
+          firstLine.includes("DANH SÁCH") && (firstLine.includes("BÀI LAB") || firstLine.includes("BAI LAB")) ||
+          firstLine.includes("DANH SACH") && (firstLine.includes("BÀI LAB") || firstLine.includes("BAI LAB")) ||
+          firstLine.startsWith("### 📚")
+        ) {
           const title = firstLine.replace(/^###\s*/, "").replace(/^[📚\s]+/, "");
           const labItems = lines.slice(1).map((line) => {
             // Match pattern like: 1. **J1.L.P0023**: Fruit Shop Management System (Quản lý cửa hàng...)
@@ -354,7 +358,11 @@ export default function ProductDescriptionRenderer({
                   <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
                     {title}
                   </h4>
-                  <p className="text-[11px] text-slate-500">12 Bài lab chuẩn mực kèm đề bài Word & source code</p>
+                  <p className="text-[11px] text-slate-500">
+                    {labItems.length > 0
+                      ? `${labItems.length} Bài lab chuẩn mực kèm đề bài Word & source code`
+                      : "Trọn bộ bài lab chuẩn mực kèm đề bài Word & source code"}
+                  </p>
                 </div>
               </div>
 
