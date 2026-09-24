@@ -43,6 +43,7 @@ export default function CheckoutModal() {
     currentUser,
     openAuthModal,
     checkoutQuantity,
+    checkoutInitialStep,
   } = useStore();
 
   const [step, setStep] = useState<"confirm" | "qr" | "upload" | "success">("confirm");
@@ -157,13 +158,13 @@ export default function CheckoutModal() {
         setCustomerEmails([]);
         setQuantity(1);
       }
-      setStep("qr");
+      setStep(checkoutInitialStep === "upload" ? "upload" : "qr");
     } else {
       const defaultEmail = currentUser?.email && !currentUser.email.startsWith("guest@") ? currentUser.email : "";
       setCustomerEmails(isCoursera ? Array.from({ length: initQty }).map((_, i) => (i === 0 ? defaultEmail : "")) : []);
       setStep("confirm");
     }
-  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step, isCoursera, currentUser?.email]);
+  }, [checkoutProduct?.id, checkoutQuantity, activeOrderForPayment?.id, activeOrderForPayment?.status, step, isCoursera, currentUser?.email, checkoutInitialStep]);
 
   const handleBillFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,8 +177,23 @@ export default function CheckoutModal() {
       const formData = new FormData();
       formData.append("file", file);
 
+      if (activeOrderForPayment?.id) {
+        formData.append("orderId", activeOrderForPayment.id);
+      }
+
+      const headers: Record<string, string> = {};
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          headers["Authorization"] = `Bearer ${session.access_token}`;
+        }
+      } catch (authErr) {
+        console.warn("Could not retrieve session token for bill upload:", authErr);
+      }
+
       const res = await fetch("/api/orders/upload-proof", {
         method: "POST",
+        headers,
         body: formData,
       });
 

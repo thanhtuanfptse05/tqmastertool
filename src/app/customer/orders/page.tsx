@@ -28,12 +28,13 @@ import {
   ChevronRight,
   Sparkles,
   Ban,
+  UploadCloud,
 } from "lucide-react";
 import LabDeliverableModal from "@/components/store/LabDeliverableModal";
 import OrderDetailModal from "@/components/store/OrderDetailModal";
 
 export default function CustomerOrdersPage() {
-  const { currentUser, orders, openCheckout, products, cancelOrder, deleteOrder, refreshOrders } = useStore();
+  const { currentUser, orders, openCheckout, openCheckoutForBillUpload, products, cancelOrder, deleteOrder, refreshOrders } = useStore();
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "all">("all");
   const [activeLabModal, setActiveLabModal] = useState<{
     isOpen: boolean;
@@ -552,6 +553,14 @@ export default function CustomerOrdersPage() {
                           >
                             <XCircle className="w-3.5 h-3.5" />
                             Hủy đơn
+                          </button>
+                          <button
+                            onClick={() => openCheckoutForBillUpload(order)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 border border-slate-300 text-slate-700 text-xs font-bold shadow-sm transition-all"
+                            title="Tải ảnh biên lai dự phòng nếu bạn đã chuyển tiền ngoài ngân hàng"
+                          >
+                            <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
+                            Tải bill dự phòng
                           </button>
                           <button
                             onClick={() => setSelectedDetailOrder(order)}

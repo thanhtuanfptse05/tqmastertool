@@ -94,6 +94,9 @@ interface StoreContextType {
   closeCheckout: () => void;
   activeOrderForPayment: Order | null;
   setActiveOrderForPayment: (order: Order | null) => void;
+  checkoutInitialStep: "confirm" | "qr" | "upload" | null;
+  setCheckoutInitialStep: (step: "confirm" | "qr" | "upload" | null) => void;
+  openCheckoutForBillUpload: (order: Order) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -124,6 +127,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [checkoutProduct, setCheckoutProduct] = useState<Product | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState<number>(1);
   const [activeOrderForPayment, setActiveOrderForPayment] = useState<Order | null>(null);
+  const [checkoutInitialStep, setCheckoutInitialStep] = useState<"confirm" | "qr" | "upload" | null>(null);
 
   // Sync to localStorage
   const persist = (key: string, data: unknown) => {
@@ -1648,10 +1652,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setCheckoutProduct(product);
   };
 
+  const openCheckoutForBillUpload = (order: Order) => {
+    setCheckoutProduct(null);
+    setCheckoutInitialStep("upload");
+    setActiveOrderForPayment(order);
+  };
+
   const closeCheckout = () => {
     setCheckoutProduct(null);
     setActiveOrderForPayment(null);
     setCheckoutQuantity(1);
+    setCheckoutInitialStep(null);
   };
 
   return (
@@ -1703,6 +1714,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         closeCheckout,
         activeOrderForPayment,
         setActiveOrderForPayment,
+        checkoutInitialStep,
+        setCheckoutInitialStep,
+        openCheckoutForBillUpload,
       }}
     >
       {children}

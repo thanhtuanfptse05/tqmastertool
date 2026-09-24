@@ -24,6 +24,7 @@ import {
   FolderDown,
   BookOpen,
   Key,
+  UploadCloud,
 } from "lucide-react";
 import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
 
@@ -40,7 +41,7 @@ export default function OrderDetailModal({
   onClose,
   onOpenDeliverable,
 }: OrderDetailModalProps) {
-  const { cancelOrder, deleteOrder, setActiveOrderForPayment, products } = useStore();
+  const { cancelOrder, deleteOrder, setActiveOrderForPayment, openCheckoutForBillUpload, products } = useStore();
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -89,6 +90,11 @@ export default function OrderDetailModal({
   const handleContinuePayment = () => {
     onClose();
     setActiveOrderForPayment(order);
+  };
+
+  const handleOpenBillUpload = () => {
+    onClose();
+    openCheckoutForBillUpload(order);
   };
 
   const qrUrl = generateVietQRUrl({
@@ -659,13 +665,23 @@ export default function OrderDetailModal({
             </button>
 
             {order.status === "pending_payment" && (
-              <button
-                onClick={handleContinuePayment}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all"
-              >
-                <QrCode className="w-3.5 h-3.5" />
-                Tiếp Tục Thanh Toán
-              </button>
+              <>
+                <button
+                  onClick={handleOpenBillUpload}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 border border-slate-300 text-slate-700 font-bold text-xs transition-all"
+                  title="Tải ảnh biên lai dự phòng nếu bạn đã chuyển tiền ngoài ngân hàng"
+                >
+                  <UploadCloud className="w-3.5 h-3.5 text-indigo-600" />
+                  Tải Ảnh Bill Dự Phòng
+                </button>
+                <button
+                  onClick={handleContinuePayment}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  Tiếp Tục Thanh Toán (QR)
+                </button>
+              </>
             )}
 
             {order.status === "completed" && (
