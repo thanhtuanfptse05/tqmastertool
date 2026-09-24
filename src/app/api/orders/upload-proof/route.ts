@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-server";
+import { supabaseAdmin, getAuthenticatedUser } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Authenticate user to prevent anonymous storage quota spamming
+    const { user, isAdmin } = await getAuthenticatedUser(req);
+    if (!user && !isAdmin) {
+      return NextResponse.json(
+        { error: "Vui lòng đăng nhập để tải lên ảnh biên lai thanh toán." },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 

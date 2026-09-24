@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
-export const COURSERA_SECRET_SALT = "Coursera_Skip_VIP_2024_@XyZ_Secret_Key_999";
+export const COURSERA_SECRET_SALT =
+  process.env.COURSERA_SECRET_SALT || "Coursera_Skip_VIP_2024_@XyZ_Secret_Key_999";
 
 /**
  * Sinh License Key chuẩn Coursera Auto Skipper VIP

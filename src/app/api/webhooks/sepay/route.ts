@@ -94,10 +94,10 @@ export async function POST(req: NextRequest) {
     const cleanContent = content.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
     const cleanExplicitCode = explicitCode.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
-    // Check explicit code first, then content
-    let codeMatch = cleanExplicitCode.match(/(?:TQ|CV)(?:2026)?\d{4}/i) || cleanExplicitCode.match(/(?:TQ|CV)\d{4,}/i);
+    // Check explicit code first, then content (supports both 6-hex modern and 4-digit legacy codes)
+    let codeMatch = cleanExplicitCode.match(/(?:TQ|CV)(?:2026)?[A-Z0-9]{4,8}/i);
     if (!codeMatch) {
-      codeMatch = cleanContent.match(/(?:TQ|CV)(?:2026)?\d{4}/i) || cleanContent.match(/(?:TQ|CV)\d{4,}/i);
+      codeMatch = cleanContent.match(/(?:TQ|CV)(?:2026)?[A-Z0-9]{4,8}/i);
     }
 
     if (!codeMatch) {
@@ -108,10 +108,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const matchedMemo = codeMatch[0].toUpperCase(); // e.g. "TQ20265198" or "CV20265198"
-    const digitsOnly = matchedMemo.replace(/^(?:TQ|CV)(?:2026)?/, ""); // e.g. "5198"
-    const matchedOrderCode = `TQ-2026-${digitsOnly}`;
-    const legacyOrderCode = `CV-2026-${digitsOnly}`;
+    const matchedMemo = codeMatch[0].toUpperCase(); // e.g. "TQ2026A8F2B1" or "TQ20265198"
+    const suffix = matchedMemo.replace(/^(?:TQ|CV)(?:2026)?/, ""); // e.g. "A8F2B1" or "5198"
+    const matchedOrderCode = `TQ-2026-${suffix}`;
+    const legacyOrderCode = `CV-2026-${suffix}`;
 
     // -----------------------------------------------------------
     // 4. DATABASE LOOKUP (SUPABASE)
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
     const { data: orders, error: findError } = await supabase
       .from("orders")
       .select("*")
-      .or(`vietqr_content.ilike.%${matchedMemo}%,order_code.eq.${matchedOrderCode},order_code.eq.${legacyOrderCode},vietqr_content.ilike.%${digitsOnly}%`)
+      .or(`vietqr_content.ilike.%${matchedMemo}%,order_code.eq.${matchedOrderCode},order_code.eq.${legacyOrderCode},vietqr_content.ilike.%${suffix}%`)
       .order("created_at", { ascending: false })
       .limit(1);
 

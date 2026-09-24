@@ -18,7 +18,6 @@ import {
   Key,
 } from "lucide-react";
 import {
-  generateCourseraLicenseKey,
   generateMultipleCourseraKeys,
   extractOrderLicenseInfo,
   formatOrderNotesWithLicense,

@@ -14,7 +14,6 @@ export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 export const ADMIN_WHITELIST_EMAILS = [
-  "admin@gmail.com",
   "admin@codevault.io",
 ];
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { supabaseAdmin, getAuthenticatedUser } from "@/lib/supabase-server";
 import {
   generateCourseraLicenseKey,
@@ -535,16 +536,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Generate unique order numbers
+    // 3. Generate high-entropy unique order numbers (6-hex chars = 16.7M combinations)
+    // Prevents order code enumeration, brute-forcing, and SePay collision
     const isCourseraProduct =
       product.title?.toLowerCase().includes("coursera") ||
       Boolean(product.slug && String(product.slug).toLowerCase().includes("coursera"));
 
     const effectiveQty = isCourseraProduct ? parsedQty : 1;
     const totalAmount = officialPrice * effectiveQty;
-    const orderNum = Math.floor(1000 + Math.random() * 9000);
-    const orderCode = `TQ-2026-${orderNum}`;
-    const cleanMemo = `TQ2026${orderNum}`;
+    const secureSuffix = crypto.randomBytes(3).toString("hex").toUpperCase();
+    const orderCode = `TQ-2026-${secureSuffix}`;
+    const cleanMemo = `TQ2026${secureSuffix}`;
     const orderId = typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
       : `ord-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;

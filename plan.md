@@ -39,6 +39,7 @@
 | **Phase 27** | **Thanh Toán Kép: Quét VietQR & Tải Bill Dự Phòng (Spec 023)** | SDD Pure | ✅ DONE | `CheckoutModal.tsx`, Dual-Mode UI, Supabase Storage |
 | **Phase 28** | **Tối Ưu & Nâng Cấp Giao Diện Dashboard Thống Kê (Spec 024)** | SDD Pure | ✅ DONE | `src/app/admin/page.tsx`, `specs/024-admin-dashboard-ui-redesign` |
 | **Phase 32** | **Bắt Buộc Đăng Nhập Trước Khi Mua Hàng (Spec 028)** | SDD Pure | ✅ DONE | `store.tsx`, `CheckoutModal.tsx`, `POST /api/orders` |
+| **Phase 34** | **Gia Cố Toàn Diện An Ninh & Phòng Thủ Lỗ Hổng (Spec 032)** | SDD Pure | ✅ DONE | Anti-IDOR, Crypto Order Codes, HTTP Security Headers, Secret Isolation, RLS Vault |
 
 
 ---

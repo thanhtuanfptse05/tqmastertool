@@ -80,18 +80,22 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Anti-IDOR: verify ownership if not Admin
-    const GUEST_PROFILE_ID = "68169ca4-2f3e-41a1-bed7-ef3da207b738";
+    // Anti-IDOR: verify strict authenticated ownership if not Admin
     if (!isAdmin) {
-      const isGuestOrder = !order.user_id || order.user_id === GUEST_PROFILE_ID;
-      if (!isGuestOrder) {
-        if (!user || order.user_id !== user.id) {
-          console.warn(`[SECURITY ALERT - IDOR DOWNLOAD] Requester (${user?.id || "unauthenticated"}) tried to download deliverables of order ${order.id} owned by ${order.user_id}`);
-          return NextResponse.json(
-            { error: "Quyền tải bị từ chối: Bạn không sở hữu đơn hàng này." },
-            { status: 403 }
-          );
-        }
+      if (!user) {
+        return NextResponse.json(
+          { error: "Vui lòng đăng nhập tài khoản để tải tài nguyên đơn hàng." },
+          { status: 401 }
+        );
+      }
+
+      const isOwner = order.user_id === user.id || Boolean(user.email && (order as any).user_email === user.email);
+      if (!isOwner) {
+        console.warn(`[SECURITY ALERT - IDOR DOWNLOAD BLOCKED] Requester (${user.id}) tried to download deliverables of order ${order.id} owned by ${order.user_id}`);
+        return NextResponse.json(
+          { error: "Quyền tải bị từ chối: Bạn không sở hữu đơn hàng này." },
+          { status: 403 }
+        );
       }
     }
 

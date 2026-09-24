@@ -50,10 +50,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Anti-IDOR: verify ownership if not Admin
+    // Anti-IDOR: verify strict ownership if not Admin
     if (!isAdmin) {
-      if (order.user_id && (!user || order.user_id !== user.id)) {
-        console.warn(`[SECURITY ALERT - IDOR VIEW] Requester (${user?.id || "unauthenticated"}) tried to access deliverables of order ${order.id} owned by ${order.user_id}`);
+      if (!user) {
+        return NextResponse.json(
+          { error: "Vui lòng đăng nhập tài khoản để xem tài nguyên đơn hàng." },
+          { status: 401 }
+        );
+      }
+      const isOwner = order.user_id === user.id || Boolean(user.email && (order as any).user_email === user.email);
+      if (!isOwner) {
+        console.warn(`[SECURITY ALERT - IDOR VIEW BLOCKED] Requester (${user.id}) tried to access deliverables of order ${order.id} owned by ${order.user_id}`);
         return NextResponse.json(
           { error: "Quyền truy cập bị từ chối: Bạn không sở hữu đơn hàng này." },
           { status: 403 }
