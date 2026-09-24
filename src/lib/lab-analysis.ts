@@ -23,6 +23,128 @@ export interface LabAnalysis {
 
 export const LAB_ANALYSIS_MAP: Record<string, LabAnalysis> = {
   // =====================================================================
+  // J1.L.P0021 – STUDENT MANAGEMENT SYSTEM
+  // =====================================================================
+  "J1.L.P0021": {
+    labCode: "J1.L.P0021",
+    summary:
+      "Bài yêu cầu xây dựng ứng dụng console quản lý Sinh viên (Student) bằng Java chuẩn mô hình MVC. Sinh viên có các thuộc tính: ID (chuỗi chữ/số không trùng lặp), Tên sinh viên, Học kỳ (1-9), Tên môn học (chỉ được chọn 1 trong 3 môn: Java, .Net, C/C++). Ứng dụng cung cấp 5 chức năng menu: (1) Tạo sinh viên (bắt buộc nhập tối thiểu 10 bản ghi, sau đó hỏi tiếp tục Y/N); (2) Tìm kiếm theo tên (tìm kiếm một phần, không phân biệt hoa thường) và sắp xếp kết quả tăng dần theo tên; (3) Cập nhật hoặc Xóa theo ID (cho phép chọn U để sửa hoặc D để xóa có xác nhận Y/N); (4) Thống kê Report (gom nhóm theo Tên sinh viên + Tên môn học và đếm tổng số lần học); (5) Thoát chương trình.",
+    mindset: [
+      "**Bước 1 – Xây dựng Model:** Tạo class `Student` (id, studentName, semester, courseName). Đóng gói toàn bộ thuộc tính `private`, viết constructor đầy đủ, getters/setters và `toString()` định dạng cột rõ ràng.",
+      "**Bước 2 – Thiết kế Controller nghiệp vụ:** `StudentController` quản lý `List<Student>`. Viết các phương thức: `addStudent()`, `isIdDuplicate()`, `findById()`, `findAndSortByName()`, `updateStudent()`, `deleteStudent()`, `generateReport()`.",
+      "**Bước 3 – Xây dựng tầng Validation (InputValidator):** Đặt trong package `controller`. Xử lý kiểm tra: ID chữ/số không rỗng và không trùng, Tên chuỗi hợp lệ, Học kỳ 1-9, Môn học chỉ thuộc danh sách [Java, .Net, C/C++], xác nhận Y/N và lựa chọn U/D.",
+      "**Bước 4 – Logic Sắp xếp & Báo cáo:** Dùng `Collections.sort()` kết hợp `Comparator<Student>` để sắp xếp tăng dần theo tên không phân biệt hoa thường. Với hàm Report: duyệt qua danh sách, tạo key gom nhóm `studentName + '|' + courseName` để đếm số lượng lặp lại của từng môn học.",
+      "**Bước 5 – Xây dựng tầng View:** `StudentView` in menu 5 chức năng, tiếp nhận lựa chọn người dùng, gọi `InputValidator` để đọc dữ liệu và ủy quyền cho `StudentController` xử lý, sau đó in kết quả dạng bảng.",
+      "**Bước 6 – Vòng lặp Main Loop:** `Main.java` khởi tạo `StudentController` và `StudentView`, điều phối vòng lặp `while(running)` menu 1-5.",
+    ],
+    oopConcepts: [
+      "**MVC Architecture** – Phân tách 3 tầng rành mạch: Model (Student), Controller (StudentController, InputValidator) và View (StudentView, Main).",
+      "**Encapsulation** – Toàn bộ thuộc tính sinh viên được bảo vệ với phạm vi `private`, chỉ cho phép truy xuất qua getter/setter hợp lệ.",
+      "**Comparator & Custom Sorting** – Triển khai anonymous `Comparator<Student>` để so sánh `s1.getStudentName().compareToIgnoreCase(s2.getStudentName())`.",
+      "**Data Aggregation** – Thuật toán gom nhóm dữ liệu theo cặp thuộc tính `(Name, Course)` và đếm tần suất xuất hiện.",
+      "**Defensive Input Validation** – Kiểm tra chặt chẽ tính duy nhất của ID, khoảng giá trị học kỳ và danh mục môn học cố định.",
+    ],
+    faq: [
+      {
+        type: "theory",
+        question:
+          "Tại sao logic kiểm tra trùng ID (isIdDuplicate) và validation phải đặt ở Controller thay vì trong Model hay View?",
+        answer:
+          "Theo quy chuẩn kiến trúc MVC của LAB211, Model chỉ là đối tượng thuần chứa dữ liệu (POJO), không biết về danh sách chung hay ngữ cảnh nhập liệu. View chỉ chịu trách nhiệm hiển thị console. Controller là tầng nắm giữ danh sách dữ liệu sinh viên trong bộ nhớ nên chỉ Controller mới có thể kiểm tra xem ID đã tồn tại trong danh sách hay chưa. Đặt InputValidator ở package controller giúp tái sử dụng và kiểm soát toàn bộ ràng buộc nghiệp vụ.",
+      },
+      {
+        type: "theory",
+        question:
+          "Thuật toán sắp xếp danh sách sinh viên theo tên hoạt động như thế nào trong bài này?",
+        answer:
+          "Sử dụng Collections.sort(result, new Comparator<Student>() { ... }). Trong phương thức compare(Student s1, Student s2), ta gọi s1.getStudentName().compareToIgnoreCase(s2.getStudentName()). Phương thức này so sánh chuỗi theo thứ tự từ điển mã ASCII/Unicode không phân biệt hoa thường: trả về số âm nếu s1 đứng trước s2, 0 nếu bằng nhau, và số dương nếu s1 đứng sau s2.",
+      },
+      {
+        type: "theory",
+        question:
+          "Làm thế nào để thuật toán Report gom nhóm sinh viên theo Tên và Môn học chính xác khi một sinh viên học nhiều môn?",
+        answer:
+          "Mỗi bản ghi đại diện cho một sinh viên đăng ký môn học trong một học kỳ. Để gom nhóm, ta tạo một chuỗi khóa tổng hợp dạng key = studentName + '|' + courseName. Dùng danh sách processedKeys để ghi nhớ các khóa đã thống kê. Với mỗi khóa mới, duyệt lại toàn bộ danh sách để đếm số lần sinh viên đó học môn đó (count++), sau đó xuất ra bản ghi [Tên, Môn, Số lần] và sắp xếp theo tên.",
+      },
+      {
+        type: "applied",
+        question:
+          "Nếu giảng viên yêu cầu: 'Khi nhập sinh viên mới, nếu trùng ID với sinh viên đã có thì chỉ cho phép nhập môn học mới chứ không cho đổi tên', bạn sẽ sửa code thế nào?",
+        answer:
+          "Trong phương thức thêm sinh viên: khi kiểm tra Student existing = controller.findById(id), nếu tồn tại thì tự động lấy lại tên cũ existing.getStudentName() thay vì bắt nhập lại tên mới. Chỉ yêu cầu nhập học kỳ và môn học, sau đó thêm bản ghi mới vào danh sách. Nếu chưa có ID thì mới cho nhập tên mới.",
+      },
+      {
+        type: "applied",
+        question:
+          "Làm thế nào để tối ưu hóa hàm Report bằng cách sử dụng Map/HashMap thay vì duyệt 2 vòng lặp lồng nhau?",
+        answer:
+          "Có thể dùng Map<String, Integer> countMap = new LinkedHashMap<>(). Khi duyệt qua danh sách sinh viên: String key = s.getStudentName() + '|' + s.getCourseName(); countMap.put(key, countMap.getOrDefault(key, 0) + 1);. Sau đó duyệt qua countMap.entrySet() để chuyển thành mảng kết quả. Cách này giảm độ phức tạp thời gian từ O(n^2) xuống còn O(n).",
+      },
+    ],
+  },
+
+  // =====================================================================
+  // J1.L.P0022 – CANDIDATE MANAGEMENT SYSTEM
+  // =====================================================================
+  "J1.L.P0022": {
+    labCode: "J1.L.P0022",
+    summary:
+      "Bài yêu cầu xây dựng hệ thống quản lý ứng viên tuyển dụng (Candidate Management) ứng dụng sâu sắc nguyên lý Kế thừa (Inheritance) và Đa hình (Polymorphism) trong Java OOP. Hệ thống phân loại thành 3 nhóm ứng viên kế thừa từ lớp cha trừu tượng Candidate: (1) ExperienceCandidate (số năm kinh nghiệm, kỹ năng chuyên môn); (2) FresherCandidate (thời gian tốt nghiệp, xếp loại tốt nghiệp: Excellence/Good/Fair/Poor, trường đại học); (3) InternCandidate (chuyên ngành, học kỳ đang học, trường đại học). Menu gồm 5 chức năng: 1. Tạo Experience, 2. Tạo Fresher, 3. Tạo Intern, 4. Tìm kiếm ứng viên (hiển thị danh sách gom nhóm theo 3 loại, sau đó tìm theo tên và loại ứng viên), 5. Thoát.",
+    mindset: [
+      "**Bước 1 – Thiết kế phân cấp Kế thừa (Inheritance Hierarchy):** Tạo abstract class `Candidate` chứa các trường dùng chung: candidateId, firstName, lastName, birthDate (năm sinh 1900..năm hiện tại), address, phone (>=10 số), email, candidateType. Khai báo abstract method `toDetailString()`.",
+      "**Bước 2 – Thiết kế 3 lớp con:** `ExperienceCandidate`, `FresherCandidate`, `InternCandidate` kế thừa `Candidate`. Gọi constructor lớp cha `super(...)`, bổ sung các trường chuyên biệt và override `toDetailString()`.",
+      "**Bước 3 – Xây dựng Controller Đa hình:** `CandidateController` lưu trữ duy nhất một danh sách đa hình `List<Candidate>`. Cung cấp các hàm tạo đối tượng cụ thể, lấy danh sách theo loại (`getCandidatesByType(type)`), và tìm kiếm theo tên + loại.",
+      "**Bước 4 – Validation dữ liệu đầu vào nghiêm ngặt:** `InputValidator` kiểm tra: ID duy nhất không rỗng, năm sinh 4 chữ số từ 1900 đến năm hiện tại, số điện thoại ít nhất 10 số (regex `\\d{10,}`), email đúng định dạng `account@domain`, năm kinh nghiệm 0-100, rank thuộc [Excellence, Good, Fair, Poor].",
+      "**Bước 5 – Thiết kế View hiển thị phân loại:** `CandidateView` hiển thị danh sách ứng viên chia thành 3 khối tiêu đề rõ ràng: EXPERIENCE CANDIDATE, FRESHER CANDIDATE, INTERN CANDIDATE. Sau đó cho phép người dùng nhập từ khóa tên và chọn loại để tra cứu.",
+      "**Bước 6 – Main Loop:** `Main.java` chạy menu 1-5, điều phối luồng gọi sang View tương ứng.",
+    ],
+    oopConcepts: [
+      "**Inheritance (Kế thừa)** – 3 lớp con kế thừa lớp cha `Candidate`, tái sử dụng mã nguồn và giảm trùng lặp thuộc tính/phương thức.",
+      "**Polymorphism (Đa hình)** – Danh sách `List<Candidate>` lưu trữ cả 3 đối tượng con. Phương thức `toDetailString()` được override ở từng lớp con để tự hiển thị chi tiết phù hợp khi gọi đa hình.",
+      "**Abstraction (Trừu tượng hóa)** – `Candidate` là abstract class không thể khởi tạo trực tiếp, đóng vai trò khuôn mẫu thiết kế chung cho toàn bộ ứng viên.",
+      "**Encapsulation (Đóng gói)** – Thuộc tính lớp cha `protected` hoặc `private`, getter/setter và constructor dùng `super()` chuẩn mực.",
+      "**Polymorphic Filtering** – Lọc và tìm kiếm danh sách dựa trên thuộc tính `candidateType` và từ khóa tên mà không cần ép kiểu thủ công nếu dùng phương thức đa hình.",
+    ],
+    faq: [
+      {
+        type: "theory",
+        question:
+          "Tại sao lớp Candidate nên được khai báo là abstract class mà không phải là một class thông thường?",
+        answer:
+          "Trong thực tế tuyển dụng, một ứng viên luôn thuộc một vị trí cụ thể (Experience, Fresher hoặc Intern), không bao giờ tồn tại một ứng viên chung chung. Khai báo abstract class Candidate ngăn ngừa việc vô tình khởi tạo trực tiếp new Candidate(), đồng thời cho phép định nghĩa các phương thức trừu tượng như toDetailString() bắt buộc các lớp con phải triển khai cụ thể.",
+      },
+      {
+        type: "theory",
+        question:
+          "Từ khóa super trong constructor của các lớp con (ExperienceCandidate, FresherCandidate, InternCandidate) có tác dụng gì?",
+        answer:
+          "Câu lệnh super(...) gọi trực tiếp constructor của lớp cha Candidate. Do các thuộc tính chung (candidateId, firstName, lastName, birthDate, address, phone, email, candidateType) được quản lý ở lớp cha, lớp con bắt buộc phải gọi super ở dòng đầu tiên của constructor để khởi tạo phần dữ liệu thừa kế trước khi khởi tạo các thuộc tính riêng của mình.",
+      },
+      {
+        type: "theory",
+        question:
+          "Tính Đa hình (Polymorphism) được thể hiện như thế nào trong danh sách List<Candidate> của CandidateController?",
+        answer:
+          "List<Candidate> có kiểu dữ liệu là lớp cha, nhưng có thể chứa các đối tượng cụ thể của cả 3 lớp con (ExperienceCandidate, FresherCandidate, InternCandidate). Khi duyệt danh sách và gọi phương thức trừu tượng candidate.toDetailString(), Java Virtual Machine sẽ tự động gọi phiên bản phương thức của đúng lớp con tại thời điểm chạy (dynamic binding/late binding) mà không cần dùng if-else hay instanceof.",
+      },
+      {
+        type: "applied",
+        question:
+          "Nếu muốn thêm một loại ứng viên thứ 4 là PartTimeCandidate (có thêm thuộc tính hoursPerWeek), hệ thống cần mở rộng những gì?",
+        answer:
+          "Rất dễ dàng nhờ tuân thủ nguyên lý Open/Closed: (1) Tạo class PartTimeCandidate extends Candidate với thuộc tính hoursPerWeek, gọi super với candidateType = 3 và override toDetailString(). (2) Thêm hằng số TYPE_PARTTIME = 3 trong Candidate. (3) Trong CandidateController thêm hàm createPartTimeCandidate(). (4) Thêm lựa chọn vào menu nhập và hiển thị trong CandidateView.",
+      },
+      {
+        type: "applied",
+        question:
+          "Làm thế nào để viết biểu thức chính quy (Regex) kiểm tra số điện thoại (ít nhất 10 chữ số) và email hợp lệ trong InputValidator?",
+        answer:
+          "Với số điện thoại: phone.matches(\"\\\\d{10,}\") đảm bảo chuỗi chỉ gồm các chữ số và có tối thiểu 10 ký tự. Với email: email.matches(\"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Za-z]{2,}$\") đảm bảo có phần tên người dùng, ký tự @, tên miền và đuôi tên miền hợp lệ từ 2 ký tự trở lên.",
+      },
+    ],
+  },
+
+  // =====================================================================
   // J1.L.P0023 – FRUIT SHOP
   // =====================================================================
   "J1.L.P0023": {
