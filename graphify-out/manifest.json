@@ -138,9 +138,9 @@
     "semantic_hash": ""
   },
   "src/app/api/orders/upload-proof/route.ts": {
-    "mtime": 1790228853.417577,
-    "seen": 1790229079.9506595,
-    "ast_hash": "4096e63aed93675a46ef02116dd166e4",
+    "mtime": 1790230107.3531206,
+    "seen": 1790230603.2275004,
+    "ast_hash": "154a7e5686bfe607e46a0c84c22c1155",
     "semantic_hash": ""
   },
   "src/app/checkout/page.tsx": {
@@ -150,9 +150,9 @@
     "semantic_hash": ""
   },
   "src/app/customer/orders/page.tsx": {
-    "mtime": 1790013792.3629906,
-    "seen": 1790225769.2458222,
-    "ast_hash": "4a2b9afa7cfcf4f7315c2d49abe28594",
+    "mtime": 1790230469.4157884,
+    "seen": 1790230603.227652,
+    "ast_hash": "ff658b4c0c4ea9f68e65b8bc514fb34c",
     "semantic_hash": ""
   },
   "src/app/customer/vault/page.tsx": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "src/components/store/CheckoutModal.tsx": {
-    "mtime": 1789951837.4418263,
-    "seen": 1790225769.2458432,
-    "ast_hash": "aec7fb9c57316a19bbbba5b58b1b1a74",
+    "mtime": 1790230404.6290607,
+    "seen": 1790230603.2284365,
+    "ast_hash": "49c783bf6f8bac85fa0e0d7721fd316c",
     "semantic_hash": ""
   },
   "src/components/store/ProductCard.tsx": {
@@ -228,9 +228,9 @@
     "semantic_hash": "29d87fdd3bfa449a7277c4363073f2d8"
   },
   "src/lib/store.tsx": {
-    "mtime": 1789951713.0792904,
-    "seen": 1790225769.245871,
-    "ast_hash": "809cdd581f1f19d45b589331e3d3677d",
+    "mtime": 1790230498.4501052,
+    "seen": 1790230603.2295501,
+    "ast_hash": "1c7c1a8af79afa5d3255e65ae9fcc0ba",
     "semantic_hash": ""
   },
   "src/lib/supabase-server.ts": {
@@ -498,9 +498,9 @@
     "semantic_hash": ""
   },
   "plan.md": {
-    "mtime": 1790229022.8642817,
-    "seen": 1790229079.9616122,
-    "ast_hash": "9c4ffd374d521593a0957406400ede49",
+    "mtime": 1790230531.953875,
+    "seen": 1790230603.235499,
+    "ast_hash": "0af6cf2469f1357c76ecd070d5b508fb",
     "semantic_hash": ""
   },
   "public/landing-pages/kage.html": {
@@ -1194,9 +1194,9 @@
     "semantic_hash": ""
   },
   "src/components/store/OrderDetailModal.tsx": {
-    "mtime": 1790225600.5403864,
-    "seen": 1790225769.2458537,
-    "ast_hash": "d1d7452691f40f63c62ea4bce066269f",
+    "mtime": 1790230429.0604892,
+    "seen": 1790230603.2287276,
+    "ast_hash": "c1cfb4a7d1e08192233ff1fc9e6ad341",
     "semantic_hash": ""
   },
   "src/components/store/ProductDescriptionRenderer.tsx": {
@@ -1760,6 +1760,12 @@
     "mtime": 1790228535.1300619,
     "seen": 1790229079.970264,
     "ast_hash": "2fdba2784d2e892e9509096e8914085f",
+    "semantic_hash": ""
+  },
+  "specs/033-payment-proof-fallback-hardening/spec.md": {
+    "mtime": 1790230030.9757328,
+    "seen": 1790230603.2397943,
+    "ast_hash": "28a8ca1a2a34f724b866af9e8c4284b0",
     "semantic_hash": ""
   }
 }

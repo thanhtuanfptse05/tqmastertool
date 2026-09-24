@@ -1,17 +1,17 @@
 # Graph Report - WEB mới  (2026-09-24)
 
 ## Corpus Check
-- 259 files · ~582,758 words
+- 260 files · ~584,402 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 30 file(s) not represented in the graph (top: .zip 21, (none) 3, .css 3)
 
 ## Summary
-- 4597 nodes · 7950 edges · 213 communities (148 shown, 65 thin omitted)
+- 4610 nodes · 7962 edges · 221 communities (154 shown, 67 thin omitted)
 - Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 536 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `467418f2`
+- Built from commit: `40e826b6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,13 +20,13 @@
 - uh
 - he
 - Specification Quality Checklist: 028-require-auth-before-checkout
-- updateMatrixWorld
+- Ce
 - It
 - pageTypography.ts
 - ie
 - oe
 - Zt
-- .constructor
+- .setAttribute
 - Dt
 - li
 - SPEC-015: Security Hardening — Admin RBAC & Anti-Price-Tampering
@@ -34,7 +34,7 @@
 - setValue
 - Ue
 - $c
-- ._onChangeCallback
+- ae
 - kn
 - load
 - store.tsx
@@ -46,17 +46,17 @@
 - package.json
 - lucide-react
 - na
-- nl
-- ._update
-- ae
-- Order
+- parseObject
+- mn
 - an
+- Order
+- bs
 - compilerOptions
-- _i
+- i
 - Da
 - .getX
 - constructor
-- dl
+- .raycast
 - Feature Specification: Tool Coursera Multi-Quantity & Bulk License Keygen (Spec 016)
 - kl
 - ks
@@ -67,7 +67,7 @@
 - **<mark>Các Tiêu Chuẩn Mở</mark>**
 - dependencies
 - **<mark>Executable Specification</mark>**
-- ec
+- clone
 - Feature Specification: Admin CRUD Reliability & Atomic Session Updates (Fix 2-Attempt Action Bug)
 - Feature Specification: Hiển Thị Tên Thật Khách Hàng Trong Quản Trị Đơn Hàng (Admin Orders)
 - ao
@@ -83,7 +83,7 @@
 - Feature Specification: LAB211 Standard 14 Labs Native Assignment Document Viewer & Dual Delivery (Spec 031)
 - 1. User Scenarios & Testing *(mandatory)*
 - **Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**
-- qc
+- updateMatrixWorld
 - Feature Specification: Khôi Phục Bước 2 Tải Bill Dự Phòng & Chuyển Bước Không Bị Chặn (Spec 023)
 - BMIData
 - BaseNumber
@@ -92,7 +92,7 @@
 - **<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**
 - **<mark>Phân Tích Phê Bình về SDD</mark>**
 - Matrix
-- clone
+- copy
 - bt
 - FeastOrderView
 - **<mark>Multi-Agent & Orchestration</mark>**
@@ -112,7 +112,7 @@
 - **<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**
 - Feature Specification: Coursera License Lifecycle & Re-order Management (Spec 019)
 - next.config.mjs
-- N
+- .constructor
 - Tasks: [FEATURE NAME]
 - Key Design Improvements
 - react
@@ -180,7 +180,7 @@
 - Customer
 - .eslintrc.json
 - 3. User Scenarios & Acceptance Criteria
-- equals
+- ic
 - LinearSearch
 - update-lab211-14bai.js
 - seed-tool-coursera.js
@@ -191,11 +191,12 @@
 - FeastOrderController
 - Feature Specification: Tool edX IOT102 (FPTU Bonus) — Product Data & Deliverables Vault Integration (Spec 012)
 - lab211/manifest.json
+- .toArray
 - ee
 - Feature Specification: Fix Product Matching Collision & LAB211 Deliverable ZIP Download
 - co
 - .toDetailString
-- copy
+- .multiplyScalar
 - StudentCourseController
 - InputValidator
 - InputValidator
@@ -206,12 +207,20 @@
 - mammoth-browser.d.ts
 - useStore
 - Feature Specification: LAB211 Campus HCM PDF Assignment Document Viewer & Safe Delivery (Spec 029)
-- _s
+- dispose
 - tailwindcss
 - HeroCanvas.tsx
 - fc
-- _l
+- Rt
+- .setFromMatrixPosition
+- .updateProjectionMatrix
+- Feature Specification: Payment Proof Fallback & Upload Auth Hardening
+- Eo
 - tasks.md
+- oo
+- bo
+- Mo
+- Do
 
 ## God Nodes (most connected - your core abstractions)
 1. `copy()` - 132 edges
@@ -240,67 +249,63 @@
 ## Import Cycles
 - None detected.
 
-## Communities (213 total, 65 thin omitted)
+## Communities (221 total, 67 thin omitted)
 
 ### Community 0 - "three.min.js"
 Cohesion: 0.03
-Nodes (42): Ar(), br(), containsPoint(), Cr(), Ct(), Do, dr(), Er() (+34 more)
+Nodes (41): Ar(), br(), containsPoint(), Cr(), Ct(), dr(), Er(), fh() (+33 more)
 
 ### Community 1 - "uh"
-Cohesion: 0.10
-Nodes (3): _lendControlInterpolant(), stopAllAction(), uh
+Cohesion: 0.07
+Nodes (5): _lendControlInterpolant(), stopAllAction(), uh, xl, yl
 
 ### Community 2 - "he"
-Cohesion: 0.09
-Nodes (4): expandByPoint(), he, makeEmpty(), setFromPoints()
+Cohesion: 0.07
+Nodes (9): expandByPoint(), expandByScalar(), getCenter(), getSize(), he, isEmpty(), makeEmpty(), setFromPoints() (+1 more)
 
 ### Community 3 - "Specification Quality Checklist: 028-require-auth-before-checkout"
 Cohesion: 0.11
 Nodes (17): Content Quality, Feature Readiness, Notes, Requirement Completeness, Specification Quality Checklist: 028-require-auth-before-checkout, Assumptions, Edge Cases, Feature Specification: 028-require-auth-before-checkout (+9 more)
-
-### Community 4 - "updateMatrixWorld"
-Cohesion: 0.07
-Nodes (7): Ca, Ce, expandByScalar(), getCenter(), getSize(), isEmpty(), updateMatrixWorld()
 
 ### Community 6 - "pageTypography.ts"
 Cohesion: 0.07
 Nodes (35): LandingPageFrame(), LandingPageFrameProps, LandingPageProps, TypographyPage(), BESTSELLERS_TYPOGRAPHY, COMPLETE_SHELF_TYPOGRAPHY, KAGE_TYPOGRAPHY, n() (+27 more)
 
 ### Community 9 - "Zt"
-Cohesion: 0.07
-Nodes (7): Ft(), Tt(), wt(), kt(), Xt(), Yt(), Zt
+Cohesion: 0.06
+Nodes (8): Ft(), Tt(), wt(), kt(), _s(), Xt(), Yt(), Zt
 
-### Community 10 - ".constructor"
-Cohesion: 0.12
-Nodes (3): no, a(), xa
-
-### Community 12 - "li"
-Cohesion: 0.04
-Nodes (9): ba, hs(), At(), li, parseObject(), remove(), setFromCamera(), sn (+1 more)
+### Community 10 - ".setAttribute"
+Cohesion: 0.09
+Nodes (8): Ci, el(), p(), Io, v(), Ja, a(), v()
 
 ### Community 13 - "SPEC-015: Security Hardening — Admin RBAC & Anti-Price-Tampering"
 Cohesion: 0.11
 Nodes (18): 1. TỔNG QUAN (OVERVIEW), 2. USER STORIES & ACCEPTANCE CRITERIA, 3.1. API Endpoints, 3.1. API Endpoints, 3. THIẾT KẾ KỸ THUẬT (TECHNICAL SPECIFICATION), 3. THIẾT KẾ KỸ THUẬT (TECHNICAL SPECIFICATION), 4. CHECKLIST TRIỂN KHAI (DEFINITION OF DONE), `GET /api/admin/users` (+10 more)
 
 ### Community 14 - "Mi"
-Cohesion: 0.07
-Nodes (8): bi, fl(), Ga, Mi, ol(), ra, us(), zl
+Cohesion: 0.03
+Nodes (25): al(), bi, cl(), dl(), fl(), Ga, hl(), Ho() (+17 more)
 
 ### Community 15 - "setValue"
-Cohesion: 0.12
-Nodes (9): bind(), getValue(), is(), jl(), ns(), rs, setValue(), ts (+1 more)
+Cohesion: 0.16
+Nodes (7): bind(), getValue(), is(), ns(), rs, setValue(), ts
 
-### Community 16 - "Ue"
+### Community 17 - "$c"
+Cohesion: 0.08
+Nodes (5): $c, getInput(), getOutput(), qc, Xc()
+
+### Community 18 - "ae"
 Cohesion: 0.05
-Nodes (4): _a(), ka, Ue, B()
+Nodes (3): ae, St(), Xe
 
 ### Community 19 - "kn"
-Cohesion: 0.06
-Nodes (25): f(), dispose(), getParameter(), Gn(), hn, Ji, jn(), kn (+17 more)
+Cohesion: 0.11
+Nodes (10): cn, getParameter(), hn, Ji, jn(), kn, qn(), rn (+2 more)
 
 ### Community 20 - "load"
-Cohesion: 0.07
-Nodes (19): bindSkeletons(), hc, lc, load(), loadAsync(), mc, nc, Oc (+11 more)
+Cohesion: 0.12
+Nodes (9): hc, load(), loadAsync(), mc, Oc, parseImages(), parseImagesAsync(), pc (+1 more)
 
 ### Community 21 - "store.tsx"
 Cohesion: 0.15
@@ -326,37 +331,49 @@ Nodes (25): name, private, version, adm-zip, autoprefixer, canvas-confetti, clsx
 Cohesion: 0.13
 Nodes (12): lucide-react, inter, jetbrainsMono, metadata, AuthModal(), Footer(), TopNav(), LAB_DEMOS (+4 more)
 
-### Community 30 - "nl"
-Cohesion: 0.09
-Nodes (8): il(), ll(), nl(), _o, rl(), sl(), xo(), yo
+### Community 30 - "parseObject"
+Cohesion: 0.10
+Nodes (13): bindSkeletons(), fo, nc, parse(), parseAnimations(), parseAsync(), parseGeometries(), parseMaterials() (+5 more)
 
-### Community 34 - "an"
-Cohesion: 0.06
-Nodes (7): ac(), an, bs, Cc, Pn, vs(), yc
+### Community 31 - "mn"
+Cohesion: 0.09
+Nodes (3): distanceToPoint(), mn, vn
+
+### Community 32 - "an"
+Cohesion: 0.10
+Nodes (9): an, y(), Dh(), en(), f(), update(), vs(), t() (+1 more)
+
+### Community 34 - "bs"
+Cohesion: 0.10
+Nodes (6): bs, Cc, G(), ws(), yc, Ye
 
 ### Community 35 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, downlevelIteration, esModuleInterop, incremental, isolatedModules, jsx, lib (+11 more)
+
+### Community 36 - "i"
+Cohesion: 0.17
+Nodes (7): _i, c(), i(), toShapes(), e(), xn(), r()
 
 ### Community 37 - "Da"
 Cohesion: 0.21
 Nodes (3): Da, Et(), La
 
 ### Community 39 - "constructor"
-Cohesion: 0.06
-Nodes (53): m(), d(), g(), p(), u(), bl, x(), y() (+45 more)
+Cohesion: 0.10
+Nodes (33): m(), d(), f(), g(), p(), u(), bl, x() (+25 more)
 
-### Community 40 - "dl"
-Cohesion: 0.17
-Nodes (4): dl(), hl(), Ho(), ul()
+### Community 40 - ".raycast"
+Cohesion: 0.11
+Nodes (3): _a(), Ki(), no
 
 ### Community 41 - "Feature Specification: Tool Coursera Multi-Quantity & Bulk License Keygen (Spec 016)"
 Cohesion: 0.14
 Nodes (13): 1. Bối Cảnh & Mục Tiêu Nghiệp Vụ (Context & Business Goals), 2. Rào Chắn Bảo Mật & Phòng Thủ Gian Lận (Security & Anti-Tampering Matrix), 3. Cấu Trúc Lưu Trữ Dữ Liệu & Data Tagging Format, 4.1. `POST /api/orders`, 4.2. `PATCH /api/orders`, 4.3. `POST /api/webhooks/sepay`, 4. API Endpoints Specification, 5.1. Product Detail (`ProductDetailModal.tsx` & `/products/[slug]`) (+5 more)
 
 ### Community 43 - "ks"
-Cohesion: 0.06
-Nodes (40): fs(), G(), j(), V(), X(), Y(), s(), B() (+32 more)
+Cohesion: 0.11
+Nodes (31): fs(), j(), V(), X(), Y(), s(), B(), F() (+23 more)
 
 ### Community 44 - "common.ps1"
 Cohesion: 0.23
@@ -378,6 +395,10 @@ Nodes (17): dependencies, adm-zip, canvas-confetti, clsx, framer-motion, lucide-
 Cohesion: 0.03
 Nodes (77): **5.1.1 Tại sao PRD truyền thống thất bại với AI**, **5.1.2 Độ rõ ràng — Precision và vấn đề Hallucination**, **5.1.3 Spec như Interface — Tách biệt "Cái gì" và "Như thế nào"**, **5.1  Spec là "Giao diện" — Interface giữa Người và Máy**, **5.2.1 Context & Goal — Tại sao trước khi Cái gì**, **5.2.2 Actors & Roles — Ai làm gì với quyền gì**, **5.2.3–5.2.7 Functional, Non-functional, Data, Error, Acceptance**, **5.2.8 Out of Scope — Ranh giới quan trọng nhất** (+69 more)
 
+### Community 51 - "clone"
+Cohesion: 0.12
+Nodes (5): clone(), ec, E(), lc, Qi()
+
 ### Community 52 - "Feature Specification: Admin CRUD Reliability & Atomic Session Updates (Fix 2-Attempt Action Bug)"
 Cohesion: 0.15
 Nodes (12): Assumptions, Edge Cases, Feature Specification: Admin CRUD Reliability & Atomic Session Updates (Fix 2-Attempt Action Bug), Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
@@ -385,10 +406,6 @@ Nodes (12): Assumptions, Edge Cases, Feature Specification: Admin CRUD Reliabili
 ### Community 53 - "Feature Specification: Hiển Thị Tên Thật Khách Hàng Trong Quản Trị Đơn Hàng (Admin Orders)"
 Cohesion: 0.15
 Nodes (12): Assumptions, Edge Cases, Feature Specification: Hiển Thị Tên Thật Khách Hàng Trong Quản Trị Đơn Hàng (Admin Orders), Functional Requirements, Key Entities, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
-
-### Community 54 - "ao"
-Cohesion: 0.08
-Nodes (4): ao, bo, Eo, Mo
 
 ### Community 55 - "**<mark>Specification Patterns Nâng Cao</mark>**"
 Cohesion: 0.03
@@ -411,8 +428,8 @@ Cohesion: 0.17
 Nodes (12): devDependencies, autoprefixer, eslint, eslint-config-next, postcss, tailwindcss, @types/canvas-confetti, @types/node (+4 more)
 
 ### Community 61 - "zi"
-Cohesion: 0.07
-Nodes (11): applyMatrix4(), Dt(), Ki(), ln, c(), Po, ro(), tl() (+3 more)
+Cohesion: 0.09
+Nodes (10): applyMatrix4(), Dt(), ln, c(), Po, tl(), translate(), union() (+2 more)
 
 ### Community 62 - "**<mark>SDD Workflow</mark>**"
 Cohesion: 0.03
@@ -433,6 +450,10 @@ Nodes (9): 1. User Scenarios & Testing *(mandatory)*, 2. Requirements & Function
 ### Community 66 - "**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**"
 Cohesion: 0.03
 Nodes (59): **2.1 Từ “Code Writer” Đến “Outcome Engineer”**, **2.2  T-Shape Developer Trong Kỷ Nguyên AI**, **2.3 Cognitive Load Và “Context As Infrastructure”**, **2.4 Debugging & Verification — Kỹ Năng Sống Còn**, **2.5 Ethical Considerations: Trách Nhiệm & Bảo Mật**, 🎯 **Bài học cốt lõi từ Case Study**, 🛠 **Bài tập: Ma Trận Tự Đánh Giá Kỹ Năng (Skill Matrix)**, **Bảng 2.1: Ma trận tự đánh giá kỹ năng cho AI-Augmented Developer** (+51 more)
+
+### Community 67 - "updateMatrixWorld"
+Cohesion: 0.13
+Nodes (3): Ca, sn, updateMatrixWorld()
 
 ### Community 68 - "Feature Specification: Khôi Phục Bước 2 Tải Bill Dự Phòng & Chuyển Bước Không Bị Chặn (Spec 023)"
 Cohesion: 0.29
@@ -466,9 +487,9 @@ Nodes (51): **8.1.1 Reproducibility — Kết quả nhất quán từ cùng mộ
 Cohesion: 0.13
 Nodes (5): InputValidator, Main, Matrix, MatrixController, MatrixView
 
-### Community 76 - "clone"
-Cohesion: 0.10
-Nodes (3): clone(), wl, t()
+### Community 76 - "copy"
+Cohesion: 0.12
+Nodes (3): clampPoint(), copy(), ph
 
 ### Community 77 - "bt"
 Cohesion: 0.10
@@ -507,8 +528,8 @@ Cohesion: 0.20
 Nodes (9): 1. BỐI CẢNH & VẤN ĐỀ (PROBLEM STATEMENT), 2. USER STORIES & ACCEPTANCE CRITERIA, 3.1. API Polling Endpoint, 3.2. State Machine trong CheckoutModal, 3. THIẾT KẾ KỸ THUẬT (TECHNICAL DESIGN), 4. KIỂM THỬ & BẢO ĐẬM NGHIỆP VỤ, Acceptance Criteria:, SPEC-017: Checkout Auto-Polling & Instant Order Activation (+1 more)
 
 ### Community 90 - "Ti"
-Cohesion: 0.07
-Nodes (4): Ai, Ei, Rt(), Ti
+Cohesion: 0.11
+Nodes (3): Ai, Ei, Ti
 
 ### Community 91 - "Account"
 Cohesion: 0.12
@@ -526,9 +547,9 @@ Nodes (29): **1.1 Từ Waterfall đến Agile: Nửa Thế Kỷ Cô Đặc**, **
 Cohesion: 0.20
 Nodes (9): 1.1 Vấn Đề, 1. Bối Cảnh & Mục Tiêu Nghiệp Vụ (Context & Business Goals), 2. Yêu Cầu Chức Năng Chi Tiết (Functional Requirements), 3. Ràng Buộc Kỹ Thuật & An Toàn (Technical & Safety Constraints), 4. Acceptance Criteria (Tiêu Chuẩn Chấp Thuận), Feature Specification: Coursera License Lifecycle & Re-order Management (Spec 019), FR-001: Loại Bỏ Chế Độ "Đã Sở Hữu" Cho Sản Phẩm Tool, FR-002: Trạng Thái Hết Hạn Trực Quan (Badge Đỏ Khi Hết Hạn) (+1 more)
 
-### Community 96 - "N"
-Cohesion: 0.40
-Nodes (5): disconnect(), getOutput(), D(), N(), O()
+### Community 96 - ".constructor"
+Cohesion: 0.08
+Nodes (9): disconnect(), Gn(), ne, ta, vt, xs(), D(), N() (+1 more)
 
 ### Community 97 - "Tasks: [FEATURE NAME]"
 Cohesion: 0.07
@@ -551,7 +572,7 @@ Cohesion: 0.08
 Nodes (25): 1. Modern Design System, 1. Navigation System (TopNav.tsx), 2. Color Palette Strategy, 2. Homepage Redesign (HomePage.tsx), 3. Layout System (App.tsx), 3. Typography System, 4. Interactive Elements, 5. Advanced Visual Features (+17 more)
 
 ### Community 107 - "nh"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (19): _activateAction(), _addInactiveAction(), _addInactiveBinding(), _bindAction(), clipAction(), _deactivateAction(), existingAction(), _isActiveAction() (+11 more)
 
 ### Community 108 - "Level: Standard (hoặc Full / Light tùy độ phức tạp)"
@@ -739,8 +760,8 @@ Cohesion: 0.50
 Nodes (3): QUY TRÌNH BẮT BUỘC (TUÂN THỦ THEO ĐÚNG THỨ TỰ):, Rule: Spec-First Mandatory Workflow & Git Auto-Push, ĐIỀU CẤM KỴ TUYỆT ĐỐI:
 
 ### Community 169 - "toJSON"
-Cohesion: 0.05
-Nodes (12): al(), dc, fo, gl, r(), setColors(), so, To (+4 more)
+Cohesion: 0.07
+Nodes (9): gl, go(), r(), ml(), l(), pl, To, toJSON() (+1 more)
 
 ### Community 170 - "coursera-keygen.ts"
 Cohesion: 0.19
@@ -766,9 +787,9 @@ Nodes (5): extends, rules, @next/next/no-img-element, react/no-unescaped-entitie
 Cohesion: 0.17
 Nodes (11): 1. Context & Business Goal, 2. Actors & Roles, 3. User Scenarios & Acceptance Criteria, 4. Functional Requirements (EARS), 5. Security & Verification Matrix, Feature Specification: Complete Order CRUD, SePay Automation & Anti-Hack Security (Spec 011), Scenario 1 — Khách Hàng Thanh Toán VietQR BIDV VA & Nộp Biên Lai Bắt Buộc, Scenario 2 — Hoàn Tất Thanh Toán Tự Động Qua SePay (Auto-Approval Flow) (+3 more)
 
-### Community 178 - "equals"
-Cohesion: 0.12
-Nodes (3): equals(), go(), ml()
+### Community 178 - "ic"
+Cohesion: 0.11
+Nodes (3): equals(), ic, l()
 
 ### Community 180 - "update-lab211-14bai.js"
 Cohesion: 0.17
@@ -790,25 +811,29 @@ Nodes (7): 1. Context & Business Goal, 2. Product Schema & Metadata, 3. UI/UX Fl
 Cohesion: 0.29
 Nodes (6): labs, packageId, ruleMarkdown, title, totalLabs, updatedAt
 
+### Community 189 - ".toArray"
+Cohesion: 0.12
+Nodes (5): ac(), jl(), ka, setColors(), wh()
+
 ### Community 190 - "ee"
 Cohesion: 0.10
-Nodes (6): cn, ee, parseTextures(), qs, re, se
+Nodes (6): ee, qs, re, se, so, vo()
 
 ### Community 191 - "Feature Specification: Fix Product Matching Collision & LAB211 Deliverable ZIP Download"
 Cohesion: 0.18
 Nodes (10): Edge Cases, Feature Specification: Fix Product Matching Collision & LAB211 Deliverable ZIP Download, Functional Requirements, Key Entities & Data Models, Requirements *(mandatory)*, Success Criteria *(mandatory)*, User Scenarios & Testing *(mandatory)*, User Story 1 - Exact Product Title Resolution in Orders (Priority: P1) (+2 more)
 
 ### Community 192 - "co"
-Cohesion: 0.11
-Nodes (5): co(), lineTo(), lo, moveTo(), oo
+Cohesion: 0.17
+Nodes (3): co(), lineTo(), moveTo()
 
 ### Community 193 - ".toDetailString"
 Cohesion: 0.28
 Nodes (3): Override, Override, Override
 
-### Community 194 - "copy"
-Cohesion: 0.05
-Nodes (19): add(), At(), clampPoint(), closestPointToPoint(), closestPointToPointParameter(), copy(), delta(), distanceToPoint() (+11 more)
+### Community 194 - ".multiplyScalar"
+Cohesion: 0.09
+Nodes (8): add(), At(), closestPointToPoint(), closestPointToPointParameter(), delta(), setDirection(), setFromCenterAndSize(), w()
 
 ### Community 199 - "scripts"
 Cohesion: 0.40
@@ -830,29 +855,37 @@ Nodes (26): AdminLayout(), AdminDashboardPage(), ChartTimeframe, getCustomerAvat
 Cohesion: 0.22
 Nodes (8): 1. User Scenarios & Testing *(mandatory)*, 2. Requirements & Functional Specifications, 3. Key Entities & Data Mapping, 4. Success Criteria, Feature Specification: LAB211 Campus HCM PDF Assignment Document Viewer & Safe Delivery (Spec 029), User Story 1 - Xem Đề Bài PDF Chuẩn Xác Trong Modal Bàn Giao Campus HCM (Priority: P1), User Story 2 - Chuẩn Hóa Nhãn UI & Nút Tải Đề Bài PDF (Priority: P2), User Story 3 - Hỗ Trợ Endpoint Download Cho Loại File PDF (Priority: P3)
 
+### Community 205 - "dispose"
+Cohesion: 0.15
+Nodes (15): dispose(), At(), Nt(), Ot(), B(), j(), W(), n() (+7 more)
+
 ### Community 208 - "fc"
-Cohesion: 0.13
-Nodes (4): bc, fc, gc, rc
+Cohesion: 0.10
+Nodes (5): bc, dc, fc, gc, rc
+
+### Community 212 - "Feature Specification: Payment Proof Fallback & Upload Auth Hardening"
+Cohesion: 0.15
+Nodes (12): Assumptions, Edge Cases, Feature Specification: Payment Proof Fallback & Upload Auth Hardening, Functional Requirements, Key Entities *(include if feature involves data)*, Measurable Outcomes, Requirements *(mandatory)*, Success Criteria *(mandatory)* (+4 more)
 
 ## Knowledge Gaps
-- **1565 isolated node(s):** `extends`, `next/core-web-vitals`, `react/no-unescaped-entities`, `@next/next/no-img-element`, `nextConfig` (+1560 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2471 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **65 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1573 isolated node(s):** `extends`, `next/core-web-vitals`, `react/no-unescaped-entities`, `@next/next/no-img-element`, `nextConfig` (+1568 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2480 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **67 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `e()` connect `constructor` to `an`, `copy`, `_i`, `toJSON`, `ks`, `load`, `update-lab211-14bai.js`, `sc`?**
+- **Why does `e()` connect `i` to `an`, `constructor`, `toJSON`, `ks`, `fc`, `load`, `update-lab211-14bai.js`, `sc`, `.toArray`, `parseObject`?**
   _High betweenness centrality (0.052) - this node is a cross-community bridge._
 - **Why does `@supabase/supabase-js` connect `seed-tool-coursera.js` to `react`, `coursera-keygen.ts`, `getAuthenticatedUser`, `update-lab211-14bai.js`, `seed-tool-edx.js`, `package.json`?**
   _High betweenness centrality (0.052) - this node is a cross-community bridge._
 - **Why does `**LỜI MỞ ĐẦU**` connect `**LỜI MỞ ĐẦU**` to `**Mô Hình Tư Duy Mới** **<mark>Developer Như “Kiến Trúc Sư + Nhạc Trưởng”</mark>**`, `**<mark>AI Agent Thực Sự Là Gì?</mark>**`, `**<mark>Hệ Sinh Thái Công Cụ AI Coding Bản Đồ Toàn Cảnh</mark>**`, `**<mark>Phân Tích Phê Bình về SDD</mark>**`, `**<mark>Multi-Agent & Orchestration</mark>**`, `**<mark>Các Tiêu Chuẩn Mở</mark>**`, `**<mark>Hybrid Framework</mark>**`, `**<mark>Executable Specification</mark>**`, `**<mark>Templates, Checklists & Quick References</mark>**`, `**<mark>Roadmap 15 Tuần Áp Dụng Cho Đồ Án SE</mark>**`, `**<mark>Specification Patterns Nâng Cao</mark>**`, `**<mark>Agent-Driven Workflow</mark>**`, `**<mark>Phân Tích Phê Bình về ADD Ưu, Nhược và Ranh Giới</mark>**`, `**<mark>Lịch Sử Tiến Hóa Của Phương Pháp Phát Triển Phần Mềm</mark>**`, `**<mark>SDD Workflow</mark>**`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `extends`, `next/core-web-vitals`, `react/no-unescaped-entities` to the rest of the system?**
-  _1565 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1573 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `three.min.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.028192681105302465 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.028926422053970103 - nodes in this community are weakly interconnected._
 - **Should `uh` be split into smaller, more focused modules?**
-  _Cohesion score 0.10344827586206896 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06567992599444958 - nodes in this community are weakly interconnected._
 - **Should `he` be split into smaller, more focused modules?**
-  _Cohesion score 0.08923076923076922 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06882591093117409 - nodes in this community are weakly interconnected._
