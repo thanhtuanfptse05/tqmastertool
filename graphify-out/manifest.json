@@ -1176,15 +1176,15 @@
     "semantic_hash": ""
   },
   "src/components/store/LabDeliverableModal.tsx": {
-    "mtime": 1790225593.5730586,
-    "seen": 1790225769.245847,
-    "ast_hash": "3da2ac5a65337c47cab92348830dd898",
+    "mtime": 1790227505.5275326,
+    "seen": 1790227611.748412,
+    "ast_hash": "bbda06ead9dc97b25098572c3fb0165e",
     "semantic_hash": ""
   },
   "src/components/store/LabDocViewer.tsx": {
-    "mtime": 1790014712.6205368,
-    "seen": 1790225769.2458496,
-    "ast_hash": "c025cd648382a9fd6e0d14e7d2931070",
+    "mtime": 1790227492.5683503,
+    "seen": 1790227611.7484164,
+    "ast_hash": "60abbac3a42d5e14cbf18de58cc50422",
     "semantic_hash": ""
   },
   "src/components/store/NetBeansConsoleSimulator.tsx": {
@@ -1224,9 +1224,9 @@
     "semantic_hash": ""
   },
   "src/lib/lab-parser.ts": {
-    "mtime": 1790014602.9564984,
-    "seen": 1790225769.2458673,
-    "ast_hash": "bc78283af89a28f914890714c80de171",
+    "mtime": 1790227427.1259468,
+    "seen": 1790227611.7497947,
+    "ast_hash": "04813dd5517d472062d850d29aa0e13b",
     "semantic_hash": ""
   },
   "src/types/mammoth-browser.d.ts": {
@@ -1664,6 +1664,96 @@
     "mtime": 1790226009.3482664,
     "seen": 1790226560.7708368,
     "ast_hash": "5de55604f1ba9c43b7c50543029e1789",
+    "semantic_hash": ""
+  },
+  "specs/031-lab211-word-assignment-native-viewer/spec.md": {
+    "mtime": 1790227326.333045,
+    "seen": 1790227611.765333,
+    "ast_hash": "6c9a511b6a558914f5d5772bc07eb038",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.L.P0021.pdf": {
+    "mtime": 1790227379.2043545,
+    "seen": 1790227611.766005,
+    "ast_hash": "b3943846dbe9392a7457e4ca6b1e8fe5",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.L.P0022.pdf": {
+    "mtime": 1790227379.702212,
+    "seen": 1790227611.766008,
+    "ast_hash": "7bcced6897e457b71e6a55b376080e9c",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.L.P0023 - FRUIT.pdf": {
+    "mtime": 1790227380.048942,
+    "seen": 1790227611.7660103,
+    "ast_hash": "7a7e87740867e6318ef2b27257e25db2",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0006 - BinarySearch.pdf": {
+    "mtime": 1790227380.4357698,
+    "seen": 1790227611.766341,
+    "ast_hash": "77610ec642ff11682644216628380a6b",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0009.Fibonacci.pdf": {
+    "mtime": 1790227380.8545294,
+    "seen": 1790227611.7663436,
+    "ast_hash": "98c0b623717cd068bc0c8f5c09f7f67a",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0010 - Linear Search.pdf": {
+    "mtime": 1790227381.1006355,
+    "seen": 1790227611.7663457,
+    "ast_hash": "9faa501ab3988673d3a69b3d5836a7c8",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0011 - Convert Base.pdf": {
+    "mtime": 1790227381.8984969,
+    "seen": 1790227611.7663486,
+    "ast_hash": "5fd66a9278cae0742c88b427fc9e93cb",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0051 - BMI.pdf": {
+    "mtime": 1790227382.7985034,
+    "seen": 1790227611.7663517,
+    "ast_hash": "fd3febaada424bac488650f00562b75b",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0056 - Worker.pdf": {
+    "mtime": 1790227383.6548114,
+    "seen": 1790227611.7663536,
+    "ast_hash": "ac1a6441d3503162e823c6728774cb4f",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0057 - User Management.pdf": {
+    "mtime": 1790227384.399948,
+    "seen": 1790227611.7663558,
+    "ast_hash": "6bf5b915e00c0b4f71faae1ffa6c7d34",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0061 - Shape.pdf": {
+    "mtime": 1790227385.2234046,
+    "seen": 1790227611.7663584,
+    "ast_hash": "5ad92ed0db22b0646ced9934848d14fe",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0070.pdf": {
+    "mtime": 1790227386.6674876,
+    "seen": 1790227611.76636,
+    "ast_hash": "415abb59c13986ae66e602bcb30d2bd6",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0071- TASK MANAGEMENT.pdf": {
+    "mtime": 1790227387.758507,
+    "seen": 1790227611.7663622,
+    "ast_hash": "d33e08dbacf4da6bfca367f6621bdead",
+    "semantic_hash": ""
+  },
+  "private_deliverables/lab211/pdf/J1.S.P0074.pdf": {
+    "mtime": 1790227388.244622,
+    "seen": 1790227611.7663643,
+    "ast_hash": "5be99986e2dc10d91ff83562496478f6",
     "semantic_hash": ""
   }
 }
