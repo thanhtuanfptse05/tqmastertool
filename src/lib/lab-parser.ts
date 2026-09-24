@@ -45,25 +45,58 @@ export function getLabAssetPhysicalPath(
   const baseDir = path.resolve(process.cwd(), "private_deliverables", "lab211");
 
   if (type === "docx" || type === "pdf") {
-    const isPdf = lab.docxFileName?.toLowerCase().endsWith(".pdf");
-    const pdfPath = path.join(baseDir, "pdf", lab.docxFileName);
-    const docxPath = path.join(baseDir, "docx", lab.docxFileName);
+    const pdfDir = path.join(baseDir, "pdf");
+    const docxDir = path.join(baseDir, "docx");
 
-    let targetPath = "";
-    if (fs.existsSync(pdfPath)) {
-      targetPath = pdfPath;
-    } else if (fs.existsSync(docxPath)) {
-      targetPath = docxPath;
+    const baseName = lab.docxFileName
+      ? lab.docxFileName.replace(/\.(docx|pdf)$/i, "")
+      : lab.code;
+
+    // Potential PDF names
+    const pdfCandidateNames = [
+      `${baseName}.pdf`,
+      lab.docxFileName?.toLowerCase().endsWith(".pdf") ? lab.docxFileName : null,
+      `${lab.code}.pdf`,
+    ].filter(Boolean) as string[];
+
+    // Potential DOCX names
+    const docxCandidateNames = [
+      `${baseName}.docx`,
+      lab.docxFileName?.toLowerCase().endsWith(".docx") ? lab.docxFileName : null,
+      `${lab.code}.docx`,
+    ].filter(Boolean) as string[];
+
+    if (type === "pdf") {
+      for (const name of pdfCandidateNames) {
+        const p1 = path.join(pdfDir, name);
+        if (fs.existsSync(p1)) {
+          return { filePath: p1, fileName: name, contentType: "application/pdf" };
+        }
+        const p2 = path.join(docxDir, name);
+        if (fs.existsSync(p2)) {
+          return { filePath: p2, fileName: name, contentType: "application/pdf" };
+        }
+      }
     }
 
-    if (targetPath) {
-      return {
-        filePath: targetPath,
-        fileName: lab.docxFileName,
-        contentType: isPdf
-          ? "application/pdf"
-          : "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      };
+    if (type === "docx") {
+      for (const name of docxCandidateNames) {
+        const p = path.join(docxDir, name);
+        if (fs.existsSync(p)) {
+          return {
+            filePath: p,
+            fileName: name,
+            contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          };
+        }
+      }
+      // Fallback: If no docx exists (e.g. HCM campus is pdf only), fallback to pdf
+      for (const name of pdfCandidateNames) {
+        const p1 = path.join(pdfDir, name);
+        if (fs.existsSync(p1)) {
+          return { filePath: p1, fileName: name, contentType: "application/pdf" };
+        }
+      }
     }
   }
 
