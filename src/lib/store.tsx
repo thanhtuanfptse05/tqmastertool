@@ -38,7 +38,7 @@ interface StoreContextType {
   adminResetPassword: (userId: string, newPassword?: string) => Promise<boolean>;
   adminUpdateRole: (userId: string, role: UserRole) => Promise<boolean>;
   adminDeleteUser: (userId: string) => Promise<boolean>;
-  refreshUsers: () => Promise<void>;
+  refreshUsers: (force?: boolean) => Promise<void>;
 
   // Products
   products: Product[];
@@ -48,7 +48,7 @@ interface StoreContextType {
   adminUpdateProduct: (id: string, productData: Partial<Product>) => void;
   adminArchiveProduct: (id: string) => void;
   adminDeleteProduct: (id: string) => Promise<boolean>;
-  refreshProducts: () => Promise<void>;
+  refreshProducts: (force?: boolean) => Promise<void>;
 
   // Cart & Checkout
   cart: CartItem[];
@@ -75,7 +75,7 @@ interface StoreContextType {
   adminUpdateOrder: (orderId: string, data: Partial<Order>) => Promise<boolean>;
   cancelOrder: (orderId: string) => Promise<boolean>;
   deleteOrder: (orderId: string) => Promise<boolean>;
-  refreshOrders: () => Promise<void>;
+  refreshOrders: (force?: boolean) => Promise<void>;
 
   // Deliverables Vault
   getCustomerOrders: (userId?: string) => Order[];
@@ -111,6 +111,12 @@ const STORAGE_KEYS = {
 
 // Admin role is strictly governed server-side and checked via profile.role / session token
 
+// Egress protection: Prevent infinite fetch loops during Next.js Fast Refresh
+let lastFetchProductsTs = 0;
+let lastFetchOrdersTs = 0;
+let lastFetchUsersTs = 0;
+const FETCH_THROTTLE_MS = 5000;
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -139,8 +145,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Fetch live products from Supabase database
-  const fetchProductsFromDB = useCallback(async () => {
+  const fetchProductsFromDB = useCallback(async (force = false) => {
     if (!isSupabaseConfigured) return;
+    if (!force && Date.now() - lastFetchProductsTs < FETCH_THROTTLE_MS) return;
+    lastFetchProductsTs = Date.now();
     try {
       const { data, error } = await supabase
         .from("products")
@@ -203,8 +211,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Fetch live orders from Supabase database
-  const fetchOrdersFromDB = useCallback(async () => {
+  const fetchOrdersFromDB = useCallback(async (force = false) => {
     if (!isSupabaseConfigured) return;
+    if (!force && Date.now() - lastFetchOrdersTs < FETCH_THROTTLE_MS) return;
+    lastFetchOrdersTs = Date.now();
     try {
       const { data, error } = await supabase
         .from("orders")
@@ -405,8 +415,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Fetch live users from Supabase database (Admin only)
-  const fetchUsersFromDB = useCallback(async () => {
+  const fetchUsersFromDB = useCallback(async (force = false) => {
     if (!isSupabaseConfigured) return;
+    if (!force && Date.now() - lastFetchUsersTs < FETCH_THROTTLE_MS) return;
+    lastFetchUsersTs = Date.now();
     try {
       const headers = await getAuthHeaders();
       if (!headers["Authorization"]) return;
@@ -591,7 +603,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
                   fetchUsersFromDB();
                 }
               }
-              fetchOrdersFromDB();
+              fetchOrdersFromDB(true);
             });
         } else if (event === "SIGNED_OUT") {
           setCurrentUser(null);
@@ -687,7 +699,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(false);
 
     // Sync user's real orders and database data
-    fetchOrdersFromDB();
+    fetchOrdersFromDB(true);
     if (dbRole === "admin") {
       fetchUsersFromDB();
     }
@@ -765,7 +777,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     persist(STORAGE_KEYS.USER, userToSet);
     setIsAuthModalOpen(false);
 
-    fetchOrdersFromDB();
+    fetchOrdersFromDB(true);
     if (dbRole === "admin") {
       fetchUsersFromDB();
     }
@@ -1553,7 +1565,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshOrders = async () => {
-    await fetchOrdersFromDB();
+    await fetchOrdersFromDB(true);
   };
 
   // Deliverables Vault
