@@ -56,19 +56,27 @@ export default function CustomerOrdersPage() {
     ? orders.filter((o) => o.user_id === currentUser.id || o.user_email === currentUser.email)
     : orders;
 
-  // Auto-refresh orders if there are pending orders
+  const hasPendingOrders = userOrders.some(
+    (o) => o.status === "pending_payment" || o.status === "pending_approval"
+  );
+
+  // Auto-refresh orders: Giới hạn tối đa 3 lần với chu kỳ 15s để chống tràn request Supabase (Spec 034)
   React.useEffect(() => {
-    const hasPending = userOrders.some(
-      (o) => o.status === "pending_payment" || o.status === "pending_approval"
-    );
-    if (!hasPending) return;
+    if (!hasPendingOrders) return;
+
+    let pollCount = 0;
+    const MAX_POLLS = 3;
 
     const interval = setInterval(() => {
+      pollCount++;
       refreshOrders();
-    }, 6000);
+      if (pollCount >= MAX_POLLS) {
+        clearInterval(interval);
+      }
+    }, 15000);
 
     return () => clearInterval(interval);
-  }, [userOrders, refreshOrders]);
+  }, [hasPendingOrders, refreshOrders]);
 
   const filteredOrders = selectedStatus === "all"
     ? userOrders

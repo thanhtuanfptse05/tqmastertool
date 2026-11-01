@@ -30,8 +30,10 @@ export default function DeliverableVaultPage() {
   const { currentUser, orders, products, refreshOrders } = useStore();
 
   React.useEffect(() => {
-    refreshOrders();
-  }, [refreshOrders]);
+    if (currentUser) {
+      refreshOrders();
+    }
+  }, [currentUser, refreshOrders]);
   const [activeLabModal, setActiveLabModal] = useState<{
     isOpen: boolean;
     orderId: string;

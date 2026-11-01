@@ -105,6 +105,7 @@ const STORAGE_KEYS = {
   USER: "cv_current_user",
   USERS: "cv_users",
   PRODUCTS: "cv_products",
+  PRODUCTS_TS: "cv_products_ts",
   ORDERS: "cv_orders",
   CART: "cv_cart",
 };
@@ -144,10 +145,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Fetch live products from Supabase database
+  // Fetch live products from Supabase database (có client caching 10 phút để giảm tải Supabase Egress)
   const fetchProductsFromDB = useCallback(async (force = false) => {
     if (!isSupabaseConfigured) return;
-    if (!force && Date.now() - lastFetchProductsTs < FETCH_THROTTLE_MS) return;
+
+    // 1. Kiểm tra cache localStorage (TTL 10 phút) nếu không bị force refresh
+    if (!force) {
+      try {
+        const cachedTs = Number(localStorage.getItem(STORAGE_KEYS.PRODUCTS_TS) || "0");
+        const cachedData = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+        if (cachedData && cachedTs && Date.now() - cachedTs < 10 * 60 * 1000) {
+          const parsed = JSON.parse(cachedData);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setProducts(parsed);
+            return;
+          }
+        }
+      } catch {}
+
+      if (Date.now() - lastFetchProductsTs < FETCH_THROTTLE_MS) return;
+    }
     lastFetchProductsTs = Date.now();
     try {
       const { data, error } = await supabase
@@ -204,15 +221,29 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         });
         setProducts(mappedProducts);
         persist(STORAGE_KEYS.PRODUCTS, mappedProducts);
+        try {
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS_TS, String(Date.now()));
+        } catch {}
       }
     } catch (e) {
       console.error("Error fetching products from database:", e);
     }
   }, []);
 
-  // Fetch live orders from Supabase database
+  // Fetch live orders from Supabase database (Auth Gate: Khách vãng lai tuyệt đối không query)
   const fetchOrdersFromDB = useCallback(async (force = false) => {
     if (!isSupabaseConfigured) return;
+
+    // Auth Protection: Chỉ fetch orders khi người dùng đã đăng nhập (Spec 034)
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        return;
+      }
+    } catch {
+      return;
+    }
+
     if (!force && Date.now() - lastFetchOrdersTs < FETCH_THROTTLE_MS) return;
     lastFetchOrdersTs = Date.now();
     try {
@@ -519,14 +550,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (isSupabaseConfigured) {
-      // Chạy song song 3 request thay vì tuần tự → giảm waterfall
+      // Tách biệt luồng dữ liệu chống cạn kiệt Egress Supabase (Spec 034):
+      // 1. Fetch products (đã có client cache 10 phút)
+      // 2. Chỉ fetch orders khi có session đăng nhập hợp lệ
       Promise.all([
         fetchProductsFromDB(),
-        fetchOrdersFromDB(),
         supabase.auth.getSession(),
-      ]).then(([, , { data: { session } }]) => {
+      ]).then(([, { data: { session } }]) => {
         if (!active) return;
         if (session?.user) {
+          // Tải đơn hàng chỉ khi user đã đăng nhập
+          fetchOrdersFromDB();
+
           supabase
             .from("profiles")
             .select("*")

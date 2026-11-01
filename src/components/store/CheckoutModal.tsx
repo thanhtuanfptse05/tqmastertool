@@ -32,6 +32,7 @@ import {
   extractOrderLicenseInfo,
   CourseraLicenseItem,
 } from "@/lib/coursera-keygen";
+import { compressImageFile } from "@/lib/image-compress";
 
 export default function CheckoutModal() {
   const {
@@ -174,8 +175,16 @@ export default function CheckoutModal() {
     setBillUploadError(null);
 
     try {
+      // Tối ưu hóa nén ảnh phía Client: giảm từ 5-10MB xuống <250KB WebP để bảo vệ băng thông Supabase
+      const compressedFile = await compressImageFile(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.8,
+        maxSizeBytes: 250 * 1024,
+      });
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressedFile);
 
       if (activeOrderForPayment?.id) {
         formData.append("orderId", activeOrderForPayment.id);
@@ -211,17 +220,22 @@ export default function CheckoutModal() {
     }
   };
 
-  // AUTO-POLLING (SPEC 017 & SPEC 023): Tự động lắng nghe trạng thái đơn hàng khi khách đang ở màn hình QR hoặc Upload
+  // AUTO-POLLING TỐI ƯU (SPEC 034): Chu kỳ 8 giây, giới hạn tối đa 30 lần (~4 phút), chỉ query cột cần thiết
   React.useEffect(() => {
     if ((step !== "qr" && step !== "upload") || !activeOrderForPayment?.id) return;
 
     let isSubscribed = true;
+    let pollCount = 0;
+    const MAX_POLLS = 30; // Dừng sau 30 lần (~4 phút) để tránh cạn kiệt request quota
 
     const checkStatus = async () => {
+      if (pollCount >= MAX_POLLS) return;
+      pollCount++;
+
       try {
         const { data: latestOrder } = await supabase
           .from("orders")
-          .select("*")
+          .select("id, status, transaction_ref, admin_notes, payment_proof_image")
           .eq("id", activeOrderForPayment.id)
           .maybeSingle();
 
@@ -260,8 +274,8 @@ export default function CheckoutModal() {
       }
     };
 
-    // Kiểm tra định kỳ mỗi 2500ms
-    const interval = setInterval(checkStatus, 2500);
+    // Kiểm tra định kỳ mỗi 8000ms (thay vì 2500ms)
+    const interval = setInterval(checkStatus, 8000);
 
     return () => {
       isSubscribed = false;
@@ -275,7 +289,7 @@ export default function CheckoutModal() {
     try {
       const { data: latestOrder } = await supabase
         .from("orders")
-        .select("*")
+        .select("id, status, transaction_ref, admin_notes, payment_proof_image")
         .eq("id", activeOrderForPayment.id)
         .maybeSingle();
 

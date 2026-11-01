@@ -28,6 +28,7 @@ import {
   Filter,
   Key,
   Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import AdminOrderEditModal from "@/components/store/AdminOrderEditModal";
 import { extractOrderLicenseInfo, parseLicenseKeyDuration } from "@/lib/coursera-keygen";
@@ -337,26 +338,21 @@ export default function AdminOrdersPage() {
                       {formatVND(order.total_amount)}
                     </td>
 
-                    {/* Bill Thumbnail */}
+                    {/* Bill Thumbnail: On-Demand để bảo vệ băng thông Supabase */}
                     <td className="py-4 px-4">
                       {order.payment_proof_image ? (
-                        <div
+                        <button
+                          type="button"
                           onClick={() => {
                             setActiveReviewOrder(order);
                             setIsZoomImageOpen(true);
                           }}
-                          className="w-10 h-10 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity relative group"
-                          title="Bấm để phóng to biên lai"
+                          className="px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50/90 hover:bg-blue-100 text-blue-700 flex items-center gap-1.5 text-[11px] font-bold transition-all shadow-xs group"
+                          title="Bấm để xem ảnh biên lai chuyển khoản"
                         >
-                          <img
-                            src={order.payment_proof_image}
-                            alt="Bill"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 text-white">
-                            <ZoomIn className="w-3.5 h-3.5" />
-                          </div>
-                        </div>
+                          <ImageIcon className="w-3.5 h-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
+                          <span>Xem Bill</span>
+                        </button>
                       ) : (
                         <span className="text-[11px] text-slate-300 italic">Chưa up bill</span>
                       )}

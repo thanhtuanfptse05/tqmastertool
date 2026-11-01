@@ -36,10 +36,12 @@ export default function AdminUsersPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Auto-refresh users from Supabase on mount
+  // Auto-refresh users from Supabase on mount (only for admin)
   useEffect(() => {
-    refreshUsers();
-  }, [refreshUsers]);
+    if (currentUser?.role === "admin") {
+      refreshUsers();
+    }
+  }, [currentUser?.role, refreshUsers]);
 
   const handleManualRefresh = async () => {
     if (isRefreshing) return;

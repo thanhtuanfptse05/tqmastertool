@@ -41,6 +41,7 @@
 | **Phase 32** | **Bắt Buộc Đăng Nhập Trước Khi Mua Hàng (Spec 028)** | SDD Pure | ✅ DONE | `store.tsx`, `CheckoutModal.tsx`, `POST /api/orders` |
 | **Phase 34** | **Gia Cố Toàn Diện An Ninh & Phòng Thủ Lỗ Hổng (Spec 032)** | SDD Pure | ✅ DONE | Anti-IDOR, Crypto Order Codes, HTTP Security Headers, Secret Isolation, RLS Vault |
 | **Phase 35** | **Khắc Phục Lỗi Upload Bill & Tối Ưu Luồng Dự Phòng (Spec 033)** | SDD Pure | ✅ DONE | `upload-proof/route.ts`, `CheckoutModal.tsx`, `OrderDetailModal.tsx`, `store.tsx` |
+| **Phase 36** | **Tối Ưu Hóa Băng Thông & Chống Limit Supabase Free (Spec 034)** | SDD Pure | ✅ DONE | `image-compress.ts`, `upload-proof`, `admin/orders`, `store.tsx`, `customer/orders` |
 
 
 ---

@@ -52,11 +52,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Max 10MB
-    const maxSize = 10 * 1024 * 1024;
+    // Max 3MB (giới hạn bảo vệ băng thông và dung lượng Supabase Storage)
+    const maxSize = 3 * 1024 * 1024;
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: "Dung lượng ảnh biên lai không được vượt quá 10MB" },
+        { error: "Dung lượng ảnh biên lai không được vượt quá 3MB (ảnh đã nén hoặc chụp màn hình thông thường)." },
         { status: 400 }
       );
     }

@@ -1,0 +1,22 @@
+# Tasks: 034-supabase-egress-and-bandwidth-optimization
+
+- [x] **TASK-001**: Tạo utility module nén ảnh phía client `src/lib/image-compress.ts`
+  - Triển khai hàm `compressImageFile` sử dụng HTML5 Canvas
+  - Tự động resize max dimension 1200px, nén sang WebP quality 0.8
+  - Target dung lượng < 250KB trước khi upload
+- [x] **TASK-002**: Tích hợp nén ảnh vào luồng nộp bill và hạ trần file size API
+  - Cập nhật `src/components/store/CheckoutModal.tsx` để nén ảnh trước khi gọi API
+  - Cập nhật `src/app/api/orders/upload-proof/route.ts` giới hạn max size 3MB
+- [x] **TASK-003**: Tối ưu hóa bảng đơn hàng Admin `src/app/admin/orders/page.tsx`
+  - Bỏ thẻ `<img>` load ảnh trực tiếp trong danh sách table
+  - Thay bằng badge/nút xem bill on-demand
+- [x] **TASK-004**: Xóa bỏ polling vô tận và waterfall queries
+  - Cập nhật `src/app/customer/orders/page.tsx`: bỏ `setInterval(6000)` vô tận, thay bằng limited polling có backoff và nút refresh
+  - Cập nhật `src/components/store/CheckoutModal.tsx`: tăng interval lên 8s, giới hạn 30 lần, chỉ select các trường cần thiết
+- [x] **TASK-005**: Tối ưu hóa `StoreProvider` trong `src/lib/store.tsx`
+  - Ngăn chặn khách vãng lai gọi `fetchOrdersFromDB()`
+  - Thêm client cache TTL cho products
+- [x] **TASK-006**: Kiểm tra toàn diện & Build Typecheck
+  - Chạy `npx tsc --noEmit` đạt 0 lỗi
+  - Cập nhật đồ thị `graphify update .`
+- [x] **TASK-007**: Đẩy code lên GitHub remote (`git push origin main`)
