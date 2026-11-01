@@ -110,3 +110,4 @@ Khách vãng lai khi ghé thăm trang chủ `https://codevault.io` không còn b
 - Người dùng truy cập hệ thống bằng các trình duyệt hiện đại có hỗ trợ HTML5 Canvas và định dạng WebP (Chrome, Safari, Edge, Firefox).
 - Giới hạn 2GB Egress/tháng của Supabase Free Tier sẽ được bảo toàn lâu dài sau khi các cơ chế nén và chống polling được áp dụng.
 - Cổng thanh toán SePay Webhook vẫn là kênh xác nhận tự động chính; polling chỉ đóng vai trò đồng bộ trạng thái thứ cấp.
+

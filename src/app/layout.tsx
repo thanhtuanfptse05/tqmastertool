@@ -47,7 +47,7 @@ export default function RootLayout({
     <html lang="vi" className={`scroll-smooth ${inter.variable} ${jetbrainsMono.variable}`}>
       <head>
         {/* Preconnect to Supabase for faster API calls */}
-        <link rel="preconnect" href="https://jdivhxoasnvonxqvwlmu.supabase.co" />
+        <link rel="preconnect" href="https://rxrfddjhlamjksfmhwfc.supabase.co" />
         {/* Preload hero banner to improve LCP */}
         <link
           rel="preload"
