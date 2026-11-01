@@ -1,8 +1,8 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
-const envPath = path.resolve(__dirname, '.env.local');
+const envPath = path.resolve(__dirname, '..', '.env.local');
 const env = fs.readFileSync(envPath, 'utf8');
 const lines = env.split('\n');
 const config = {};
@@ -45,7 +45,7 @@ function buildShortDesc(gv) {
 }
 
 async function uploadZip() {
-  const zipPath = path.resolve(__dirname, 'LAB211.zip');
+  const zipPath = path.resolve(__dirname, '..', 'LAB211.zip');
   if (!fs.existsSync(zipPath)) { console.error('LAB211.zip not found'); return; }
   const buf = fs.readFileSync(zipPath);
   console.log('Uploading LAB211.zip (' + (buf.length/1024).toFixed(1) + ' KB)...');
