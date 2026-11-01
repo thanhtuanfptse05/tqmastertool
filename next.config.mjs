@@ -87,9 +87,19 @@ const nextConfig = {
     ];
   },
 
-  // Experimental features for better performance
+  // Experimental features for better performance & deliverable bundle tracing
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    outputFileTracingIncludes: {
+      "/api/deliverables/lab/download": [
+        "./private_deliverables/**/*",
+        "./LAB211.zip",
+        "./LAB211 campus HCM.zip",
+      ],
+      "/api/deliverables/lab/view": [
+        "./private_deliverables/**/*",
+      ],
+    },
   },
 };
 

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
-      .select("id, status, user_id, order_code, admin_notes, total_amount")
+      .select("id, status, user_id, order_code, admin_notes, total_amount, order_items(product_id, product_title, product_category)")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -96,11 +96,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 1.1 Category Authorization Gate (Spec 018): Verify order contains LAB211 product
-    const { data: orderItems } = await supabaseAdmin
-      .from("order_items")
-      .select("product_id, product_title, product_category")
-      .eq("order_id", order.id);
+    // 1.1 Category Authorization Gate (Spec 018): Sử dụng order_items đã join sẵn (giảm 50% số lượng query)
+    const orderItems: any[] = Array.isArray(order.order_items) ? order.order_items : [];
 
     const hasLab = orderItems?.some((item: any) =>
       item.product_category === "lab211" ||
